@@ -1,0 +1,6 @@
+build/
+mumax5.cpython*.so
+__pycache__
+.pytest_cache
+.vscode
+.ipynb_checkpoints
