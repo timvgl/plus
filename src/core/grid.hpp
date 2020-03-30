@@ -17,6 +17,7 @@ class Grid {
   __device__ __host__ int coo2idx(int3) const;
 
   __host__ friend bool operator==(const Grid& lhs, const Grid& rhs);
+  __host__ friend bool operator!=(const Grid& lhs, const Grid& rhs);
 
  private:
   int3 size_;

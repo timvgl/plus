@@ -6,10 +6,14 @@ add_library(core STATIC
     anisotropy.hpp 
     cudaerror.hpp 
     datatypes.hpp 
+    dynamicequation.hpp
+    dynamicequation.cpp
     effectivefield.hpp 
     effectivefield.cu 
     exchange.hpp 
     exchange.cu 
+    eulerstepper.cpp
+    eulerstepper.hpp
     ferromagnet.cpp 
     ferromagnet.hpp 
     ferromagnetquantity.cpp 
@@ -22,8 +26,12 @@ add_library(core STATIC
     grid.hpp 
     quantity.cpp 
     quantity.hpp 
+    stepper.cpp
+    stepper.hpp
     system.cpp 
     system.hpp 
+    timesolver.cpp
+    timesolver.hpp
     torque.cu 
     torque.hpp 
     variable.hpp

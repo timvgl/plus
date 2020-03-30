@@ -46,3 +46,7 @@ int Grid::coo2idx(int3 coo) const {
 bool operator==(const Grid& lhs, const Grid& rhs) {
   return lhs.origin_ == rhs.origin_ && lhs.origin_ == rhs.origin_;
 }
+
+bool operator!=(const Grid& lhs, const Grid& rhs) {
+  return lhs.origin_ != rhs.origin_ || lhs.origin_ != rhs.origin_;
+}

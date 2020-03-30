@@ -10,6 +10,7 @@ pybind11_add_module(mumax5
     grid.cpp
     main.cpp
     quantity.cpp
+    timesolver.cpp
     variable.cpp
     world.cpp
 )
