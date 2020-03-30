@@ -31,6 +31,11 @@ class TestTimeSolver:
 
         m_mumax5 = magnet.magnetization.get()
 
+        # normalize m_py
+        magnet.magnetization.set(m_py)
+        m_py = magnet.magnetization.get()
+
         relerr = (m_py-m_mumax5)/m_py
-        TOL = 1e-3 # TODO: check why the TOL should be this large
+        print(relerr)
+        TOL = 1e-5  
         assert np.max(relerr) < TOL
