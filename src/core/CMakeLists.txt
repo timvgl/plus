@@ -26,6 +26,8 @@ add_library(core STATIC
     system.hpp 
     torque.cu 
     torque.hpp 
+    variable.hpp
+    variable.cpp
     world.cpp 
     world.hpp
 )

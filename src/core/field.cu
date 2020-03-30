@@ -44,6 +44,12 @@ void Field::setData(real* buffer) {
                             cudaMemcpyHostToDevice));
 }
 
+void Field::copyFrom(const Field* src) {
+  // TODO: throw error if field dimensions mismatch
+  checkCudaError(cudaMemcpy(dataptr_, src->dataptr_, datasize() * sizeof(real),
+                            cudaMemcpyDeviceToDevice));
+}
+
 CuField* Field::cu() const {
   return cuField_;
 }
@@ -96,7 +102,7 @@ __device__ real CuField::cellValue(int3 coo, int comp) const {
 }
 
 __device__ real CuField::cellValue(int comp) const {
-  return cellValue(blockIdx.x * blockDim.x + threadIdx.x);
+  return cellValue(blockIdx.x * blockDim.x + threadIdx.x, comp);
 }
 
 __device__ real3 CuField::cellVector(int idx) const {

@@ -11,6 +11,7 @@
 #include "quantity.hpp"
 #include "system.hpp"
 #include "torque.hpp"
+#include "variable.hpp"
 
 class World;
 
@@ -20,7 +21,7 @@ class Ferromagnet : public System {
   ~Ferromagnet();
   Ferromagnet(Ferromagnet&&) = default;
 
-  Field* magnetization() const;
+  const Variable* magnetization() const;
 
   real3 anisU;
   real msat, ku1, aex, alpha;
@@ -35,7 +36,7 @@ class Ferromagnet : public System {
   Ferromagnet& operator=(const Ferromagnet&);
 
  private:
-  Field* magnetization_;
+  NormalizedVariable magnetization_;
 
   AnisotropyField anisotropyField_;
   ExchangeField exchangeField_;

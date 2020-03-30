@@ -24,3 +24,34 @@ void add(Field* y, real a1, const Field* x1, real a2, const Field* x2) {
 void add(Field* y, const Field* x1, const Field* x2) {
   add(y, 1, x1, 1, x2);
 }
+
+__global__ void k_normalize(CuField* dst, const CuField* src) {
+  if (!dst->cellInGrid())
+    return;
+  int nComp = src->nComponents();
+  real* values = new real[nComp];
+  real norm2 = 0.0;
+  for (int c = 0; c < nComp; c++) {
+    values[c] = src->cellValue(c);
+    norm2 += values[c] * values[c];
+  }
+  real invnorm = rsqrt(norm2);
+  for (int c = 0; c < nComp; c++) {
+    dst->setCellValue(c, values[c] * invnorm);
+  }
+}
+
+void normalized(Field* dst, const Field* src) {
+  // TODO: check field dimensions
+  k_normalize<<<1, dst->grid().ncells()>>>(dst->cu(), src->cu());
+}
+
+std::unique_ptr<Field> normalized(const Field* src) {
+  std::unique_ptr<Field> dst(new Field(src->grid(), src->ncomp()));
+  normalized(dst.get(), src);
+  return dst;
+}
+
+void normalize(Field* f) {
+  normalized(f, f);
+}

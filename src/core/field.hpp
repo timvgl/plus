@@ -19,6 +19,8 @@ class Field {
   void getData(real* buffer) const;
   void setData(real* buffer);
 
+  void copyFrom(const Field*);
+
  private:
   const Grid grid_;
   const int nComponents_;

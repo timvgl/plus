@@ -17,9 +17,12 @@ __global__ void k_anisotropyField(CuField* hField,
 }
 
 void anisotropyField(Field* hField, const Ferromagnet* ferromagnet) {
-  k_anisotropyField<<<1, hField->grid().ncells()>>>(
-      hField->cu(), ferromagnet->magnetization()->cu(), ferromagnet->anisU,
-      ferromagnet->ku1);
+  CuField* h = hField->cu();
+  const CuField* m = ferromagnet->magnetization()->field()->cu();
+  real3 anisU = ferromagnet->anisU;
+  real ku1 = ferromagnet->ku1;
+  int ncells = hField->grid().ncells();
+  k_anisotropyField<<<1, ncells>>>(h, m, anisU, ku1);
 }
 
 void AnisotropyField::evalIn(Field* result) const {

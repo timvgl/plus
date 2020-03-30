@@ -20,8 +20,10 @@ __global__ void k_torque(CuField* torque,
 }
 
 void Torque::evalIn(Field* torque) const {
-  auto h = ferromagnet_->effectiveField()->eval();
-  k_torque<<<1, torque->grid().ncells()>>>(torque->cu(),
-                                           ferromagnet_->magnetization()->cu(),
-                                           h->cu(), ferromagnet_->alpha);
+  CuField * t = torque->cu();
+  CuField * h = ferromagnet_->effectiveField()->eval()->cu();
+  CuField * m = ferromagnet_->magnetization()->field()->cu();
+  real alpha = ferromagnet_->alpha;
+  int ncells = torque->grid().ncells();
+  k_torque<<<1,ncells>>>(t, m, h, alpha);
 }

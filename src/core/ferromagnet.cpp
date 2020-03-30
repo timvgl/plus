@@ -5,16 +5,13 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       anisotropyField_(this),
       exchangeField_(this),
       effectiveField_(this),
-      torque_(this) {
-  magnetization_ = new Field(grid, 3);
-}
+      torque_(this),
+      magnetization_(name + ":magnetization", "", 3, grid) {}
 
-Ferromagnet::~Ferromagnet() {
-  delete magnetization_;
-}
+Ferromagnet::~Ferromagnet() {}
 
-Field* Ferromagnet::magnetization() const {
-  return magnetization_;
+const Variable* Ferromagnet::magnetization() const {
+  return &magnetization_;
 }
 
 const Quantity* Ferromagnet::anisotropyField() const {

@@ -38,7 +38,7 @@ __global__ void k_exchangeField(CuField* hField,
 
 void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {
   k_exchangeField<<<1, hField->grid().ncells()>>>(
-      hField->cu(), ferromagnet->magnetization()->cu(), ferromagnet->aex,
+      hField->cu(), ferromagnet->magnetization()->field()->cu(), ferromagnet->aex,
       ferromagnet->world()->cellsize());
 }
 
