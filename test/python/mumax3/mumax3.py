@@ -7,14 +7,17 @@ import sys
 
 CACHEDIR = sys.path[0] + "/.mumax3_cache"
 
+
 def clear_mumax3_cache():
     shutil.rmtree(CACHEDIR)
+
 
 def remove_white_space(string):
     lines = string.split("\n")
     lines = [line.strip() for line in lines if line.strip() != ""]
     string = "\n".join(lines)
     return string
+
 
 class Mumax3Simulation:
     def __init__(self, script):
@@ -41,13 +44,21 @@ class Mumax3Simulation:
     def run(self):
         if not os.path.exists(CACHEDIR):
             os.makedirs(CACHEDIR)
+
         if os.path.exists(self.outputdir):
             shutil.rmtree(self.outputdir)
+
         with open(self.scriptfile, 'w') as f:
             f.write(self.script)
-        subprocess.run(["mumax3", self.scriptfile])
+
+        subprocess.run(["mumax3", self.scriptfile],
+                       check=True, stdout=open(os.devnull, 'wb'))
+
         subprocess.run(["mumax3-convert", "-numpy",
-                        self.outputdir + "/*.ovf"])
+                        self.outputdir + "/*.ovf"],
+                       check=True, 
+                       stdout=open(os.devnull, 'wb'),
+                       stderr=open(os.devnull, 'wb'))
 
     def get_field(self, fieldname):
         filename = self.outputdir + "/" + fieldname + ".npy"

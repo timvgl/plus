@@ -14,8 +14,16 @@ def fields_equal(result, wanted, reltol=1e-5):
 
 
 class TestMumax3:
+    """ Test the effective fields of mumax5 against mumax3 """
 
     def setup_class(self):
+        """ 1. Creates a magnet with arbitrary material parameters and grid
+            2. Creates a mumax3 simulation with the same parameters
+            3. Copies the magnetization of the mumax3 simulation to the magnet
+
+            The effective fields of the magnet should now match the effective fields
+            of the mumax3 simulation.
+        """
 
         self.world = World((1e-9, 2e-9, 1.5e-9))
         self.magnet = self.world.addFerromagnet("magnet", Grid((6, 4, 5)))
@@ -25,28 +33,18 @@ class TestMumax3:
         self.magnet.anisU = (-0.3, 0, 1.5)
 
         self.mumax3sim = Mumax3Simulation(f"""
-                setcellsize( {self.world.cellsize()[0]},
-                             {self.world.cellsize()[1]},
-                             {self.world.cellsize()[2]})
-
-                setgridsize( {self.magnet.grid().size[0]},
-                             {self.magnet.grid().size[1]},
-                             {self.magnet.grid().size[2]})
-
+                setcellsize{tuple(self.world.cellsize())}
+                setgridsize{tuple(self.magnet.grid().size)}
                 msat = {self.magnet.msat}
                 aex = {self.magnet.aex}
                 ku1 = {self.magnet.ku1}
-                anisU = vector( {self.magnet.anisU[0]},
-                                {self.magnet.anisU[1]},
-                                {self.magnet.anisU[2]} )
-
+                anisU = vector{tuple(self.magnet.anisU)}
                 saveas(m,"m.ovf")
                 saveas(b_exch,"b_exch.ovf")
                 saveas(b_anis,"b_anis.ovf")
             """)
 
-        m = self.mumax3sim.get_field("m")
-        self.magnet.magnetization.set(m)
+        self.magnet.magnetization.set(self.mumax3sim.get_field("m"))
 
     def test_magnetization(self):
         assert fields_equal(result=self.magnet.magnetization.get(),
