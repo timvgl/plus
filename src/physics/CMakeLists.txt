@@ -4,6 +4,8 @@ project(mumax5physics)
 add_library(physics STATIC 
     anisotropy.cu 
     anisotropy.hpp 
+    demag.cpp
+    demag.hpp
     effectivefield.hpp 
     effectivefield.cu 
     exchange.hpp 

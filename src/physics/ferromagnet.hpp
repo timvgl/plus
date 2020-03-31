@@ -8,6 +8,7 @@
 #include "exchange.hpp"
 #include "field.hpp"
 #include "grid.hpp"
+#include "demag.hpp"
 #include "quantity.hpp"
 #include "system.hpp"
 #include "torque.hpp"
@@ -26,6 +27,7 @@ class Ferromagnet : public System {
   real3 anisU;
   real msat, ku1, aex, alpha;
 
+  const Quantity* demagField() const;
   const Quantity* anisotropyField() const;
   const Quantity* exchangeField() const;
   const Quantity* effectiveField() const;
@@ -38,6 +40,7 @@ class Ferromagnet : public System {
  private:
   NormalizedVariable magnetization_;
 
+  DemagField demagField_;
   AnisotropyField anisotropyField_;
   ExchangeField exchangeField_;
   EffectiveField effectiveField_;

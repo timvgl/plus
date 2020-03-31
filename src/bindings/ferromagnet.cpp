@@ -14,6 +14,7 @@ void wrap_ferromagnet(py::module& m) {
         .def_readwrite("ku1", &Ferromagnet::ku1)
         .def_readwrite("anisU", &Ferromagnet::anisU)
         .def_readwrite("aex", &Ferromagnet::aex)
+        .def_property_readonly("demag_field", &Ferromagnet::demagField)
         .def_property_readonly("anisotropy_field", &Ferromagnet::anisotropyField)
         .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
         .def_property_readonly("effective_field", &Ferromagnet::effectiveField)

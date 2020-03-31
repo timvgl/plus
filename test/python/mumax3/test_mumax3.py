@@ -42,6 +42,7 @@ class TestMumax3:
                 saveas(m,"m.ovf")
                 saveas(b_exch,"b_exch.ovf")
                 saveas(b_anis,"b_anis.ovf")
+                saveas(b_demag,"b_demag.ovf")
             """)
 
         self.magnet.magnetization.set(self.mumax3sim.get_field("m"))
@@ -57,3 +58,7 @@ class TestMumax3:
     def test_exchange_field(self):
         assert fields_equal(result=self.magnet.exchange_field.eval(),
                             wanted=self.mumax3sim.get_field("b_exch"))
+
+    def test_demag_field(self):
+        assert fields_equal(result=self.magnet.demag_field.eval(),
+                            wanted=self.mumax3sim.get_field("b_demag"))
