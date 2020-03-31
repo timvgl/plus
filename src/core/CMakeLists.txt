@@ -2,22 +2,12 @@ cmake_minimum_required(VERSION 3.0)
 project(mumax5core)
 
 add_library(core STATIC 
-    anisotropy.cu 
-    anisotropy.hpp 
     cudaerror.hpp 
     datatypes.hpp 
     dynamicequation.hpp
     dynamicequation.cpp
-    effectivefield.hpp 
-    effectivefield.cu 
-    exchange.hpp 
-    exchange.cu 
     eulerstepper.cpp
     eulerstepper.hpp
-    ferromagnet.cpp 
-    ferromagnet.hpp 
-    ferromagnetquantity.cpp 
-    ferromagnetquantity.hpp 
     field.cu 
     field.hpp 
     fieldops.cu 
@@ -28,16 +18,10 @@ add_library(core STATIC
     quantity.hpp 
     stepper.cpp
     stepper.hpp
-    system.cpp 
-    system.hpp 
     timesolver.cpp
     timesolver.hpp
-    torque.cu 
-    torque.hpp 
     variable.hpp
     variable.cpp
-    world.cpp 
-    world.hpp
 )
 
 target_include_directories(core PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
