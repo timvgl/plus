@@ -17,10 +17,10 @@ class TestMumax3:
 
     def setup_class(self):
 
-        self.world = World((1, 1, 1))
-        self.magnet = self.world.addFerromagnet("magnet", Grid((4, 3, 2)))
+        self.world = World((1e-9, 2e-9, 1.5e-9))
+        self.magnet = self.world.addFerromagnet("magnet", Grid((6, 4, 5)))
         self.magnet.msat = 3.2e5
-        self.magnet.aex = 1.0
+        self.magnet.aex = 3.4
         self.magnet.ku1 = 7.1e6
         self.magnet.anisU = (-0.3, 0, 1.5)
 
@@ -55,3 +55,7 @@ class TestMumax3:
     def test_anisotropy_field(self):
         assert fields_equal(result=self.magnet.anisotropy_field.eval(),
                             wanted=self.mumax3sim.get_field("b_anis"))
+
+    def test_exchange_field(self):
+        assert fields_equal(result=self.magnet.exchange_field.eval(),
+                            wanted=self.mumax3sim.get_field("b_exch"))
