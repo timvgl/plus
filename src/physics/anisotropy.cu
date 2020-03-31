@@ -8,11 +8,13 @@ AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
 __global__ void k_anisotropyField(CuField* hField,
                                   const CuField* mField,
                                   real3 anisU,
-                                  real Ku1) {
+                                  real Ku1,
+                                  real msat) {
   if (!hField->cellInGrid())
     return;
+  real3 u = anisU / norm(anisU);
   real3 m = mField->cellVector();
-  real3 h = Ku1 * anisU * m;
+  real3 h = 2 * Ku1 * dot(m, u) * u / msat;
   hField->setCellVector(h);
 }
 
@@ -21,8 +23,9 @@ void anisotropyField(Field* hField, const Ferromagnet* ferromagnet) {
   const CuField* m = ferromagnet->magnetization()->field()->cu();
   real3 anisU = ferromagnet->anisU;
   real ku1 = ferromagnet->ku1;
+  real msat = ferromagnet->msat;
   int ncells = hField->grid().ncells();
-  k_anisotropyField<<<1, ncells>>>(h, m, anisU, ku1);
+  k_anisotropyField<<<1, ncells>>>(h, m, anisU, ku1, msat);
 }
 
 void AnisotropyField::evalIn(Field* result) const {

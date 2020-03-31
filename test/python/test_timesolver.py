@@ -15,6 +15,7 @@ class TestTimeSolver:
         magnet.ku1 = 2.2
         magnet.anisU = (0.5, 1, 0)
         magnet.aex = 1.2
+        magnet.msat = 1.2e6
 
         m = magnet.magnetization.get()
         m = 2*np.random.rand(*m.shape)-1
