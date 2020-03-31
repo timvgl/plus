@@ -14,6 +14,8 @@ add_library(physics STATIC
     ferromagnet.hpp 
     ferromagnetquantity.cpp 
     ferromagnetquantity.hpp 
+    newell.cu
+    newell.hpp
     system.cpp 
     system.hpp 
     torque.cu 
