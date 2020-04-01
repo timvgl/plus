@@ -84,6 +84,7 @@ __device__ bool CuField::cellInGrid(int idx) const {
 }
 
 __device__ bool CuField::cellInGrid(int3 coo) const {
+  coo -= grid_.origin(); // relative coordinate
   int3 gs = grid_.size();
   return coo.x >= 0 && coo.x < gs.x && coo.y >= 0 && coo.y < gs.y &&
          coo.z >= 0 && coo.z < gs.z;

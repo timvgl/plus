@@ -33,13 +33,14 @@ int Grid::ncells() const {
 
 int3 Grid::idx2coo(int idx) const {
   return {
-    x : idx % size_.x,
-    y : (idx / size_.x) % size_.y,
-    z : idx / (size_.x * size_.y)
+    x : origin_.x + idx % size_.x,
+    y : origin_.y + (idx / size_.x) % size_.y,
+    z : origin_.z + idx / (size_.x * size_.y)
   };
 }
 
 int Grid::coo2idx(int3 coo) const {
+  coo -= origin_;
   return coo.x + coo.y * size_.x + coo.z * size_.x * size_.y;
 }
 
