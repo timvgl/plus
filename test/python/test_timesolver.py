@@ -8,7 +8,7 @@ class TestTimeSolver:
     def test_timesolver(self):
         w = World(cellsize=(1, 1, 1))
 
-        magnet = w.addFerromagnet("magnet", grid=Grid((2, 2, 1)))
+        magnet = w.add_ferromagnet("magnet", grid=Grid((2, 2, 1)))
         magnet.alpha = 0.1
         magnet.ku1 = 2.2
         magnet.anisU = (0.5, 1, 0)

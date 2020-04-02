@@ -2,15 +2,15 @@ add_subdirectory(pybind11)
 
 pybind11_add_module(engine
     cast.hpp
-    wrappers.hpp
-    ferromagnet.cpp
-    field.cpp
-    grid.cpp
     main.cpp
-    quantity.cpp
-    timesolver.cpp
-    variable.cpp
-    world.cpp
+    wrappers.hpp
+    wrap_ferromagnet.cpp
+    wrap_field.cpp
+    wrap_grid.cpp
+    wrap_quantity.cpp
+    wrap_timesolver.cpp
+    wrap_variable.cpp
+    wrap_world.cpp
 )
 
 target_include_directories(engine PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})

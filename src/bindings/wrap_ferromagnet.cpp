@@ -1,15 +1,14 @@
-#include "ferromagnet.hpp"
-
 #include <memory>
 
 #include "demagkernel.hpp"
+#include "ferromagnet.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
 
 void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
-      .def("name", &Ferromagnet::name)
-      .def("grid", &Ferromagnet::grid)
+      .def_property_readonly("name", &Ferromagnet::name)
+      .def_property_readonly("grid", &Ferromagnet::grid)
       .def_property_readonly("magnetization", &Ferromagnet::magnetization)
       .def_readwrite("msat", &Ferromagnet::msat)
       .def_readwrite("alpha", &Ferromagnet::alpha)
@@ -28,7 +27,8 @@ void wrap_ferromagnet(py::module& m) {
              Grid grid = fm->grid();
              real3 cellsize = fm->world()->cellsize();
              DemagKernel demagKernel(grid, grid, cellsize);
-             std::unique_ptr<Field> kernel( new Field(demagKernel.field()->grid(), 6));
+             std::unique_ptr<Field> kernel(
+                 new Field(demagKernel.field()->grid(), 6));
              kernel.get()->copyFrom(demagKernel.field());
              return fieldToArray(kernel.get());
            })

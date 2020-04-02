@@ -1,10 +1,9 @@
-#include "variable.hpp"
-
 #include <memory>
 
 #include "field.hpp"
-#include "wrappers.hpp"
 #include "quantity.hpp"
+#include "variable.hpp"
+#include "wrappers.hpp"
 
 void wrap_variable(py::module& m) {
   py::class_<Variable, Quantity>(m, "Variable")

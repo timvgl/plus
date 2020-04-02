@@ -19,4 +19,4 @@ class TestWorld:
     def test_cellsize(self):
         cellsize = (9.1, 1e-3, 3.2)
         w = World(cellsize)
-        assert tuple(w.cellsize()) == cellsize
+        assert tuple(w.cellsize) == cellsize
