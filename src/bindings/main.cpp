@@ -1,6 +1,6 @@
 #include "wrappers.hpp"
 
-PYBIND11_MODULE(mumax5, m) {
+PYBIND11_MODULE(engine, m) {
   wrap_ferromagnet(m);
   wrap_field(m);
   wrap_grid(m);

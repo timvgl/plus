@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from mumax5 import *
+from mumax5.engine import *
 
 def getMeshGrid(grid, cellsize):
     o = grid.origin
@@ -25,7 +25,3 @@ class TestExchange:
         fm.magnetization.set( np.array([mx,my,mz]) )
 
         fm.aex = 10.0
-
-        print(fm.magnetization.get())
-        print(fm.exchange_field.eval())
-        

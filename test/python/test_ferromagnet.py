@@ -1,6 +1,6 @@
 import pytest
 
-from mumax5 import *
+from mumax5.engine import *
 
 
 class TestFerromagnet:
@@ -23,4 +23,3 @@ class TestFerromagnet:
         m[2] = 3.2
         magnet.magnetization.set(m)
         m = magnet.magnetization.get()
-        print(m)

@@ -1,6 +1,6 @@
 import pytest
 
-from mumax5 import *
+from mumax5.engine import *
 
 import numpy as np
 
@@ -37,5 +37,5 @@ class TestTimeSolver:
         m_py = magnet.magnetization.get()
 
         relerr = (m_py-m_mumax5)/m_py
-        TOL = 1e-5  
+        TOL = 1e-5
         assert np.max(relerr) < TOL

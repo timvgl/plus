@@ -1,7 +1,7 @@
 import pytest
 
 from mumax3 import Mumax3Simulation
-from mumax5 import *
+from mumax5.engine import *
 
 import numpy as np
 

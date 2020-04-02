@@ -1,8 +1,6 @@
-project(mumax5)
-
 add_subdirectory(pybind11)
 
-pybind11_add_module(mumax5
+pybind11_add_module(engine
     cast.hpp
     wrappers.hpp
     ferromagnet.cpp
@@ -15,5 +13,5 @@ pybind11_add_module(mumax5
     world.cpp
 )
 
-target_include_directories(mumax5 PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-target_link_libraries(mumax5 PRIVATE physics)
+target_include_directories(engine PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+target_link_libraries(engine PRIVATE physics)
