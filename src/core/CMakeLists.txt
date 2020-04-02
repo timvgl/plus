@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(mumax5core)
 
 add_library(core STATIC 
+    cudalaunch.hpp
     cudaerror.hpp 
     datatypes.hpp 
     dynamicequation.hpp

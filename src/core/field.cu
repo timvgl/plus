@@ -99,7 +99,7 @@ __device__ real CuField::cellValue(int idx, int comp) const {
 }
 
 __device__ real CuField::cellValue(int3 coo, int comp) const {
-  return cellValue(grid_.coo2idx(coo));
+  return cellValue(grid_.coo2idx(coo), comp);
 }
 
 __device__ real CuField::cellValue(int comp) const {
