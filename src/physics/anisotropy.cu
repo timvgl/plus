@@ -13,7 +13,7 @@ __global__ void k_anisotropyField(CuField* hField,
                                   real msat) {
   if (!hField->cellInGrid())
     return;
-  real3 u = anisU / norm(anisU);
+  real3 u = normalized(anisU);
   real3 m = mField->cellVector();
   real3 h = 2 * Ku1 * dot(m, u) * u / msat;
   hField->setCellVector(h);

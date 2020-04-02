@@ -152,6 +152,13 @@ __CUDAOP__ real norm(const real3& a) {
   return sqrt(dot(a, a));
 }
 
+// Returns the normalized vector.
+// If the norm is zero, it returns a zero vector
+__CUDAOP__ real3 normalized(const real3& a) {
+  real scalingsFactor = (norm(a) == real(0))? 0. : 1./norm(a);
+  return scalingsFactor* a; 
+}
+
 inline __host__ std::ostream& operator<<(std::ostream& os, const real3 a) {
   os << "(" << a.x << "," << a.y << "," << a.z << ")";
   return os;
