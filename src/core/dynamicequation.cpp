@@ -5,7 +5,8 @@
 #include "quantity.hpp"
 #include "variable.hpp"
 
-DynamicEquation::DynamicEquation(Variable* x, Quantity* rhs) : x(x), rhs(rhs) {
+DynamicEquation::DynamicEquation(const Variable* x, const Quantity* rhs)
+    : x(x), rhs(rhs) {
   if (x->grid() != rhs->grid()) {
     throw std::runtime_error(
         "The variable and the r.h.s. of a dynamic equation should have the "

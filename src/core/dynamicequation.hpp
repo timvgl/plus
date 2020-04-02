@@ -6,7 +6,7 @@ class Grid;
 
 class DynamicEquation {
  public:
-  DynamicEquation(Variable *x, Quantity* rhs);
+  DynamicEquation(const Variable *x, const Quantity* rhs);
   const Variable* x;
   const Quantity* rhs;
 
