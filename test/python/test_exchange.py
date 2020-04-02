@@ -1,27 +1,44 @@
-import pytest
 import numpy as np
 
-from mumax5.engine import *
+from mumax5.engine import World, Grid
 
-def getMeshGrid(grid, cellsize):
-    o = grid.origin
-    s = grid.size
-    c = cellsize
-    x = (np.linspace(0,s[0]-1,s[0])+o[0])*c[0]
-    y = (np.linspace(0,s[1]-1,s[1])+o[1])*c[1]
-    z = (np.linspace(0,s[2]-1,s[2])+o[2])*c[2]
-    return np.meshgrid(z, y, x, indexing='ij')
+def compute_exchange_numpy(magnet, cellsize):
+    m = magnet.magnetization.get()
+    h_exch = np.zeros(m.shape)
+
+    m_ = np.roll(m, 1, axis=1)
+    h_exch[:, 1:, :, :] += (m_-m)[:, 1:, :, :] / (cellsize[2]**2)
+
+    m_ = np.roll(m, -1, axis=1)
+    h_exch[:, :-1, :, :] += (m_-m)[:, :-1, :, :] / (cellsize[2]**2)
+
+    m_ = np.roll(m, 1, axis=2)
+    h_exch[:, :, 1:, :] += (m_-m)[:, :, 1:, :] / (cellsize[1]**2)
+
+    m_ = np.roll(m, -1, axis=2)
+    h_exch[:, :, 0:-1, :] += (m_-m)[:, :, 0:-1, :] / (cellsize[1]**2)
+
+    m_ = np.roll(m, 1, axis=3)
+    h_exch[:, :, :, 1:] += (m_-m)[:, :, :, 1:] / (cellsize[0]**2)
+
+    m_ = np.roll(m, -1, axis=3)
+    h_exch[:, :, :, 0:-1] += (m_-m)[:, :, :, 0:-1] / (cellsize[0]**2)
+
+    return 2*magnet.aex*h_exch/magnet.msat
+
 
 class TestExchange:
     def test_exchange(self):
-        w = World((1,1,1))
-        fm = w.addFerromagnet("magnet", grid=Grid((4,3,2)))
 
-        zz,yy,xx = getMeshGrid(fm.grid(),w.cellsize())
+        world = World((1e3, 2e3, 3e3))
+        magnet = world.addFerromagnet("magnet", grid=Grid((16, 16, 4)))
+        magnet.aex = 3.2e7
+        magnet.msat = 5.4
 
-        mx = np.cos(xx)
-        my = np.sin(xx)
-        mz = 0*xx
-        fm.magnetization.set( np.array([mx,my,mz]) )
+        result = magnet.exchange_field.eval()
+        wanted = compute_exchange_numpy(magnet, world.cellsize())
 
-        fm.aex = 10.0
+        relative_error = np.abs(result-wanted)/np.abs(wanted)
+        max_relative_error = np.max(relative_error)
+
+        assert max_relative_error < 1e-5

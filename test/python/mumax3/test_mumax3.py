@@ -1,7 +1,5 @@
-import pytest
-
 from mumax3 import Mumax3Simulation
-from mumax5.engine import *
+from mumax5.engine import World, Grid
 
 import numpy as np
 

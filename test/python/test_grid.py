@@ -1,4 +1,3 @@
-import mumax5
 import pytest
 from mumax5.engine import Grid
 

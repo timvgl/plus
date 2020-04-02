@@ -1,6 +1,4 @@
-import pytest
-
-from mumax5.engine import *
+from mumax5.engine import World, Grid, TimeSolver
 
 import numpy as np
 

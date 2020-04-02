@@ -1,25 +1,19 @@
-import pytest
-
-from mumax5.engine import *
+from mumax5.engine import World, Grid
+import numpy as np
 
 
 class TestFerromagnet:
 
-    def test_anisotropy(self):
+    def test_magnetization_normalization(self):
+        nx, ny, nz = 4,7,3
+
         w = World(cellsize=(1e-9, 1e-9, 1e-9))
+        magnet = w.addFerromagnet("magnet", grid=Grid((nx, ny, nz)))
 
-        magnet = w.addFerromagnet("magnet", grid=Grid((2, 2, 1)))
+        m_not_normalized = 10*np.random.rand(3,nz,ny,nx)-5
+        magnet.magnetization.set(m_not_normalized)
 
-        magnet.ku1 = 3
-        magnet.anisU = (0, 1, 0)
-
-        fanis = magnet.anisotropy_field.eval()
-
-    def test_magnetization(self):
-        w = World(cellsize=(1e-9, 1e-9, 1e-9))
-        magnet = w.addFerromagnet("magnet", grid=Grid((2, 2, 1)))
         m = magnet.magnetization.get()
-        m[:, :, :] = 0
-        m[2] = 3.2
-        magnet.magnetization.set(m)
-        m = magnet.magnetization.get()
+        norms = np.linalg.norm(m,axis=0)
+
+        assert np.max(np.abs(norms-1)) < 1e-5
