@@ -41,6 +41,7 @@ __global__ void k_normalize(CuField* dst, CuField* src) {
   for (int c = 0; c < nComp; c++) {
     dst->setCellValue(c, values[c] * invnorm);
   }
+  delete values;
 }
 
 void normalized(Field* dst, const Field* src) {
