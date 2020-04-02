@@ -1,3 +1,4 @@
+#include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "torque.hpp"
@@ -6,8 +7,8 @@ Torque::Torque(Ferromagnet* ferromagnet)
     : FerromagnetQuantity(ferromagnet, 3, "torque", "T") {}
 
 __global__ void k_torque(CuField* torque,
-                         const CuField* mField,
-                         const CuField* hField,
+                         CuField* mField,
+                         CuField* hField,
                          real alpha) {
   if (!torque->cellInGrid())
     return;
@@ -20,10 +21,10 @@ __global__ void k_torque(CuField* torque,
 }
 
 void Torque::evalIn(Field* torque) const {
-  CuField * t = torque->cu();
-  CuField * h = ferromagnet_->effectiveField()->eval()->cu();
-  CuField * m = ferromagnet_->magnetization()->field()->cu();
+  CuField* t = torque->cu();
+  CuField* h = ferromagnet_->effectiveField()->eval()->cu();
+  CuField* m = ferromagnet_->magnetization()->field()->cu();
   real alpha = ferromagnet_->alpha;
   int ncells = torque->grid().ncells();
-  k_torque<<<1,ncells>>>(t, m, h, alpha);
+  cudaLaunch(ncells, k_torque, t, m, h, alpha);
 }

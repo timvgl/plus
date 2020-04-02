@@ -1,3 +1,4 @@
+#include "cudalaunch.hpp"
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
@@ -7,7 +8,7 @@ ExchangeField::ExchangeField(Ferromagnet* ferromagnet)
     : FerromagnetQuantity(ferromagnet, 3, "exchange_field", "T") {}
 
 __global__ void k_exchangeField(CuField* hField,
-                                const CuField* mField,
+                                CuField* mField,
                                 real aex,
                                 real msat,
                                 real3 cellsize) {
@@ -18,7 +19,7 @@ __global__ void k_exchangeField(CuField* hField,
   int3 i = hField->grid().idx2coo(idx);
 
   real3 m = mField->cellVector();
-  real3 ddm{0, 0, 0}; // second derivative of m
+  real3 ddm{0, 0, 0};  // second derivative of m
 
   int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
                                          int3{0, 0, -1}, int3{1, 0, 0},
@@ -30,17 +31,17 @@ __global__ void k_exchangeField(CuField* hField,
         cellsize.x * relcoo.x + cellsize.y * relcoo.y + cellsize.z * relcoo.z;
     if (hField->cellInGrid(i_)) {
       real3 m_ = mField->cellVector(i_);
-      ddm += (m_-m) / (dr * dr);
+      ddm += (m_ - m) / (dr * dr);
     }
   }
 
-  hField->setCellVector(2* aex * ddm / msat);
+  hField->setCellVector(2 * aex * ddm / msat);
 }
 
 void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {
-  k_exchangeField<<<1, hField->grid().ncells()>>>(
-      hField->cu(), ferromagnet->magnetization()->field()->cu(),
-      ferromagnet->aex, ferromagnet->msat, ferromagnet->world()->cellsize());
+  cudaLaunch(hField->grid().ncells(), k_exchangeField, hField->cu(),
+             ferromagnet->magnetization()->field()->cu(), ferromagnet->aex,
+             ferromagnet->msat, ferromagnet->world()->cellsize());
 }
 
 void ExchangeField::evalIn(Field* result) const {

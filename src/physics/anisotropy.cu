@@ -1,6 +1,7 @@
 #include "anisotropy.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
+#include "cudalaunch.hpp"
 
 AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
     : FerromagnetQuantity(ferromagnet, 3, "anisotropy_field", "T") {}
@@ -25,7 +26,7 @@ void anisotropyField(Field* hField, const Ferromagnet* ferromagnet) {
   real ku1 = ferromagnet->ku1;
   real msat = ferromagnet->msat;
   int ncells = hField->grid().ncells();
-  k_anisotropyField<<<1, ncells>>>(h, m, anisU, ku1, msat);
+  cudaLaunch(ncells, k_anisotropyField, h, m, anisU, ku1, msat);
 }
 
 void AnisotropyField::evalIn(Field* result) const {

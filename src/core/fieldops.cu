@@ -1,11 +1,12 @@
+#include "cudalaunch.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
 
 __global__ void k_addFields(CuField* y,
                             real a1,
-                            const CuField* x1,
+                            CuField* x1,
                             real a2,
-                            const CuField* x2) {
+                            CuField* x2) {
   if (!y->cellInGrid())
     return;
   int nComp = y->nComponents();
@@ -18,14 +19,15 @@ __global__ void k_addFields(CuField* y,
 
 // TODO: throw error if grids or number of components do not match
 void add(Field* y, real a1, const Field* x1, real a2, const Field* x2) {
-  k_addFields<<<1, y->grid().ncells()>>>(y->cu(), a1, x1->cu(), a2, x2->cu());
+  int ncells = y->grid().ncells();
+  cudaLaunch(ncells, k_addFields, y->cu(), a1, x1->cu(), a2, x2->cu());
 }
 
 void add(Field* y, const Field* x1, const Field* x2) {
   add(y, 1, x1, 1, x2);
 }
 
-__global__ void k_normalize(CuField* dst, const CuField* src) {
+__global__ void k_normalize(CuField* dst, CuField* src) {
   if (!dst->cellInGrid())
     return;
   int nComp = src->nComponents();
@@ -43,7 +45,7 @@ __global__ void k_normalize(CuField* dst, const CuField* src) {
 
 void normalized(Field* dst, const Field* src) {
   // TODO: check field dimensions
-  k_normalize<<<1, dst->grid().ncells()>>>(dst->cu(), src->cu());
+  cudaLaunch(dst->grid().ncells(), k_normalize, dst->cu(), src->cu());
 }
 
 std::unique_ptr<Field> normalized(const Field* src) {
