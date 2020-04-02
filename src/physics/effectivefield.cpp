@@ -9,5 +9,7 @@ EffectiveField::EffectiveField(Ferromagnet* ferromagnet)
 void EffectiveField::evalIn(Field* result) const {
   auto anisField = ferromagnet_->anisotropyField()->eval();
   auto exchField = ferromagnet_->exchangeField()->eval();
+  auto demagField = ferromagnet_->demagField()->eval();
   add(result, exchField.get(), anisField.get());
+  add(result, result, demagField.get());
 }

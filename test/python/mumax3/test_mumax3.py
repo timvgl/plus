@@ -43,6 +43,7 @@ class TestMumax3:
                 saveas(b_exch,"b_exch.ovf")
                 saveas(b_anis,"b_anis.ovf")
                 saveas(b_demag,"b_demag.ovf")
+                saveas(b_eff,"b_eff.ovf")
             """)
 
         self.magnet.magnetization.set(self.mumax3sim.get_field("m"))
@@ -67,4 +68,11 @@ class TestMumax3:
         # Because mumax3 and mumax5 approximate in a different way the demag kernel
         err = max_relative_error(result=self.magnet.demag_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_demag"))
+        assert err < 1e-2
+
+    def test_effective_field(self):
+        # Here we compare to the demagfield of mumax with an increased tollerance.
+        # Because mumax3 and mumax5 approximate in a different way the demag kernel
+        err = max_relative_error(result=self.magnet.effective_field.eval(),
+                                 wanted=self.mumax3sim.get_field("b_eff"))
         assert err < 1e-2
