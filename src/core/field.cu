@@ -5,7 +5,7 @@
 #include "field.hpp"
 
 Field::Field(Grid grid, int nComponents)
-    : grid_(grid), nComponents_(nComponents) {
+    : grid_(grid), nComponents_(nComponents), devptrs_(nComponents) {
   if (nComponents_ <= 0) {
     throw std::invalid_argument(
         "Number of components should be larger than zero");
@@ -13,12 +13,22 @@ Field::Field(Grid grid, int nComponents)
 
   checkCudaError(cudaMalloc((void**)&dataptr_, datasize() * sizeof(real)));
 
-  cuField_ = CuField::create(grid_, nComponents_, dataptr_);
+  for (auto& p : devptrs_) {
+    checkCudaError(cudaMalloc((void**)&p, grid_.ncells() * sizeof(real)));
+  }
+
+  checkCudaError(cudaMalloc((void**)&devptr_devptrs_, nComponents_ * sizeof(real*)));
+
+  checkCudaError(cudaMemcpy(&devptrs_[0], devptr_devptrs_, nComponents_ * sizeof(real*),
+                            cudaMemcpyDeviceToHost));
 }
 
 Field::~Field() {
+  for (auto p : devptrs_) {
+    cudaFree(p);
+  }
   cudaFree(dataptr_);
-  cudaFree(cuField_);
+  cudaFree(devptr_devptrs_);
 }
 
 Grid Field::grid() const {
@@ -50,42 +60,17 @@ void Field::copyFrom(const Field* src) {
                             cudaMemcpyDeviceToDevice));
 }
 
-CuField* Field::cu() const {
-  return cuField_;
-}
-
-static __global__ void k_constructCuField(CuField* cuField,
-                                          Grid grid,
-                                          int nComponents,
-                                          real* dataptr) {
-  new (cuField) CuField(grid, nComponents, dataptr);
-}
-
-__host__ CuField* CuField::create(Grid grid, int nComponents, real* dataptr) {
-  CuField* cuField;
-  cudaMalloc((void**)&cuField, sizeof(CuField));
-  k_constructCuField<<<1, 1>>>(cuField, grid, nComponents, dataptr);
-  return cuField;
-}
-
-__device__ CuField::CuField(Grid grid, int nComponents, real* dataptr)
-    : grid_(grid), nComponents_(nComponents), dataptr(dataptr) {}
-
-__device__ Grid CuField::grid() const {
-  return grid_;
-}
-
-__device__ int CuField::nComponents() const {
-  return nComponents_;
+CuField Field::cu() const{
+  return CuField{dataptr_, grid_, nComponents_, devptr_devptrs_};
 }
 
 __device__ bool CuField::cellInGrid(int idx) const {
-  return idx >= 0 && idx < grid_.ncells();
+  return idx >= 0 && idx < grid.ncells();
 }
 
 __device__ bool CuField::cellInGrid(int3 coo) const {
-  coo -= grid_.origin(); // relative coordinate
-  int3 gs = grid_.size();
+  coo -= grid.origin();  // relative coordinate
+  int3 gs = grid.size();
   return coo.x >= 0 && coo.x < gs.x && coo.y >= 0 && coo.y < gs.y &&
          coo.z >= 0 && coo.z < gs.z;
 }
@@ -95,11 +80,11 @@ __device__ bool CuField::cellInGrid() const {
 }
 
 __device__ real CuField::cellValue(int idx, int comp) const {
-  return dataptr[idx + grid_.ncells() * comp];
+  return dataptr[idx + grid.ncells() * comp];
 }
 
 __device__ real CuField::cellValue(int3 coo, int comp) const {
-  return cellValue(grid_.coo2idx(coo), comp);
+  return cellValue(grid.coo2idx(coo), comp);
 }
 
 __device__ real CuField::cellValue(int comp) const {
@@ -107,13 +92,13 @@ __device__ real CuField::cellValue(int comp) const {
 }
 
 __device__ real3 CuField::cellVector(int idx) const {
-  return real3{dataptr[idx + grid_.ncells() * 0],
-               dataptr[idx + grid_.ncells() * 1],
-               dataptr[idx + grid_.ncells() * 2]};
+  return real3{dataptr[idx + grid.ncells() * 0],
+               dataptr[idx + grid.ncells() * 1],
+               dataptr[idx + grid.ncells() * 2]};
 }
 
 __device__ real3 CuField::cellVector(int3 coo) const {
-  return cellVector(grid_.coo2idx(coo));
+  return cellVector(grid.coo2idx(coo));
 }
 
 __device__ real3 CuField::cellVector() const {
@@ -122,12 +107,12 @@ __device__ real3 CuField::cellVector() const {
 
 __device__ void CuField::setCellValue(int comp, real value) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
-  dataptr[i + grid_.ncells() * comp] = value;
+  dataptr[i + grid.ncells() * comp] = value;
 }
 
 __device__ void CuField::setCellVector(real3 vec) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
-  dataptr[i + grid_.ncells() * 0] = vec.x;
-  dataptr[i + grid_.ncells() * 1] = vec.y;
-  dataptr[i + grid_.ncells() * 2] = vec.z;
+  dataptr[i + grid.ncells() * 0] = vec.x;
+  dataptr[i + grid.ncells() * 1] = vec.y;
+  dataptr[i + grid.ncells() * 2] = vec.z;
 }

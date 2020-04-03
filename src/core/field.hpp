@@ -26,20 +26,18 @@ class Field {
   const int nComponents_;
   real* dataptr_;
 
- public:
-  CuField* cu() const;
+  std::vector<real*> devptrs_;
+  real** devptr_devptrs_;
 
- private:
-  CuField* cuField_;
+ public:
+  CuField cu() const;
 };
 
-class CuField {
- public:
-  __host__ static CuField* create(Grid, int nComponents, real* dataptr);
-  __device__ CuField(Grid, int nComponents, real* dataptr);
-
-  __device__ Grid grid() const;
-  __device__ int nComponents() const;
+struct CuField {
+  real* const dataptr;
+  const Grid grid;
+  const int ncomp;
+  real** ptrs;
 
   __device__ bool cellInGrid(int) const;
   __device__ bool cellInGrid(int3) const;
@@ -55,10 +53,4 @@ class CuField {
 
   __device__ void setCellValue(int comp, real value);
   __device__ void setCellVector(real3 vec);
-
-  real* dataptr;
-
- private:
-  const Grid grid_;
-  const int nComponents_;
 };

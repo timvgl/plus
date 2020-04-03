@@ -2,18 +2,18 @@
 #include "field.hpp"
 #include "fieldops.hpp"
 
-__global__ void k_addFields(CuField* y,
+__global__ void k_addFields(CuField y,
                             real a1,
-                            CuField* x1,
+                            CuField x1,
                             real a2,
-                            CuField* x2) {
-  if (!y->cellInGrid())
+                            CuField x2) {
+  if (!y.cellInGrid())
     return;
-  int nComp = y->nComponents();
+  int nComp = y.ncomp;
   for (int c = -0; c < nComp; c++) {
-    real term1 = a1 * x1->cellValue(c);
-    real term2 = a2 * x2->cellValue(c);
-    y->setCellValue(c, term1 + term2);
+    real term1 = a1 * x1.cellValue(c);
+    real term2 = a2 * x2.cellValue(c);
+    y.setCellValue(c, term1 + term2);
   }
 }
 
@@ -27,19 +27,19 @@ void add(Field* y, const Field* x1, const Field* x2) {
   add(y, 1, x1, 1, x2);
 }
 
-__global__ void k_normalize(CuField* dst, CuField* src) {
-  if (!dst->cellInGrid())
+__global__ void k_normalize(CuField dst, CuField src) {
+  if (!dst.cellInGrid())
     return;
-  int nComp = src->nComponents();
+  int nComp = src.ncomp;
   real* values = new real[nComp];
   real norm2 = 0.0;
   for (int c = 0; c < nComp; c++) {
-    values[c] = src->cellValue(c);
+    values[c] = src.cellValue(c);
     norm2 += values[c] * values[c];
   }
   real invnorm = rsqrt(norm2);
   for (int c = 0; c < nComp; c++) {
-    dst->setCellValue(c, values[c] * invnorm);
+    dst.setCellValue(c, values[c] * invnorm);
   }
   delete values;
 }

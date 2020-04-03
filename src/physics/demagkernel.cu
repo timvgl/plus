@@ -17,17 +17,17 @@ DemagKernel::~DemagKernel() {
   delete kernel_;
 }
 
-__global__ void k_demagKernel(CuField* kernel, real3 cellsize) {
-  if (!kernel->cellInGrid())
+__global__ void k_demagKernel(CuField kernel, real3 cellsize) {
+  if (!kernel.cellInGrid())
     return;
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int3 coo = kernel->grid().idx2coo(idx);
-  kernel->setCellValue(0, calcNewellNxx(coo, cellsize));
-  kernel->setCellValue(1, calcNewellNyy(coo, cellsize));
-  kernel->setCellValue(2, calcNewellNzz(coo, cellsize));
-  kernel->setCellValue(3, calcNewellNxy(coo, cellsize));
-  kernel->setCellValue(4, calcNewellNxz(coo, cellsize));
-  kernel->setCellValue(5, calcNewellNyz(coo, cellsize));
+  int3 coo = kernel.grid.idx2coo(idx);
+  kernel.setCellValue(0, calcNewellNxx(coo, cellsize));
+  kernel.setCellValue(1, calcNewellNyy(coo, cellsize));
+  kernel.setCellValue(2, calcNewellNzz(coo, cellsize));
+  kernel.setCellValue(3, calcNewellNxy(coo, cellsize));
+  kernel.setCellValue(4, calcNewellNxz(coo, cellsize));
+  kernel.setCellValue(5, calcNewellNyz(coo, cellsize));
 }
 
 void DemagKernel::compute() {
