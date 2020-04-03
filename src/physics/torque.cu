@@ -21,10 +21,9 @@ __global__ void k_torque(CuField* torque,
 }
 
 void Torque::evalIn(Field* torque) const {
-  CuField* t = torque->cu();
-  CuField* h = ferromagnet_->effectiveField()->eval()->cu();
-  CuField* m = ferromagnet_->magnetization()->field()->cu();
+  auto h = ferromagnet_->effectiveField()->eval();
+  auto m = ferromagnet_->magnetization()->field();
   real alpha = ferromagnet_->alpha;
   int ncells = torque->grid().ncells();
-  cudaLaunch(ncells, k_torque, t, m, h, alpha);
+  cudaLaunch(ncells, k_torque, torque->cu(), m->cu(), h.get()->cu(), alpha);
 }

@@ -9,18 +9,9 @@
 
 int main() {
   World world({1.0, 1.0, 1.0});
-  Ferromagnet* magnet = world.addFerromagnet("my_magnet", Grid({8, 8, 1}));
+  Ferromagnet* magnet = world.addFerromagnet("my_magnet", Grid({64, 64, 1}));
   DynamicEquation llg(magnet->magnetization(), magnet->torque());
-  TimeSolver solver(llg, 1e-9);
-  for (int i = 0; i < 1410; i++) {
-      std::cout << i << std::endl;
-    solver.step();
-  }
-
-  for (int i = 0; i < 1414; i++) {
-      std::cout << i << std::endl;
-    solver.step();
-  }
-
+  TimeSolver solver(llg, 1e-2);
+  solver.step();
   return 0;
 }
