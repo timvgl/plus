@@ -16,7 +16,7 @@ void wrap_field(py::module& m) {
 }
 
 py::array_t<real> fieldToArray(const Field* f) {
-  real* data = new real[f->datasize()];
+  real* data = new real[f->grid().ncells()*f->ncomp()];
   f->getData(data);
 
   // Create a Python object that will free the allocated
@@ -54,7 +54,7 @@ void setArrayInField(Field* f, py::array_t<real> data) {
     py::buffer_info buf = data.request();
     real* cValues = (real*)buf.ptr;
 
-    int N = f->datasize();
+    int N = f->grid().ncells()*f->ncomp();
     int nCells = N / f->ncomp();
     real* buffer = new real[N];
     for (int i = 0; i < N; i++) {

@@ -14,27 +14,23 @@ class Field {
 
   Grid grid() const;
   int ncomp() const;
-  int datasize() const;
 
   void getData(real* buffer) const;
   void setData(real* buffer);
 
   void copyFrom(const Field*);
 
- private:
-  const Grid grid_;
-  const int nComponents_;
-  real* dataptr_;
+  CuField cu() const;
 
+  const int ncomp_;
+  const Grid grid_;
+
+ private:
   std::vector<real*> devptrs_;
   real** devptr_devptrs_;
-
- public:
-  CuField cu() const;
 };
 
 struct CuField {
-  real* const dataptr;
   const Grid grid;
   const int ncomp;
   real** ptrs;
