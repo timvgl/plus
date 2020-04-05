@@ -30,5 +30,9 @@ target_include_directories(physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTOR
 target_include_directories(physics PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(physics PUBLIC core)
 
+link_directories(${CUDA_LIBRARY_DIR})
+target_link_libraries(physics PRIVATE cufft)
+
+
 set_target_properties(physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(physics PROPERTIES POSITION_INDEPENDENT_CODE ON)

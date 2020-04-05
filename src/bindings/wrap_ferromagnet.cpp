@@ -22,7 +22,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("torque", &Ferromagnet::torque)
 
       // TODO: remove demagkernel function
-      .def("demagkernel",
+      .def("_demagkernel",
            [](const Ferromagnet* fm) {
              Grid grid = fm->grid();
              real3 cellsize = fm->world()->cellsize();
