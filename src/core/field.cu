@@ -36,6 +36,10 @@ int Field::ncomp() const {
   return ncomp_;
 }
 
+real * Field::devptr(int comp) const {
+  return devptrs_.at(comp);
+}
+
 void Field::getData(real* buffer) const {
   for (int c = 0; c < ncomp_; c++) {
     real* bufferComponent = buffer + c * grid_.ncells();

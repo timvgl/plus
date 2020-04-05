@@ -14,6 +14,7 @@ class Field {
 
   Grid grid() const;
   int ncomp() const;
+  real * devptr(int comp) const;
 
   void getData(real* buffer) const;
   void setData(real* buffer);
