@@ -8,6 +8,8 @@ add_library(physics STATIC
     demag.hpp
     demagkernel.cu
     demagkernel.hpp
+    demagconvolution.cu
+    demagconvolution.hpp
     effectivefield.hpp 
     effectivefield.cpp
     exchange.hpp 

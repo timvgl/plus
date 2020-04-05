@@ -34,6 +34,13 @@ void DemagKernel::compute() {
   cudaLaunch(grid_.ncells(), k_demagKernel, kernel_->cu(), cellsize_);
 }
 
+Grid DemagKernel::grid() const {
+  return grid_;
+}
+real3 DemagKernel::cellsize() const {
+  return cellsize_;
+}
+
 const Field* DemagKernel::field() const {
   return kernel_;
 }
