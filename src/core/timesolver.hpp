@@ -18,6 +18,7 @@ class TimeSolver {
   void setTime(real);
 
   void step();
+  void steps(int);
 
  private:
   real time_;

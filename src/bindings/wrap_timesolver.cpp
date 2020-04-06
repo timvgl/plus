@@ -16,5 +16,6 @@ void wrap_timesolver(py::module& m) {
            py::arg("variable"), py::arg("rhs"), py::arg("timestep"))
       .def_property_readonly("time", &TimeSolver::time)
       .def_property_readonly("timestep", &TimeSolver::timestep)
-      .def("step", &TimeSolver::step);
+      .def("step", &TimeSolver::step)
+      .def("steps", &TimeSolver::steps);
 }

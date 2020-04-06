@@ -34,3 +34,8 @@ void TimeSolver::setTime(real time) {
 void TimeSolver::step() {
   stepper_->step();
 }
+
+void TimeSolver::steps(int nSteps) {
+  for (int i=0; i<nSteps; i++)
+    step();
+}
