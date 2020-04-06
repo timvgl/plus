@@ -22,4 +22,5 @@ void EulerStepper::step() {
   add(xnew.get(), 1.0, x, dt, dxdt.get());  // xnew = x + dt*dxdt
 
   eq.x->set(xnew.get());
+  solver_->setTime(solver_->time() + dt);
 }

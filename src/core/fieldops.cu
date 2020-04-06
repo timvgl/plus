@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "cudalaunch.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
@@ -25,6 +27,21 @@ void add(Field* y, real a1, const Field* x1, real a2, const Field* x2) {
 
 void add(Field* y, const Field* x1, const Field* x2) {
   add(y, 1, x1, 1, x2);
+}
+
+// TODO: this can be done much more efficient
+void add(Field* y, std::vector<const Field*> x, std::vector<real> weights) {
+  // TODO:: throw error if inputs are not compatible
+  if (x.size() == 1) {
+    add(y, 0, x.at(0), weights.at(0), x.at(0));
+  }
+
+  add(y, weights.at(0), x.at(0), weights.at(1), x.at(1));
+  for (int n = 2; n < x.size(); n++) {
+    if (weights.at(n) != 0.0) {
+      add(y, 1, y, weights.at(n), x.at(n));
+    }
+  }
 }
 
 __global__ void k_normalize(CuField dst, CuField src) {

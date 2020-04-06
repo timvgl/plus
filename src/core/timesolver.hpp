@@ -15,6 +15,8 @@ class TimeSolver {
   DynamicEquation eq() const;
   real timestep() const;
 
+  void setTime(real);
+
   void step();
 
  private:

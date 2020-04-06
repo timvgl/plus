@@ -19,6 +19,8 @@ add_library(core STATIC
     grid.hpp 
     quantity.cpp 
     quantity.hpp 
+    rungekutta.cpp
+    rungekutta.hpp
     stepper.cpp
     stepper.hpp
     timesolver.cpp
