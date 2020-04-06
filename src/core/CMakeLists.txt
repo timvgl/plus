@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 project(mumax5core)
 
 add_library(core STATIC 
+    butchertableau.cpp
+    butchertableau.hpp
     cudalaunch.hpp
     cudaerror.hpp 
     datatypes.hpp 
