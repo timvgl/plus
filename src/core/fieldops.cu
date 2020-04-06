@@ -48,17 +48,15 @@ __global__ void k_normalize(CuField dst, CuField src) {
   if (!dst.cellInGrid())
     return;
   int nComp = src.ncomp;
-  real* values = new real[nComp];
   real norm2 = 0.0;
   for (int c = 0; c < nComp; c++) {
-    values[c] = src.cellValue(c);
-    norm2 += values[c] * values[c];
+    real v = src.cellValue(c);
+    norm2 += v * v;
   }
   real invnorm = rsqrt(norm2);
   for (int c = 0; c < nComp; c++) {
-    dst.setCellValue(c, values[c] * invnorm);
+    dst.setCellValue(c, src.cellValue(c) * invnorm);
   }
-  delete values;
 }
 
 void normalized(Field* dst, const Field* src) {
