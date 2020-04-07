@@ -66,7 +66,7 @@ class TestMumax3:
         # Because mumax3 and mumax5 approximate in a different way the demag kernel
         err = max_relative_error(result=self.magnet.demag_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_demag"))
-        assert err < 1e-2
+        assert err < 1e-1
 
     def test_effective_field(self):
         # Here we compare to the demagfield of mumax with an increased tollerance.

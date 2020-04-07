@@ -38,4 +38,4 @@ class TestDemag:
         wanted = demag_field_py(magnet)
         result = magnet.demag_field.eval()
         err = np.max(np.abs((wanted-result)/result))
-        assert err < 1e-5
+        assert err < 1e-4

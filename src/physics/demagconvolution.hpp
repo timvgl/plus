@@ -21,7 +21,7 @@ class DemagConvolution {
   real3 cellsize_;
   DemagKernel kernel_;
   int3 fftSize;
-  std::vector<cufftDoubleComplex*> kfft, mfft, hfft;
+  std::vector<complex*> kfft, mfft, hfft;
   cufftHandle forwardPlan;
   cufftHandle backwardPlan;
 };

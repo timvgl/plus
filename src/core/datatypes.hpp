@@ -1,12 +1,14 @@
 #pragma once
 
+#include <cuComplex.h>
 #include <cuda_runtime_api.h>
 #include <math.h>
 
 #include <iostream>
 
-typedef double real;
-typedef double3 real3;
+typedef float real;
+typedef float3 real3;
+typedef cuComplex complex;
 
 #define __CUDAOP__ inline __device__ __host__
 
@@ -155,8 +157,8 @@ __CUDAOP__ real norm(const real3& a) {
 // Returns the normalized vector.
 // If the norm is zero, it returns a zero vector
 __CUDAOP__ real3 normalized(const real3& a) {
-  real scalingsFactor = (norm(a) == real(0))? 0. : 1./norm(a);
-  return scalingsFactor* a; 
+  real scalingsFactor = (norm(a) == real(0)) ? 0. : 1. / norm(a);
+  return scalingsFactor * a;
 }
 
 inline __host__ std::ostream& operator<<(std::ostream& os, const real3 a) {

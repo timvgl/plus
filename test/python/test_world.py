@@ -19,4 +19,5 @@ class TestWorld:
     def test_cellsize(self):
         cellsize = (9.1, 1e-3, 3.2)
         w = World(cellsize)
-        assert tuple(w.cellsize) == cellsize
+        for i in range(3):
+            assert abs((w.cellsize[i] - cellsize[i])/cellsize[i]) < 1e-4
