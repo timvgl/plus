@@ -3,6 +3,7 @@
 
 #include "cudaerror.hpp"
 #include "field.hpp"
+#include "bufferpool.hpp"
 
 Field::Field(Grid grid, int nComponents)
     : grid_(grid), ncomp_(nComponents), devptrs_(nComponents) {
@@ -12,7 +13,8 @@ Field::Field(Grid grid, int nComponents)
   }
 
   for (auto& p : devptrs_) {
-    checkCudaError(cudaMalloc((void**)&p, grid.ncells() * sizeof(real)));
+    p = bufferPool.allocate(grid.ncells());
+    //checkCudaError(cudaMalloc((void**)&p, grid.ncells() * sizeof(real)));
   }
   checkCudaError(
       cudaMalloc((void**)&devptr_devptrs_, ncomp_ * sizeof(real*)));
@@ -23,7 +25,8 @@ Field::Field(Grid grid, int nComponents)
 
 Field::~Field() {
   for (auto p : devptrs_) {
-    cudaFree(p);
+    bufferPool.recycle(p);
+    //cudaFree(p);
   }
   cudaFree(devptr_devptrs_);
 }

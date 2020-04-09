@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 project(mumax5core)
 
 add_library(core STATIC 
+    bufferpool.cu
+    bufferpool.hpp
     butchertableau.cpp
     butchertableau.hpp
     cudalaunch.hpp
