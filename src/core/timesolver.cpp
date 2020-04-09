@@ -6,8 +6,8 @@
 
 TimeSolver::TimeSolver(DynamicEquation eq, real timestep)
     : time_(0), dt_(timestep), eq_(eq) {
-  stepper_ = new RungeKuttaStepper(this,DORMANDPRINCE);
-  //stepper_ = new EulerStepper(this);
+  stepper_ = new RungeKuttaStepper(this, FEHLBERG);
+  // stepper_ = new EulerStepper(this);
 }
 
 TimeSolver::~TimeSolver() {
@@ -36,6 +36,6 @@ void TimeSolver::step() {
 }
 
 void TimeSolver::steps(int nSteps) {
-  for (int i=0; i<nSteps; i++)
+  for (int i = 0; i < nSteps; i++)
     step();
 }
