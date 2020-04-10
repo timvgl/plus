@@ -9,5 +9,6 @@ void wrap_quantity(py::module& m) {
       .def_property_readonly("ncomp", &Quantity::ncomp)
       .def_property_readonly("grid", &Quantity::grid)
       .def("eval",
-           [](const Quantity* q) { return fieldToArray(q->eval().get()); });
+           [](const Quantity* q) { return fieldToArray(q->eval().get()); })
+      .def("average",&Quantity::average);
 }

@@ -23,6 +23,8 @@ add_library(core STATIC
     quantity.hpp 
     rungekutta.cpp
     rungekutta.hpp
+    reduce.cu
+    reduce.hpp
     stepper.cpp
     stepper.hpp
     timesolver.cpp

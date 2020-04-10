@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "datatypes.hpp"
 
@@ -43,6 +44,9 @@ class Quantity {
 
   /// Allocate memory for a field and calls void eval(Field *)
   virtual std::unique_ptr<Field> eval() const;
+
+  /// Eval the quantity and return the average of each component
+  virtual std::vector<real> average() const;
 
   /***** NON-VIRTUAL HELPER FUNCTIONS *****/
 
