@@ -1,9 +1,10 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "cudaerror.hpp"
-#include "field.hpp"
 #include "bufferpool.hpp"
+#include "cudaerror.hpp"
+#include "cudastream.hpp"
+#include "field.hpp"
 
 Field::Field(Grid grid, int nComponents)
     : grid_(grid), ncomp_(nComponents), devptrs_(nComponents) {
@@ -15,11 +16,10 @@ Field::Field(Grid grid, int nComponents)
   for (auto& p : devptrs_) {
     p = bufferPool.allocate(grid.ncells());
   }
-  checkCudaError(
-      cudaMalloc((void**)&devptr_devptrs_, ncomp_ * sizeof(real*)));
-  checkCudaError(cudaMemcpy(devptr_devptrs_,&devptrs_[0], 
-                            ncomp_ * sizeof(real*),
-                            cudaMemcpyHostToDevice));
+  checkCudaError(cudaMalloc((void**)&devptr_devptrs_, ncomp_ * sizeof(real*)));
+  checkCudaError(cudaMemcpyAsync(devptr_devptrs_, &devptrs_[0],
+                            ncomp_ * sizeof(real*), cudaMemcpyHostToDevice,
+                            getCudaStream()));
 }
 
 Field::~Field() {
@@ -37,34 +37,34 @@ int Field::ncomp() const {
   return ncomp_;
 }
 
-real * Field::devptr(int comp) const {
+real* Field::devptr(int comp) const {
   return devptrs_.at(comp);
 }
 
 void Field::getData(real* buffer) const {
   for (int c = 0; c < ncomp_; c++) {
     real* bufferComponent = buffer + c * grid_.ncells();
-    checkCudaError(cudaMemcpy(bufferComponent, devptrs_[c],
+    checkCudaError(cudaMemcpyAsync(bufferComponent, devptrs_[c],
                               grid_.ncells() * sizeof(real),
-                              cudaMemcpyDeviceToHost));
+                              cudaMemcpyDeviceToHost, getCudaStream()));
   }
 }
 
 void Field::setData(real* buffer) {
   for (int c = 0; c < ncomp_; c++) {
     real* bufferComponent = buffer + c * grid_.ncells();
-    checkCudaError(cudaMemcpy(devptrs_[c], bufferComponent,
+    checkCudaError(cudaMemcpyAsync(devptrs_[c], bufferComponent,
                               grid_.ncells() * sizeof(real),
-                              cudaMemcpyHostToDevice));
+                              cudaMemcpyHostToDevice, getCudaStream()));
   }
 }
 
 void Field::copyFrom(const Field* src) {
   // TODO: throw error if field dimensions mismatch
   for (int c = 0; c < ncomp_; c++) {
-    checkCudaError(cudaMemcpy(devptrs_[c], src->devptrs_[c],
+    checkCudaError(cudaMemcpyAsync(devptrs_[c], src->devptrs_[c],
                               grid_.ncells() * sizeof(real),
-                              cudaMemcpyDeviceToDevice));
+                              cudaMemcpyDeviceToDevice, getCudaStream()));
   }
 }
 

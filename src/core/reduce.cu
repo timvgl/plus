@@ -2,6 +2,7 @@
 
 #include "bufferpool.hpp"
 #include "cudaerror.hpp"
+#include "cudastream.hpp"
 #include "datatypes.hpp"
 #include "field.hpp"
 #include "reduce.hpp"
@@ -13,7 +14,7 @@ void cudaLaunchReductionKernel(void (*kernelfunction)(Arguments...),
                                Arguments... args) {
   dim3 blockDims(BLOCKDIM);
   dim3 gridDims(1);
-  kernelfunction<<<gridDims, blockDims>>>(args...);
+  kernelfunction<<<gridDims, blockDims, 0, getCudaStream()>>>(args...);
   checkCudaError(cudaPeekAtLastError());
   checkCudaError(cudaDeviceSynchronize());
 }
@@ -59,8 +60,8 @@ real maxVecNorm(Field* f) {
 
   // copy the result to the host and return
   real result;
-  checkCudaError(
-      cudaMemcpy(&result, d_result, 1 * sizeof(real), cudaMemcpyDeviceToHost));
+  checkCudaError(cudaMemcpyAsync(&result, d_result, 1 * sizeof(real),
+                                 cudaMemcpyDeviceToHost, getCudaStream()));
   bufferPool.recycle(d_result);
   return result;
 }
@@ -89,7 +90,7 @@ __global__ void k_average(real* result, CuField f) {
 
     // Set the result
     if (tid == 0)
-      result[c] = sdata[0]/ncells;
+      result[c] = sdata[0] / ncells;
   }
 }
 
@@ -98,8 +99,9 @@ std::vector<real> fieldAverage(Field* f) {
   cudaLaunchReductionKernel(k_average, d_result, f->cu());
   // copy the result to the host and return
   std::vector<real> result(f->ncomp());
-  checkCudaError(cudaMemcpy(&result[0], d_result, f->ncomp() * sizeof(real),
-                            cudaMemcpyDeviceToHost));
+  checkCudaError(cudaMemcpyAsync(&result[0], d_result,
+                                 f->ncomp() * sizeof(real),
+                                 cudaMemcpyDeviceToHost, getCudaStream()));
   bufferPool.recycle(d_result);
   return result;
 }

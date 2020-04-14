@@ -6,6 +6,8 @@ add_library(core STATIC
     bufferpool.hpp
     butchertableau.cpp
     butchertableau.hpp
+    cudastream.cu
+    cudastream.hpp
     cudalaunch.hpp
     cudaerror.hpp 
     datatypes.hpp 
