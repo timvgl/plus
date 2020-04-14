@@ -18,4 +18,4 @@ class BufferPool {
   std::map<real*, int> inUse_;
 };
 
-static BufferPool bufferPool;
+extern BufferPool bufferPool;

@@ -2,14 +2,7 @@
 #include "cudaerror.hpp"
 #include "datatypes.hpp"
 
-// BufferPool::BufferPool() {}
-
-// BufferPool::~BufferPool() {}
-//
-// BufferPool& BufferPool::getInstance() {
-//   static BufferPool instance;
-//   return instance;
-// }
+BufferPool bufferPool;
 
 real* BufferPool::allocate(int size) {
   real* ptr;

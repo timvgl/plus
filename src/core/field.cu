@@ -14,7 +14,6 @@ Field::Field(Grid grid, int nComponents)
 
   for (auto& p : devptrs_) {
     p = bufferPool.allocate(grid.ncells());
-    //checkCudaError(cudaMalloc((void**)&p, grid.ncells() * sizeof(real)));
   }
   checkCudaError(
       cudaMalloc((void**)&devptr_devptrs_, ncomp_ * sizeof(real*)));
@@ -26,7 +25,6 @@ Field::Field(Grid grid, int nComponents)
 Field::~Field() {
   for (auto p : devptrs_) {
     bufferPool.recycle(p);
-    //cudaFree(p);
   }
   cudaFree(devptr_devptrs_);
 }
