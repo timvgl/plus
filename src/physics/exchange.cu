@@ -12,13 +12,14 @@ __global__ void k_exchangeField(CuField hField,
                                 real aex,
                                 real msat,
                                 real3 cellsize) {
-  if (!hField.cellInGrid())
-    return;
 
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int3 i = hField.grid.idx2coo(idx);
+  if (!hField.cellInGrid(idx))
+    return;
 
-  real3 m = mField.cellVector();
+  int3 coo = hField.grid.index2coord(idx);
+
+  real3 m = mField.vectorAt(idx);
   real3 ddm{0, 0, 0};  // second derivative of m
 
   int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
@@ -26,16 +27,16 @@ __global__ void k_exchangeField(CuField hField,
                                          int3{0, 1, 0},  int3{0, 0, 1}};
 
   for (int3 relcoo : neighborRelativeCoordinates) {
-    int3 i_ = i + relcoo;
+    int3 coo_ = coo + relcoo;
     real dr =
         cellsize.x * relcoo.x + cellsize.y * relcoo.y + cellsize.z * relcoo.z;
-    if (hField.cellInGrid(i_)) {
-      real3 m_ = mField.cellVector(i_);
+    if (hField.cellInGrid(coo_)) {
+      real3 m_ = mField.vectorAt(coo_);
       ddm += (m_ - m) / (dr * dr);
     }
   }
 
-  hField.setCellVector(2 * aex * ddm / msat);
+  hField.setVectorInCell(idx, 2 * aex * ddm / msat);
 }
 
 void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {

@@ -18,16 +18,16 @@ DemagKernel::~DemagKernel() {
 }
 
 __global__ void k_demagKernel(CuField kernel, real3 cellsize) {
-  if (!kernel.cellInGrid())
-    return;
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int3 coo = kernel.grid.idx2coo(idx);
-  kernel.setCellValue(0, calcNewellNxx(coo, cellsize));
-  kernel.setCellValue(1, calcNewellNyy(coo, cellsize));
-  kernel.setCellValue(2, calcNewellNzz(coo, cellsize));
-  kernel.setCellValue(3, calcNewellNxy(coo, cellsize));
-  kernel.setCellValue(4, calcNewellNxz(coo, cellsize));
-  kernel.setCellValue(5, calcNewellNyz(coo, cellsize));
+  if (!kernel.cellInGrid(idx))
+    return;
+  int3 coo = kernel.grid.index2coord(idx);
+  kernel.setValueInCell(idx, 0, calcNewellNxx(coo, cellsize));
+  kernel.setValueInCell(idx, 1, calcNewellNyy(coo, cellsize));
+  kernel.setValueInCell(idx, 2, calcNewellNzz(coo, cellsize));
+  kernel.setValueInCell(idx, 3, calcNewellNxy(coo, cellsize));
+  kernel.setValueInCell(idx, 4, calcNewellNxz(coo, cellsize));
+  kernel.setValueInCell(idx, 5, calcNewellNyz(coo, cellsize));
 }
 
 void DemagKernel::compute() {
@@ -46,16 +46,15 @@ const Field* DemagKernel::field() const {
 }
 
 Grid DemagKernel::kernelGrid(Grid dst, Grid src) {
-
   int3 size = src.size() + dst.size() - int3{1, 1, 1};
 
   // add padding to get even dimensions if size is larger than 5
   // this will make the fft on this grid mush more efficient
-  if (size.x > 5 && size.x % 2 == 1 )
+  if (size.x > 5 && size.x % 2 == 1)
     size.x += 1;
-  if (size.y > 5 && size.y % 2 == 1 )
+  if (size.y > 5 && size.y % 2 == 1)
     size.y += 1;
-  if (size.z > 5 && size.z % 2 == 1 )
+  if (size.z > 5 && size.z % 2 == 1)
     size.z += 1;
 
   int3 origin = src.origin() + src.size() - dst.origin() - size;

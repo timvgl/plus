@@ -13,8 +13,11 @@ class Grid {
   __device__ __host__ int3 origin() const;
   __device__ __host__ int ncells() const;
 
-  __device__ __host__ int3 idx2coo(int) const;
-  __device__ __host__ int coo2idx(int3) const;
+  __device__ __host__ int3 index2coord(int idx) const;
+  __device__ __host__ int coord2index(int3 coo) const;
+
+  __device__ __host__ bool cellInGrid(int idx) const;
+  __device__ __host__ bool cellInGrid(int3 coo) const;
 
   __host__ friend bool operator==(const Grid& lhs, const Grid& rhs);
   __host__ friend bool operator!=(const Grid& lhs, const Grid& rhs);
@@ -23,3 +26,41 @@ class Grid {
   int3 size_;
   int3 origin_;
 };
+
+// -----------------------------------------------------------------------
+// Implementation of inline member functions
+
+__device__ __host__ inline int3 Grid::size() const {
+  return size_;
+}
+
+__device__ __host__ inline int3 Grid::origin() const {
+  return origin_;
+}
+
+__device__ __host__ inline int Grid::ncells() const {
+  return size_.x * size_.y * size_.z;
+}
+
+__device__ __host__ inline int3 Grid::index2coord(int idx) const {
+  return {
+    x : origin_.x + idx % size_.x,
+    y : origin_.y + (idx / size_.x) % size_.y,
+    z : origin_.z + idx / (size_.x * size_.y)
+  };
+}
+
+__device__ __host__ inline int Grid::coord2index(int3 coo) const {
+  coo -= origin_;
+  return coo.x + coo.y * size_.x + coo.z * size_.x * size_.y;
+}
+
+__device__ __host__ inline bool Grid::cellInGrid(int idx) const {
+  return idx >= 0 && idx < ncells();
+}
+
+__device__ __host__ inline bool Grid::cellInGrid(int3 coo) const {
+  coo -= origin_;
+  return coo.x >= 0 && coo.x < size_.x && coo.y >= 0 && coo.y < size_.y &&
+         coo.z >= 0 && coo.z < size_.z;
+}

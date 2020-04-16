@@ -19,31 +19,6 @@ void Grid::setOrigin(int3 origin) {
   origin_ = origin;
 }
 
-int3 Grid::size() const {
-  return size_;
-}
-
-int3 Grid::origin() const {
-  return origin_;
-}
-
-int Grid::ncells() const {
-  return size_.x * size_.y * size_.z;
-}
-
-int3 Grid::idx2coo(int idx) const {
-  return {
-    x : origin_.x + idx % size_.x,
-    y : origin_.y + (idx / size_.x) % size_.y,
-    z : origin_.z + idx / (size_.x * size_.y)
-  };
-}
-
-int Grid::coo2idx(int3 coo) const {
-  coo -= origin_;
-  return coo.x + coo.y * size_.x + coo.z * size_.x * size_.y;
-}
-
 bool operator==(const Grid& lhs, const Grid& rhs) {
   return lhs.origin_ == rhs.origin_ && lhs.origin_ == rhs.origin_;
 }

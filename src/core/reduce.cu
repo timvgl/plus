@@ -26,7 +26,7 @@ __global__ void k_maxVecNorm(real* result, CuField f) {
   int tid = threadIdx.x;
   real threadValue = 0.0;
   for (int i = tid; i < ncells; i += BLOCKDIM) {
-    real3 cellVec = f.cellVector(i);
+    real3 cellVec = f.vectorAt(i);
     real cellNorm = norm(cellVec);
     if (cellNorm > threadValue) {
       threadValue = cellNorm;

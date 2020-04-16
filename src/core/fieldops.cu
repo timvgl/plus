@@ -9,13 +9,13 @@ __global__ void k_addFields(CuField y,
                             CuField x1,
                             real a2,
                             CuField x2) {
-  if (!y.cellInGrid())
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGrid(idx))
     return;
-  int nComp = y.ncomp;
-  for (int c = -0; c < nComp; c++) {
-    real term1 = a1 * x1.cellValue(c);
-    real term2 = a2 * x2.cellValue(c);
-    y.setCellValue(c, term1 + term2);
+  for (int c = -0; c < y.ncomp; c++) {
+    real term1 = a1 * x1.valueAt(idx, c);
+    real term2 = a2 * x2.valueAt(idx, c);
+    y.setValueInCell(idx, c, term1 + term2);
   }
 }
 
@@ -45,17 +45,18 @@ void add(Field* y, std::vector<const Field*> x, std::vector<real> weights) {
 }
 
 __global__ void k_normalize(CuField dst, CuField src) {
-  if (!dst.cellInGrid())
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!dst.cellInGrid(idx))
     return;
-  int nComp = src.ncomp;
   real norm2 = 0.0;
-  for (int c = 0; c < nComp; c++) {
-    real v = src.cellValue(c);
+  for (int c = 0; c < src.ncomp; c++) {
+    real v = src.valueAt(idx, c);
     norm2 += v * v;
   }
   real invnorm = rsqrt(norm2);
-  for (int c = 0; c < nComp; c++) {
-    dst.setCellValue(c, src.cellValue(c) * invnorm);
+  for (int c = 0; c < src.ncomp; c++) {
+    real value = src.valueAt(idx,c) * invnorm;
+    dst.setValueInCell(idx, c, value);
   }
 }
 
