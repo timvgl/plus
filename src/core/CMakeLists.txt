@@ -31,6 +31,8 @@ add_library(core STATIC
     stepper.hpp
     timesolver.cpp
     timesolver.hpp
+    timer.cpp
+    timer.hpp
     variable.hpp
     variable.cpp
 )

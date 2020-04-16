@@ -4,6 +4,7 @@ pybind11_add_module(engine
     cast.hpp
     main.cpp
     wrappers.hpp
+    wrap_debug.cpp
     wrap_ferromagnet.cpp
     wrap_field.cpp
     wrap_grid.cpp
