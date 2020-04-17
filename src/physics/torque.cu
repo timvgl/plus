@@ -17,7 +17,8 @@ __global__ void k_torque(CuField torque,
   real3 h = hField.vectorAt(idx);
   real3 mxh = cross(m, h);
   real3 mxmxh = cross(m, mxh);
-  real3 t = -mxh - alpha * mxmxh;
+  real gamma = 1.7595e11;  // TODO: define this somewhere else
+  real3 t = -gamma / (1 + alpha * alpha) * (mxh + alpha * mxmxh);
   torque.setVectorInCell(idx, t);
 }
 
