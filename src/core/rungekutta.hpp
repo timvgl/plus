@@ -1,10 +1,10 @@
 #pragma once
 
-#include "stepper.hpp"
-#include "butchertableau.hpp"
+#include <memory>
+#include <vector>
 
-#include<vector>
-#include<memory>
+#include "butchertableau.hpp"
+#include "stepper.hpp"
 
 class TimeSolver;
 class Field;
@@ -13,6 +13,7 @@ class RungeKuttaStepper : public Stepper {
  public:
   RungeKuttaStepper(TimeSolver*, RKmethod);
   void step();
+
  private:
   ButcherTableau butcher_;
   std::vector<std::unique_ptr<Field>> k_;

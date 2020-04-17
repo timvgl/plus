@@ -14,13 +14,16 @@ class TimeSolver {
   real time() const;
   DynamicEquation eq() const;
   real timestep() const;
+  real maxerror() const;
 
+  void adaptTimeStep(real corr);
   void setTime(real);
 
   void step();
   void steps(int);
 
  private:
+  real maxerror_;
   real time_;
   real dt_;
   DynamicEquation eq_;

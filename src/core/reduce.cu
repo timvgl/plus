@@ -21,7 +21,7 @@ void cudaLaunchReductionKernel(void (*kernelfunction)(Arguments...),
 
 __global__ void k_maxVecNorm(real* result, CuField f) {
   // Reduce to a block
-  __shared__ int sdata[BLOCKDIM];
+  __shared__ real sdata[BLOCKDIM];
   int ncells = f.grid.ncells();
   int tid = threadIdx.x;
   real threadValue = 0.0;

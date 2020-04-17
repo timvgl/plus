@@ -1,5 +1,6 @@
 #include "rungekutta.hpp"
 
+#include <cmath>
 #include <vector>
 
 #include "butchertableau.hpp"
@@ -7,6 +8,7 @@
 #include "field.hpp"
 #include "fieldops.hpp"
 #include "quantity.hpp"
+#include "reduce.hpp"
 #include "timesolver.hpp"
 #include "variable.hpp"
 
@@ -64,4 +66,26 @@ void RungeKuttaStepper::step() {
   add(xstage.get(), fields, weights);
   eq.x->set(xstage.get());
   solver_->setTime(t0 + dt);
+
+  // Determine the error
+  std::vector<real> weights_err(butcher_.nStages);
+  std::vector<const Field*> fields_err(butcher_.nStages);
+  for (int i = 0; i < butcher_.nStages; i++) {
+    fields_err[i] = k_[i].get();
+    weights_err[i] = dt * (butcher_.weights1[i] - butcher_.weights2[i]);
+  }
+  add(xstage.get(), fields_err, weights_err);
+  real err = maxVecNorm(xstage.get());
+
+  real corr;
+  if (err < solver_->maxerror()) {
+    corr = std::pow(solver_->maxerror() / err, 1. / butcher_.order2);
+    solver_->adaptTimeStep(corr);
+  } else {
+    corr = std::pow(solver_->maxerror() / err, 1. / butcher_.order1);
+    solver_->adaptTimeStep(corr);
+    // undo step
+    eq.x->set(x0.get());
+    solver_->setTime(t0);
+  }
 }
