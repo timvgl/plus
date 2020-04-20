@@ -34,7 +34,7 @@ def demag_field_py(magnet):
 class TestDemag:
     def test_demagfield(self):
         world = World((1e-9, 1e-9, 1e-9))
-        magnet = world.add_ferromagnet("", Grid((16, 4, 3)))
+        magnet = world.add_ferromagnet(Grid((16, 4, 3)))
         wanted = demag_field_py(magnet)
         result = magnet.demag_field.eval()
         err = np.max(np.abs((wanted-result)/result))

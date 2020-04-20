@@ -23,8 +23,7 @@ class TestMumax3:
         """
 
         self.world = World((1e-9, 2e-9, 3.2e-9))
-        self.magnet = self.world.add_ferromagnet(
-            "magnet", Grid((29, 16, 4), (6, -3, 0)))
+        self.magnet = self.world.add_ferromagnet(Grid((29, 16, 4), (6, -3, 0)))
         self.magnet.msat = 800e3
         self.magnet.aex = 13e-12
         self.magnet.ku1 = 4.1e6

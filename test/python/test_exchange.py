@@ -32,7 +32,7 @@ class TestExchange:
     def test_exchange(self):
 
         world = World((1e3, 2e3, 3e3))
-        magnet = world.add_ferromagnet("magnet", grid=Grid((16, 16, 4)))
+        magnet = world.add_ferromagnet(Grid((16, 16, 4)))
         magnet.aex = 3.2e7
         magnet.msat = 5.4
 

@@ -12,7 +12,7 @@ class World {
   ~World();
   real3 cellsize() const;
 
-  Ferromagnet* addFerromagnet(std::string name, Grid grid);
+  Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
 
  private:
   std::vector<Ferromagnet> Ferromagnets;
