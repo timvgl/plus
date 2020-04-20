@@ -25,9 +25,9 @@ class TestMumax3:
         self.world = World((1e-9, 2e-9, 3.2e-9))
         self.magnet = self.world.add_ferromagnet(
             "magnet", Grid((29, 16, 4), (6, -3, 0)))
-        self.magnet.msat = 4e5
-        self.magnet.aex = 3.4
-        self.magnet.ku1 = 7.1e6
+        self.magnet.msat = 800e3
+        self.magnet.aex = 13e-12
+        self.magnet.ku1 = 4.1e6
         self.magnet.anisU = (-0.3, 0, 1.5)
 
         self.mumax3sim = Mumax3Simulation(f"""
@@ -37,11 +37,13 @@ class TestMumax3:
                 aex = {self.magnet.aex}
                 ku1 = {self.magnet.ku1}
                 anisU = vector{tuple(self.magnet.anisU)}
+                m = neelskyrmion(1,1)
                 saveas(m,"m.ovf")
                 saveas(b_exch,"b_exch.ovf")
                 saveas(b_anis,"b_anis.ovf")
                 saveas(b_demag,"b_demag.ovf")
                 saveas(b_eff,"b_eff.ovf")
+                saveas(lltorque,"lltorque.ovf")
             """)
 
         self.magnet.magnetization.set(self.mumax3sim.get_field("m"))
@@ -49,24 +51,24 @@ class TestMumax3:
     def test_magnetization(self):
         err = max_relative_error(result=self.magnet.magnetization.get(),
                                  wanted=self.mumax3sim.get_field("m"))
-        assert err < 1e-5
+        assert err < 1e-3
 
     def test_anisotropy_field(self):
         err = max_relative_error(result=self.magnet.anisotropy_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_anis"))
-        assert err < 1e-5
+        assert err < 1e-3
 
     def test_exchange_field(self):
         err = max_relative_error(result=self.magnet.exchange_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_exch"))
-        assert err < 1e-5
+        assert err < 1e-3
 
     def test_demag_field(self):
         # Here we compare to the demagfield of mumax with an increased tollerance.
         # Because mumax3 and mumax5 approximate in a different way the demag kernel
         err = max_relative_error(result=self.magnet.demag_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_demag"))
-        assert err < 1e-1
+        assert err < 1e-2
 
     def test_effective_field(self):
         # Here we compare to the demagfield of mumax with an increased tollerance.

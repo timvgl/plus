@@ -2,14 +2,14 @@
 #include "newell.hpp"
 
 // Eq. 27 in paper of Newell (doi.org/10.1029/93JB00694)
-__host__ __device__
-static inline real Nxx_indefinite(int3 idx, real3 cellsize) {
-  real x = idx.x * cellsize.x;
-  real y = idx.y * cellsize.y;
-  real z = idx.z * cellsize.z;
-  real R = sqrt(x * x + y * y + z * z);
+__host__ __device__ static inline real Nxx_indefinite(int3 idx,
+                                                      real3 cellsize) {
+  double x = idx.x * cellsize.x;
+  double y = idx.y * cellsize.y;
+  double z = idx.z * cellsize.z;
+  double R = sqrt(x * x + y * y + z * z);
 
-  real result = 0;
+  double result = 0;
 
   if (idx.x != 0 || idx.z != 0)  // avoid DBZ: this term->0 if x->0 and z->0
     result += (y / 2) * (z * z - x * x) * asinh(y / sqrt(x * x + z * z));
@@ -26,18 +26,18 @@ static inline real Nxx_indefinite(int3 idx, real3 cellsize) {
 }
 
 // Eq. 32 in paper of Newell
-__host__ __device__
-static inline real Nxy_indefinite(int3 idx, real3 cellsize) {
+__host__ __device__ static inline real Nxy_indefinite(int3 idx,
+                                                        real3 cellsize) {
   if (idx.y == 0 ||
       idx.x == 0)  // Nxy=0 if x=0 and y=0, return early and avoid DBZ
     return 0.0;
 
-  real x = idx.x * cellsize.x;
-  real y = idx.y * cellsize.y;
-  real z = idx.z * cellsize.z;
-  real R = sqrt(x * x + y * y + z * z);
+  double x = idx.x * cellsize.x;
+  double y = idx.y * cellsize.y;
+  double z = idx.z * cellsize.z;
+  double R = sqrt(x * x + y * y + z * z);
 
-  real result = 0;
+  double result = 0;
 
   result += (x * y * z) * asinh(z / sqrt(x * x + y * y));
   result += (y / 6) * (3 * z * z - y * y) * asinh(x / sqrt(y * y + z * z));
@@ -53,9 +53,8 @@ static inline real Nxy_indefinite(int3 idx, real3 cellsize) {
 }
 
 // Eq. 19 in paper of Newell
-__host__ __device__
-real calcNewellNxx(int3 idx, real3 cellsize) {
-  real result = 0;
+__host__ __device__ real calcNewellNxx(int3 idx, real3 cellsize) {
+  double result = 0;
 
   for (int dx = -1; dx <= 1; dx++) {
     for (int dy = -1; dy <= 1; dy++) {
@@ -83,12 +82,11 @@ real calcNewellNxx(int3 idx, real3 cellsize) {
 }
 
 // Eq. 28 in paper of Newell
-__host__ __device__
-real calcNewellNxy(int3 idx, real3 cellsize) {
+__host__ __device__ real calcNewellNxy(int3 idx, real3 cellsize) {
   if (idx.x == 0 || idx.y == 0)
     return 0;
 
-  real result = 0;
+  double result = 0;
 
   for (int dx = -1; dx <= 1; dx++) {
     for (int dy = -1; dy <= 1; dy++) {
