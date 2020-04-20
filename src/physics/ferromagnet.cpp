@@ -15,9 +15,9 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
   msat = 1.0;
   ku1 = 0.0;
   alpha = 0;
-
-  // TODO: this can be done much more efficient somewhere else
+  enableDemag = true;
   {
+    // TODO: this can be done much more efficient somewhere else
     int ncomp = 3;
     int nvalues = ncomp * grid_.ncells();
     std::vector<real> randomValues(nvalues);

@@ -4,11 +4,11 @@
 #include <string>
 
 #include "anisotropy.hpp"
+#include "demag.hpp"
 #include "effectivefield.hpp"
 #include "exchange.hpp"
 #include "field.hpp"
 #include "grid.hpp"
-#include "demag.hpp"
 #include "quantity.hpp"
 #include "system.hpp"
 #include "torque.hpp"
@@ -26,6 +26,7 @@ class Ferromagnet : public System {
 
   real3 anisU;
   real msat, ku1, aex, alpha;
+  bool enableDemag;
 
   const Quantity* demagField() const;
   const Quantity* anisotropyField() const;
