@@ -9,13 +9,22 @@
 
 void wrap_timesolver(py::module& m) {
   py::class_<TimeSolver>(m, "TimeSolver")
-      .def(py::init([](Variable* x, Quantity* rhs, real timestep) {
+      .def(py::init([](Variable* x, Quantity* rhs) {
              return std::unique_ptr<TimeSolver>(
-                 new TimeSolver(DynamicEquation(x, rhs), timestep));
+                 new TimeSolver(DynamicEquation(x, rhs)));
            }),
-           py::arg("variable"), py::arg("rhs"), py::arg("timestep"))
+           py::arg("variable"), py::arg("rhs"))
       .def_property_readonly("time", &TimeSolver::time)
-      .def_property_readonly("timestep", &TimeSolver::timestep)
       .def("step", &TimeSolver::step)
-      .def("steps", &TimeSolver::steps);
+      .def("steps", &TimeSolver::steps)
+      .def_property("timestep", &TimeSolver::timestep, &TimeSolver::setTimeStep)
+      .def_property("adaptive_timestep", &TimeSolver::adaptiveTimeStep,
+                    [](TimeSolver& solver, bool adaptive) {
+                      if (adaptive) {
+                        solver.enableAdaptiveTimeStep();
+                      } else {
+                        solver.disableAdaptiveTimeStep();
+                      }
+                    })
+      .def("run", &TimeSolver::run);
 }
