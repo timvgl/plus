@@ -1,4 +1,5 @@
-#include "math.h"
+#include <cmath>
+
 #include "newell.hpp"
 
 // Eq. 27 in paper of Newell (doi.org/10.1029/93JB00694)
@@ -27,7 +28,7 @@ __host__ __device__ static inline real Nxx_indefinite(int3 idx,
 
 // Eq. 32 in paper of Newell
 __host__ __device__ static inline real Nxy_indefinite(int3 idx,
-                                                        real3 cellsize) {
+                                                      real3 cellsize) {
   if (idx.y == 0 ||
       idx.x == 0)  // Nxy=0 if x=0 and y=0, return early and avoid DBZ
     return 0.0;

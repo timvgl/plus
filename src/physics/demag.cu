@@ -1,4 +1,4 @@
-
+#include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "demag.hpp"
 #include "demagconvolution.hpp"
@@ -45,7 +45,7 @@ __global__ void k_demagfield(CuField hField,
     h.y -= nxy * m.x + nyy * m.y + nyz * m.z;
     h.z -= nxz * m.x + nyz * m.y + nzz * m.z;
   }
-  const real MU0 = 4 * M_PI * 1e-7;  // TODO: move this to a general place
+
   hField.setVectorInCell(idx, msat * MU0 * h);
 }
 

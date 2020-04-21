@@ -4,6 +4,7 @@ project(mumax5physics)
 add_library(physics STATIC 
     anisotropy.cu 
     anisotropy.hpp 
+    constants.hpp
     demag.cu
     demag.hpp
     demagkernel.cu

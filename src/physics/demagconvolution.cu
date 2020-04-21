@@ -8,6 +8,7 @@
 #include "demagkernel.hpp"
 #include "field.hpp"
 #include "timer.hpp"
+#include "constants.hpp"
 
 #define __CUDAOP__ inline __device__ __host__
 
@@ -161,7 +162,6 @@ void DemagConvolution::exec(Field* h, const Field* m, real msat) const {
 
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
-  const real MU0 = 4 * M_PI * 1e-7;  // TODO: move this to a general place
   complex preFactor{-MU0 * msat / kernel_.grid().ncells(), 0};
   if (fftSize.z == 1) {
     cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),

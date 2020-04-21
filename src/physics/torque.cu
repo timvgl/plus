@@ -2,6 +2,7 @@
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "torque.hpp"
+#include "constants.hpp"
 
 Torque::Torque(Ferromagnet* ferromagnet)
     : FerromagnetQuantity(ferromagnet, 3, "torque", "T") {}
@@ -17,8 +18,7 @@ __global__ void k_torque(CuField torque,
   real3 h = hField.vectorAt(idx);
   real3 mxh = cross(m, h);
   real3 mxmxh = cross(m, mxh);
-  real gamma = 1.7595e11;  // TODO: define this somewhere else
-  real3 t = -gamma / (1 + alpha * alpha) * (mxh + alpha * mxmxh);
+  real3 t = -GAMMALL / (1 + alpha * alpha) * (mxh + alpha * mxmxh);
   torque.setVectorInCell(idx, t);
 }
 
@@ -41,8 +41,7 @@ __global__ void k_dampingtorque(CuField torque,
     return;
   real3 m = mField.vectorAt(idx);
   real3 h = hField.vectorAt(idx);
-  real gamma = 1.7595e11;  // TODO: define this somewhere else
-  real3 t = -gamma*cross(m, cross(m, h));
+  real3 t = -GAMMALL*cross(m, cross(m, h));
   torque.setVectorInCell(idx, t);
 }
 
