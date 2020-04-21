@@ -105,3 +105,39 @@ std::vector<real> fieldAverage(Field* f) {
   bufferPool.recycle(d_result);
   return result;
 }
+
+__global__ void k_dotSum(real* result, CuField f, CuField g) {
+  __shared__ real sdata[BLOCKDIM];
+  int ncells = f.grid.ncells();
+  int tid = threadIdx.x;
+
+  real threadValue = 0.0;
+  for (int i = tid; i < ncells; i += BLOCKDIM) {
+    threadValue += dot(f.vectorAt(i), g.vectorAt(i));
+  }
+  sdata[tid] = threadValue;
+  __syncthreads();
+
+  // Reduce the block
+  for (unsigned int s = BLOCKDIM / 2; s > 0; s >>= 1) {
+    if (tid < s)
+      sdata[tid] += sdata[tid + s];
+    __syncthreads();
+  }
+  // TODO: check if loop unrolling makes sense here
+
+  // Set the result
+  if (tid == 0)
+    *result = sdata[0];
+}
+
+real dotSum(Field* f, Field* g) {
+  real* d_result = bufferPool.allocate(1);
+  cudaLaunchReductionKernel(k_dotSum, d_result, f->cu(), g->cu());
+  // copy the result to the host and return
+  real result;
+  checkCudaError(cudaMemcpyAsync(&result, d_result, sizeof(real),
+                                 cudaMemcpyDeviceToHost, getCudaStream()));
+  bufferPool.recycle(d_result);
+  return result;
+}

@@ -29,3 +29,27 @@ void Torque::evalIn(Field* torque) const {
   int ncells = torque->grid().ncells();
   cudaLaunch(ncells, k_torque, torque->cu(), m->cu(), h.get()->cu(), alpha);
 }
+
+RelaxTorque::RelaxTorque(Ferromagnet* ferromagnet)
+    : FerromagnetQuantity(ferromagnet, 3, "damping_torque", "T") {}
+
+__global__ void k_dampingtorque(CuField torque,
+                                CuField mField,
+                                CuField hField) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!torque.cellInGrid(idx))
+    return;
+  real3 m = mField.vectorAt(idx);
+  real3 h = hField.vectorAt(idx);
+  real gamma = 1.7595e11;  // TODO: define this somewhere else
+  real3 t = -gamma*cross(m, cross(m, h));
+  torque.setVectorInCell(idx, t);
+}
+
+void RelaxTorque::evalIn(Field* torque) const {
+  auto h = ferromagnet_->effectiveField()->eval();
+  auto m = ferromagnet_->magnetization()->field();
+  real alpha = ferromagnet_->alpha;
+  int ncells = torque->grid().ncells();
+  cudaLaunch(ncells, k_dampingtorque, torque->cu(), m->cu(), h.get()->cu());
+}

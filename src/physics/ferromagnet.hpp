@@ -34,6 +34,8 @@ class Ferromagnet : public System {
   const Quantity* effectiveField() const;
   const Quantity* torque() const;
 
+  void minimize(real tol = 1e-6, int nSamples = 10);
+
  private:
   Ferromagnet(const Ferromagnet&);
   Ferromagnet& operator=(const Ferromagnet&);

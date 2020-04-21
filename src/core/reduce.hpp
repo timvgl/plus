@@ -7,4 +7,5 @@
 class Field;
 
 real maxVecNorm(Field*);
+real dotSum(Field*, Field*);
 std::vector<real> fieldAverage(Field*);

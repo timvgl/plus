@@ -2,6 +2,8 @@
 
 #include <random>
 
+#include "minimizer.hpp"
+
 Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     : System(world, name, grid),
       demagField_(this),
@@ -56,4 +58,9 @@ const Quantity* Ferromagnet::effectiveField() const {
 
 const Quantity* Ferromagnet::torque() const {
   return &torque_;
+}
+
+void Ferromagnet::minimize(real tol, int nSamples) {
+  Minimizer minimizer(this, tol, nSamples);
+  minimizer.exec();
 }

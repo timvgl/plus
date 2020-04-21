@@ -21,6 +21,8 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
       .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
       .def_property_readonly("torque", &Ferromagnet::torque)
+      .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
+           py::arg("nsamples") = 10)
 
       // TODO: remove demagkernel function
       .def("_demagkernel",

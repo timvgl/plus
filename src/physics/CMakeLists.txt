@@ -18,6 +18,8 @@ add_library(physics STATIC
     ferromagnet.hpp 
     ferromagnetquantity.cpp 
     ferromagnetquantity.hpp 
+    minimizer.cu
+    minimizer.hpp
     newell.cu
     newell.hpp
     system.cpp 

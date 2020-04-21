@@ -10,3 +10,9 @@ class Torque : public FerromagnetQuantity {
   Torque(Ferromagnet*);
   void evalIn(Field*) const;
 };
+
+class RelaxTorque : public FerromagnetQuantity {
+ public:
+  RelaxTorque(Ferromagnet*);
+  void evalIn(Field*) const;
+};
