@@ -8,6 +8,7 @@ pybind11_add_module(engine
     wrap_ferromagnet.cpp
     wrap_field.cpp
     wrap_grid.cpp
+    wrap_parameter.cpp
     wrap_quantity.cpp
     wrap_timesolver.cpp
     wrap_variable.cpp

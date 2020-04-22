@@ -13,6 +13,7 @@
 #include "system.hpp"
 #include "torque.hpp"
 #include "variable.hpp"
+#include "parameter.hpp"
 
 class World;
 
@@ -25,8 +26,10 @@ class Ferromagnet : public System {
   const Variable* magnetization() const;
 
   real3 anisU;
-  real msat, ku1, aex, alpha;
+  real msat, aex, alpha;
   bool enableDemag;
+
+  Parameter ku1;
 
   const Quantity* demagField() const;
   const Quantity* anisotropyField() const;

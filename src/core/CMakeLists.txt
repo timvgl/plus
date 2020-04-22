@@ -21,6 +21,8 @@ add_library(core STATIC
     fieldops.hpp 
     grid.cu 
     grid.hpp 
+    parameter.cu
+    parameter.hpp
     quantity.cpp 
     quantity.hpp 
     rungekutta.cpp

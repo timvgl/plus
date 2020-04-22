@@ -15,6 +15,7 @@ void wrap_debug(py::module& m);
 void wrap_ferromagnet(py::module& m);
 void wrap_field(py::module& m);
 void wrap_grid(py::module& m);
+void wrap_parameter(py::module& m);
 void wrap_quantity(py::module& m);
 void wrap_timesolver(py::module& m);
 void wrap_variable(py::module& m);

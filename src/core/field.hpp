@@ -18,6 +18,7 @@ class Field {
 
   void getData(real* buffer) const;
   void setData(real* buffer);
+  void setUniformComponent(real value, int comp);
 
   void copyFrom(const Field*);
 

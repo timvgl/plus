@@ -48,7 +48,6 @@ __global__ void k_dampingtorque(CuField torque,
 void RelaxTorque::evalIn(Field* torque) const {
   auto h = ferromagnet_->effectiveField()->eval();
   auto m = ferromagnet_->magnetization()->field();
-  real alpha = ferromagnet_->alpha;
   int ncells = torque->grid().ncells();
   cudaLaunch(ncells, k_dampingtorque, torque->cu(), m->cu(), h.get()->cu());
 }

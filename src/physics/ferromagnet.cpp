@@ -11,11 +11,11 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       exchangeField_(this),
       effectiveField_(this),
       torque_(this),
-      magnetization_(name + ":magnetization", "", 3, grid) {
+      magnetization_(name + ":magnetization", "", 3, grid),
+      ku1(grid, 0.0) {
   aex = 0;
   anisU = {0, 0, 0};
   msat = 1.0;
-  ku1 = 0.0;
   alpha = 0;
   enableDemag = true;
   {
