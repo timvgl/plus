@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <string>
 
-World::World(real3 cellsize) : cellsize_(cellsize) {
+World::World(real3 cellsize) : cellsize_(cellsize), biasMagneticField({0,0,0}) {
   if (cellsize.x <= 0 || cellsize.y <= 0 || cellsize.z <= 0) {
     throw std::invalid_argument("The cell size should be larger than 0");
   }

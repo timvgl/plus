@@ -44,6 +44,18 @@ void add(Field* y, std::vector<const Field*> x, std::vector<real> weights) {
   }
 }
 
+__global__ void k_addConstant(CuField y, CuField x, real value, int comp) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGrid(idx))
+    return;
+  y.setValueInCell(idx, comp, x.valueAt(idx, comp)+value );
+}
+
+void addConstant(Field *y, Field *x, real value, int comp) {
+  int ncells = y->grid().ncells();
+  cudaLaunch(ncells, k_addConstant, y->cu(), x->cu(), value, comp);
+}
+
 __global__ void k_normalize(CuField dst, CuField src) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!dst.cellInGrid(idx))

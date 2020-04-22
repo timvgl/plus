@@ -12,6 +12,8 @@ class World {
   ~World();
   real3 cellsize() const;
 
+  real3 biasMagneticField;
+
   Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
 
  private:
