@@ -9,13 +9,13 @@ AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
 
 __global__ void k_anisotropyField(CuField hField,
                                   const CuField mField,
-                                  real3 anisU,
+                                  CuVectorParameter anisU,
                                   CuParameter Ku1,
                                   real msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!hField.cellInGrid(idx))
     return;
-  real3 u = normalized(anisU);
+  real3 u = normalized(anisU.vectorAt(idx));
   real3 m = mField.vectorAt(idx);
   real k = Ku1.valueAt(idx);
   real3 h = 2 * k * dot(m, u) * u / msat;
@@ -25,8 +25,7 @@ __global__ void k_anisotropyField(CuField hField,
 void anisotropyField(Field* hField, const Ferromagnet* ferromagnet) {
   CuField h = hField->cu();
   const CuField m = ferromagnet->magnetization()->field()->cu();
-  real3 anisU = ferromagnet->anisU;
-  //real ku1 = ferromagnet->ku1;
+  auto anisU = ferromagnet->anisU.cu();
   auto ku1 = ferromagnet->ku1.cu();
   real msat = ferromagnet->msat;
   int ncells = hField->grid().ncells();

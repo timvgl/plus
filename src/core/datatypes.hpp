@@ -161,6 +161,14 @@ __CUDAOP__ real3 normalized(const real3& a) {
   return scalingsFactor * a;
 }
 
+__CUDAOP__ bool operator==(const real3& a, const real3& b) {
+  return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+}
+
+__CUDAOP__ bool operator!=(const real3& a, const real3& b) {
+  return (a.x != b.x) || (a.y != b.y) || (a.z != b.z);
+}
+
 inline __host__ std::ostream& operator<<(std::ostream& os, const real3 a) {
   os << "(" << a.x << "," << a.y << "," << a.z << ")";
   return os;

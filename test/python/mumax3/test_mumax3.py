@@ -27,8 +27,9 @@ class TestMumax3:
         self.magnet.msat = 800e3
         self.magnet.aex = 13e-12
         ku1 = 4.1e6
+        anisU = (-0.3, 0, 1.5)
         self.magnet.ku1.set(ku1)
-        self.magnet.anisU = (-0.3, 0, 1.5)
+        self.magnet.anisU.set((-0.3, 0, 1.5))
 
         self.mumax3sim = Mumax3Simulation(f"""
                 setcellsize{tuple(self.world.cellsize)}
@@ -36,7 +37,7 @@ class TestMumax3:
                 msat = {self.magnet.msat}
                 aex = {self.magnet.aex}
                 ku1 = {ku1}
-                anisU = vector{tuple(self.magnet.anisU)}
+                anisU = vector{anisU}
                 m = neelskyrmion(1,1)
                 saveas(m,"m.ovf")
                 saveas(b_exch,"b_exch.ovf")

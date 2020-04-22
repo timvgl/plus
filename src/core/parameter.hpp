@@ -19,7 +19,7 @@ class Parameter : public Quantity {
   bool isZero() const;
   int ncomp() const;
   Grid grid() const;
-  void evalIn(Field *) const;
+  void evalIn(Field*) const;
 
   CuParameter cu() const;
 
@@ -52,3 +52,54 @@ __device__ inline real CuParameter::valueAt(int idx) const {
 __device__ inline real CuParameter::valueAt(int3 coo) const {
   return valueAt(grid.coord2index(coo));
 }
+
+class CuVectorParameter;
+
+class VectorParameter : public Quantity {
+ public:
+  VectorParameter(Grid grid, real3 value = {0.0, 0.0, 0.0});
+  ~VectorParameter();
+
+  void set(real3 value);
+  void set(Field* values);
+
+  bool isUniform() const;
+  bool isZero() const;
+  int ncomp() const;
+  Grid grid() const;
+  void evalIn(Field*) const;
+
+  CuVectorParameter cu() const;
+
+ private:
+  const Grid grid_;
+  real3 uniformValue_;
+  Field* field_;
+};
+
+struct CuVectorParameter {
+  const Grid grid;
+  const real3 uniformValue;
+  real* xValuesPtr;
+  real* yValuesPtr;
+  real* zValuesPtr;
+
+  __device__ bool isUniform() const;
+  __device__ real3 vectorAt(int idx) const;
+  __device__ real3 vectorAt(int3 coo) const;
+};
+
+__device__ inline bool CuVectorParameter::isUniform() const {
+  return !xValuesPtr;
+}
+
+__device__ inline real3 CuVectorParameter::vectorAt(int idx) const {
+  if (isUniform())
+    return uniformValue;
+  return {xValuesPtr[idx], yValuesPtr[idx], zValuesPtr[idx]};
+}
+
+__device__ inline real3 CuVectorParameter::vectorAt(int3 coo) const {
+  return vectorAt(grid.coord2index(coo));
+}
+

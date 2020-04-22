@@ -9,11 +9,11 @@
 #include "exchange.hpp"
 #include "field.hpp"
 #include "grid.hpp"
+#include "parameter.hpp"
 #include "quantity.hpp"
 #include "system.hpp"
 #include "torque.hpp"
 #include "variable.hpp"
-#include "parameter.hpp"
 
 class World;
 
@@ -25,10 +25,10 @@ class Ferromagnet : public System {
 
   const Variable* magnetization() const;
 
-  real3 anisU;
   real msat, aex, alpha;
   bool enableDemag;
 
+  VectorParameter anisU;
   Parameter ku1;
 
   const Quantity* demagField() const;
