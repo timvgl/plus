@@ -11,7 +11,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("grid", &Ferromagnet::grid)
       .def_property_readonly("magnetization", &Ferromagnet::magnetization)
       .def_readwrite("msat", &Ferromagnet::msat)
-      .def_readwrite("alpha", &Ferromagnet::alpha)
+      .def_readonly("alpha", &Ferromagnet::alpha)
       .def_readonly("ku1", &Ferromagnet::ku1)
       .def_readonly("anisU", &Ferromagnet::anisU)
       .def_readwrite("aex", &Ferromagnet::aex)
