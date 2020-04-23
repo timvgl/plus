@@ -7,6 +7,7 @@
 #include "datatypes.hpp"
 #include "demagkernel.hpp"
 #include "grid.hpp"
+#include "parameter.hpp"
 
 class Field;
 
@@ -14,7 +15,7 @@ class DemagConvolution {
  public:
   DemagConvolution(Grid grid, real3 cellsize);
   ~DemagConvolution();
-  void exec(Field* h, const Field* m, real msat) const;
+  void exec(Field* h, const Field* m, Parameter* msat) const;
 
  private:
   Grid grid_;

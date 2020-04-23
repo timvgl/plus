@@ -12,11 +12,11 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       effectiveField_(this),
       torque_(this),
       magnetization_(name + ":magnetization", "", 3, grid),
+      aex(grid, 0.0),
+      msat(grid, 1.0),
       ku1(grid, 0.0),
       alpha(grid, 0.0),
-      anisU(grid, {0,0,0}) {
-  aex = 0;
-  msat = 1.0;
+      anisU(grid, {0, 0, 0}) {
   enableDemag = true;
   {
     // TODO: this can be done much more efficient somewhere else

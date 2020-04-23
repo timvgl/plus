@@ -25,7 +25,7 @@ def compute_exchange_numpy(magnet, cellsize):
     m_ = np.roll(m, -1, axis=3)
     h_exch[:, :, :, 0:-1] += (m_-m)[:, :, :, 0:-1] / (cellsize[0]**2)
 
-    return 2*magnet.aex*h_exch/magnet.msat
+    return 2*magnet.aex.average()[0]*h_exch/magnet.msat.average()[0]
 
 
 class TestExchange:
@@ -33,8 +33,8 @@ class TestExchange:
 
         world = World((1e3, 2e3, 3e3))
         magnet = world.add_ferromagnet(Grid((16, 16, 4)))
-        magnet.aex = 3.2e7
-        magnet.msat = 5.4
+        magnet.aex.set(3.2e7)
+        magnet.msat.set(5.4)
 
         result = magnet.exchange_field.eval()
         wanted = compute_exchange_numpy(magnet, world.cellsize)

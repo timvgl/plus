@@ -5,7 +5,7 @@ import numpy as np
 
 def demag_field_py(magnet):
     kernel = magnet._demagkernel()
-    mag = magnet.msat * magnet.magnetization.get()
+    mag = magnet.msat.average() * magnet.magnetization.get()
     # add padding to the magnetization so that the size of magnetization
     # matches the size of the kernel
     pad = ((0, kernel.shape[1]-mag.shape[1]),

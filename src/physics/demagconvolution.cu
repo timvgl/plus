@@ -3,12 +3,13 @@
 #include <memory>
 #include <vector>
 
+#include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "demagconvolution.hpp"
 #include "demagkernel.hpp"
 #include "field.hpp"
+#include "parameter.hpp"
 #include "timer.hpp"
-#include "constants.hpp"
 
 #define __CUDAOP__ inline __device__ __host__
 
@@ -20,7 +21,7 @@ __CUDAOP__ complex operator*(complex a, complex b) {
   return cuCmulf(a, b);
 }
 
-__global__ static void k_pad(CuField out, CuField in) {
+__global__ static void k_pad(CuField out, CuField in, CuParameter msat) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
   if (outIdx >= out.grid.ncells())
     return;
@@ -29,9 +30,13 @@ __global__ static void k_pad(CuField out, CuField in) {
   int3 inCoo = outCoo - out.grid.origin() + in.grid.origin();
   int inIdx = in.grid.coord2index(inCoo);
 
-  for (int c = 0; c < out.ncomp; c++) {
-    real value = in.grid.cellInGrid(inCoo) ? in.ptrs[c][inIdx] : 0.0;
-    out.ptrs[c][outIdx] = value;
+  if (in.grid.cellInGrid(inCoo)) {
+    real Ms = msat.valueAt(inIdx);
+    for (int c = 0; c < out.ncomp; c++)
+      out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
+  } else {
+    for (int c = 0; c < out.ncomp; c++)
+      out.setValueInCell(outIdx, c, 0.0);
   }
 }
 
@@ -150,10 +155,9 @@ DemagConvolution::~DemagConvolution() {
   checkCufftResult(cufftDestroy(backwardPlan));
 }
 
-void DemagConvolution::exec(Field* h, const Field* m, real msat) const {
-
+void DemagConvolution::exec(Field* h, const Field* m, Parameter* msat) const {
   std::unique_ptr<Field> mpad(new Field(kernel_.grid(), 3));
-  cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m->cu());
+  cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m->cu(), msat->cu());
 
   // Forward fourier transforms
   for (int comp = 0; comp < 3; comp++)
@@ -162,7 +166,7 @@ void DemagConvolution::exec(Field* h, const Field* m, real msat) const {
 
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
-  complex preFactor{-MU0 * msat / kernel_.grid().ncells(), 0};
+  complex preFactor{-MU0 / kernel_.grid().ncells(), 0};
   if (fftSize.z == 1) {
     cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),

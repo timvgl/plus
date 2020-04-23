@@ -24,18 +24,20 @@ class TestMumax3:
 
         self.world = World((1e-9, 2e-9, 3.2e-9))
         self.magnet = self.world.add_ferromagnet(Grid((29, 16, 4), (6, -3, 0)))
-        self.magnet.msat = 800e3
-        self.magnet.aex = 13e-12
         ku1 = 4.1e6
         anisU = (-0.3, 0, 1.5)
+        msat = 800e3
+        aex = 13e-12
+        self.magnet.msat.set(msat)
+        self.magnet.aex.set(aex)
         self.magnet.ku1.set(ku1)
-        self.magnet.anisU.set((-0.3, 0, 1.5))
+        self.magnet.anisU.set(anisU)
 
         self.mumax3sim = Mumax3Simulation(f"""
                 setcellsize{tuple(self.world.cellsize)}
                 setgridsize{tuple(self.magnet.grid.size)}
-                msat = {self.magnet.msat}
-                aex = {self.magnet.aex}
+                msat = {msat}
+                aex = {aex}
                 ku1 = {ku1}
                 anisU = vector{anisU}
                 m = neelskyrmion(1,1)

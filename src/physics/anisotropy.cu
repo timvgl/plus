@@ -1,7 +1,7 @@
 #include "anisotropy.hpp"
+#include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
-#include "cudalaunch.hpp"
 #include "parameter.hpp"
 
 AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
@@ -11,15 +11,20 @@ __global__ void k_anisotropyField(CuField hField,
                                   const CuField mField,
                                   CuVectorParameter anisU,
                                   CuParameter Ku1,
-                                  real msat) {
+                                  CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
   if (!hField.cellInGrid(idx))
     return;
+
   real3 u = normalized(anisU.vectorAt(idx));
   real3 m = mField.vectorAt(idx);
   real k = Ku1.valueAt(idx);
-  real3 h = 2 * k * dot(m, u) * u / msat;
-  hField.setVectorInCell(idx,h);
+  real Ms = msat.valueAt(idx);
+
+  real3 h = 2 * k * dot(m, u) * u / Ms;
+
+  hField.setVectorInCell(idx, h);
 }
 
 void anisotropyField(Field* hField, const Ferromagnet* ferromagnet) {
@@ -27,7 +32,7 @@ void anisotropyField(Field* hField, const Ferromagnet* ferromagnet) {
   const CuField m = ferromagnet->magnetization()->field()->cu();
   auto anisU = ferromagnet->anisU.cu();
   auto ku1 = ferromagnet->ku1.cu();
-  real msat = ferromagnet->msat;
+  auto msat = ferromagnet->msat.cu();
   int ncells = hField->grid().ncells();
   cudaLaunch(ncells, k_anisotropyField, h, m, anisU, ku1, msat);
 }

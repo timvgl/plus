@@ -25,11 +25,10 @@ class Ferromagnet : public System {
 
   const Variable* magnetization() const;
 
-  real msat, aex;
   bool enableDemag;
 
   VectorParameter anisU;
-  Parameter ku1, alpha;
+  Parameter msat, aex, ku1, alpha;
 
   const Quantity* demagField() const;
   const Quantity* anisotropyField() const;
