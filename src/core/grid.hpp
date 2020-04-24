@@ -19,6 +19,8 @@ class Grid {
   __device__ __host__ bool cellInGrid(int idx) const;
   __device__ __host__ bool cellInGrid(int3 coo) const;
 
+  __device__ __host__ bool overlaps(Grid) const;
+
   __host__ friend bool operator==(const Grid& lhs, const Grid& rhs);
   __host__ friend bool operator!=(const Grid& lhs, const Grid& rhs);
 
@@ -63,4 +65,18 @@ __device__ __host__ inline bool Grid::cellInGrid(int3 coo) const {
   coo -= origin_;
   return coo.x >= 0 && coo.x < size_.x && coo.y >= 0 && coo.y < size_.y &&
          coo.z >= 0 && coo.z < size_.z;
+}
+
+__device__ __host__ inline bool Grid::overlaps(Grid other) const {
+  auto max = [](int a, int b) { return a > b ? a : b; };
+  auto min = [](int a, int b) { return a < b ? a : b; };
+  // TODO: min and max functions don't belong here
+
+  int x1 = max(origin_.x, other.origin_.x);
+  int y1 = max(origin_.y, other.origin_.y);
+  int z1 = max(origin_.z, other.origin_.z);
+  int x2 = min(origin_.x + size_.x, other.origin_.x + other.size_.x);
+  int y2 = min(origin_.y + size_.y, other.origin_.y + other.size_.y);
+  int z2 = min(origin_.z + size_.z, other.origin_.z + other.size_.z);
+  return (x2 - x1) > 0 && (y2 - y1) > 0 && (z2 - z1) > 0;
 }

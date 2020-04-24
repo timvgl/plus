@@ -2,6 +2,7 @@
 
 #include "world.hpp"
 #include "wrappers.hpp"
+#include "ferromagnet.hpp"
 
 void wrap_world(py::module& m) {
   // TODO: avoid destructor being called when python ref out of scope
@@ -15,5 +16,8 @@ void wrap_world(py::module& m) {
                     "uniform external magnetic field")
       .def("add_ferromagnet", &World::addFerromagnet, py::arg("grid"),
            py::arg("name") = std::string(""), "add a ferromagnet to the world",
+           py::return_value_policy::reference)
+      .def("get_ferromagnet", &World::getFerromagnet, py::arg("name"),
+           "get a reference to a magnet by name",
            py::return_value_policy::reference);
 }

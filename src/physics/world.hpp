@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>
+#include <map>
 
 #include "datatypes.hpp"
-#include "ferromagnet.hpp"
-#include "grid.hpp"
+
+class Ferromagnet;
+class Grid;
 
 class World {
  public:
@@ -16,7 +17,10 @@ class World {
 
   Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
 
+  // returns a nullptrs if there is no magnet with specified name
+  Ferromagnet* getFerromagnet(std::string name) const;
+
  private:
-  std::vector<Ferromagnet> Ferromagnets;
+  std::map<std::string, Ferromagnet*> Ferromagnets;
   real3 cellsize_;
 };
