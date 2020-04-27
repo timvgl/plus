@@ -10,3 +10,9 @@ class AnisotropyField : public FerromagnetFieldQuantity {
   AnisotropyField(Ferromagnet*);
   void evalIn(Field*) const;
 };
+
+class AnisotropyEnergyDensity : public FerromagnetFieldQuantity {
+ public:
+  AnisotropyEnergyDensity(Ferromagnet*);
+  void evalIn(Field*) const;
+};

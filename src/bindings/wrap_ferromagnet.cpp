@@ -50,6 +50,8 @@ void wrap_ferromagnet(py::module& m) {
 
       .def_property_readonly("demag_field", &Ferromagnet::demagField)
       .def_property_readonly("anisotropy_field", &Ferromagnet::anisotropyField)
+      .def_property_readonly("anisotropy_energy_density",
+                             &Ferromagnet::anisotropyEnergyDensity)
       .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
       .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
       .def_property_readonly("torque", &Ferromagnet::torque)
