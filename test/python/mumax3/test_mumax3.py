@@ -28,10 +28,10 @@ class TestMumax3:
         anisU = (-0.3, 0, 1.5)
         msat = 800e3
         aex = 13e-12
-        self.magnet.msat.set(msat)
-        self.magnet.aex.set(aex)
-        self.magnet.ku1.set(ku1)
-        self.magnet.anisU.set(anisU)
+        self.magnet.msat = msat
+        self.magnet.aex = aex
+        self.magnet.ku1 = ku1
+        self.magnet.anisU = anisU
 
         self.mumax3sim = Mumax3Simulation(f"""
                 setcellsize{tuple(self.world.cellsize)}

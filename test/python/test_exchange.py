@@ -33,8 +33,8 @@ class TestExchange:
 
         world = World((1e3, 2e3, 3e3))
         magnet = world.add_ferromagnet(Grid((16, 16, 4)))
-        magnet.aex.set(3.2e7)
-        magnet.msat.set(5.4)
+        magnet.aex = 3.2e7
+        magnet.msat = 5.4
 
         result = magnet.exchange_field.eval()
         wanted = compute_exchange_numpy(magnet, world.cellsize)

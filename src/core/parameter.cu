@@ -12,8 +12,10 @@ Parameter::~Parameter() {
 
 void Parameter::set(real value) {
   uniformValue_ = value;
-  if (field_)
+  if (field_) {
     delete field_;
+    field_ = nullptr;
+  }
 }
 
 void Parameter::set(Field* values) {
@@ -39,9 +41,11 @@ Grid Parameter::grid() const {
 }
 
 void Parameter::evalIn(Field* f) const {
-  if (field_)
+  if (field_) {
     f->copyFrom(field_);
-  f->setUniformComponent(uniformValue_, 0);
+  } else {
+    f->setUniformComponent(uniformValue_, 0);
+  }
 }
 
 CuParameter Parameter::cu() const {

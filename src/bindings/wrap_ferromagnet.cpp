@@ -2,6 +2,7 @@
 
 #include "demagkernel.hpp"
 #include "ferromagnet.hpp"
+#include "parameter.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
 
@@ -10,17 +11,45 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("name", &Ferromagnet::name)
       .def_property_readonly("grid", &Ferromagnet::grid)
       .def_property_readonly("magnetization", &Ferromagnet::magnetization)
-      .def_readonly("msat", &Ferromagnet::msat)
-      .def_readonly("alpha", &Ferromagnet::alpha)
-      .def_readonly("ku1", &Ferromagnet::ku1)
-      .def_readonly("anisU", &Ferromagnet::anisU)
-      .def_readonly("aex", &Ferromagnet::aex)
+
+      .def_property(
+          "msat", [](const Ferromagnet* fm) { return &fm->msat; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->msat).attr("set")(data);
+          })
+
+      .def_property(
+          "alpha", [](const Ferromagnet* fm) { return &fm->alpha; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->alpha).attr("set")(data);
+          })
+
+      .def_property(
+          "ku1", [](const Ferromagnet* fm) { return &fm->ku1; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->ku1).attr("set")(data);
+          })
+
+      .def_property(
+          "aex", [](const Ferromagnet* fm) { return &fm->aex; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->aex).attr("set")(data);
+          })
+
+      .def_property(
+          "anisU", [](const Ferromagnet* fm) { return &fm->anisU; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->anisU).attr("set")(data);
+          })
+
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
+
       .def_property_readonly("demag_field", &Ferromagnet::demagField)
       .def_property_readonly("anisotropy_field", &Ferromagnet::anisotropyField)
       .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
       .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
       .def_property_readonly("torque", &Ferromagnet::torque)
+
       .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
            py::arg("nsamples") = 10)
 
