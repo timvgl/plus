@@ -6,7 +6,7 @@
 #include "parameter.hpp"
 
 Torque::Torque(Ferromagnet* ferromagnet)
-    : FerromagnetQuantity(ferromagnet, 3, "torque", "T") {}
+    : FerromagnetFieldQuantity(ferromagnet, 3, "torque", "T") {}
 
 __global__ void k_torque(CuField torque,
                          CuField mField,
@@ -33,7 +33,7 @@ void Torque::evalIn(Field* torque) const {
 }
 
 RelaxTorque::RelaxTorque(Ferromagnet* ferromagnet)
-    : FerromagnetQuantity(ferromagnet, 3, "damping_torque", "T") {}
+    : FerromagnetFieldQuantity(ferromagnet, 3, "damping_torque", "T") {}
 
 __global__ void k_dampingtorque(CuField torque,
                                 CuField mField,

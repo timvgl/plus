@@ -1,12 +1,12 @@
 #pragma once
 
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 
 class Ferromagnet;
 
-class FerromagnetQuantity : public Quantity {
+class FerromagnetFieldQuantity : public FieldQuantity {
  public:
-  FerromagnetQuantity(Ferromagnet*,
+  FerromagnetFieldQuantity(Ferromagnet*,
                       int ncomp,
                       std::string name,
                       std::string unit);

@@ -5,14 +5,13 @@
 #include <stdexcept>
 
 #include "field.hpp"
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 #include "reduce.hpp"
 #include "rungekutta.hpp"
 #include "stepper.hpp"
 
 TimeSolver::TimeSolver(DynamicEquation eq)
     : time_(0), maxerror_(1e-5), eq_(eq), fixedTimeStep_(false) {
-
   stepper_ = new RungeKuttaStepper(this, FEHLBERG);
   std::unique_ptr<Field> f0 = eq_.rhs->eval();
 

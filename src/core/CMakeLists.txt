@@ -19,12 +19,12 @@ add_library(core STATIC
     field.hpp 
     fieldops.cu 
     fieldops.hpp 
+    fieldquantity.cpp 
+    fieldquantity.hpp 
     grid.cu 
     grid.hpp 
     parameter.cu
     parameter.hpp
-    quantity.cpp 
-    quantity.hpp 
     rungekutta.cpp
     rungekutta.hpp
     reduce.cu

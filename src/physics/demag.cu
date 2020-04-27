@@ -9,7 +9,7 @@
 #include "world.hpp"
 
 DemagField::DemagField(Ferromagnet* ferromagnet)
-    : FerromagnetQuantity(ferromagnet, 3, "demag_field", "T"),
+    : FerromagnetFieldQuantity(ferromagnet, 3, "demag_field", "T"),
       convolution_(ferromagnet->grid(), ferromagnet->world()->cellsize()),
       demagkernel_(ferromagnet->grid(),
                    ferromagnet->grid(),

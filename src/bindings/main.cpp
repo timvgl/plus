@@ -1,7 +1,7 @@
 #include "wrappers.hpp"
 
 PYBIND11_MODULE(engine, m) {
-  wrap_quantity(m);
+  wrap_fieldquantity(m);
   wrap_debug(m);
   wrap_ferromagnet(m);
   wrap_field(m);

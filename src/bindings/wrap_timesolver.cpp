@@ -2,14 +2,14 @@
 
 #include "dynamicequation.hpp"
 #include "field.hpp"
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 #include "timesolver.hpp"
 #include "variable.hpp"
 #include "wrappers.hpp"
 
 void wrap_timesolver(py::module& m) {
   py::class_<TimeSolver>(m, "TimeSolver")
-      .def(py::init([](Variable* x, Quantity* rhs) {
+      .def(py::init([](Variable* x, FieldQuantity* rhs) {
              return std::unique_ptr<TimeSolver>(
                  new TimeSolver(DynamicEquation(x, rhs)));
            }),

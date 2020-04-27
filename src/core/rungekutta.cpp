@@ -7,7 +7,7 @@
 #include "dynamicequation.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 #include "reduce.hpp"
 #include "timesolver.hpp"
 #include "variable.hpp"

@@ -6,7 +6,7 @@
 
 class Stepper;
 class Variable;
-class Quantity;
+class FieldQuantity;
 
 class TimeSolver {
  public:

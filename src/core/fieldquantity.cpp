@@ -1,4 +1,4 @@
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 
 #include <vector>
 
@@ -6,32 +6,32 @@
 #include "field.hpp"
 #include "reduce.hpp"
 
-Quantity::~Quantity(){};
+FieldQuantity::~FieldQuantity(){};
 
-const Field* Quantity::cache() const {
+const Field* FieldQuantity::cache() const {
   return nullptr;
 }
 
-std::string Quantity::unit() const {
+std::string FieldQuantity::unit() const {
   return "";
 }
 
-std::string Quantity::name() const {
+std::string FieldQuantity::name() const {
   return "";
 }
 
-std::unique_ptr<Field> Quantity::eval() const {
+std::unique_ptr<Field> FieldQuantity::eval() const {
   std::unique_ptr<Field> f(new Field(grid(), ncomp()));
   evalIn(f.get());
   return f;
 }
 
-std::vector<real> Quantity::average() const {
+std::vector<real> FieldQuantity::average() const {
   std::unique_ptr<Field> f(new Field(grid(), ncomp()));
   evalIn(f.get());
   return fieldAverage(f.get());
 }
 
-bool Quantity::fieldCompatibilityCheck(const Field* f) const {
+bool FieldQuantity::fieldCompatibilityCheck(const Field* f) const {
   return f->ncomp() == ncomp() && f->grid() == grid();
 }

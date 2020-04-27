@@ -6,7 +6,7 @@
 #include "world.hpp"
 
 ExchangeField::ExchangeField(Ferromagnet* ferromagnet)
-    : FerromagnetQuantity(ferromagnet, 3, "exchange_field", "T") {}
+    : FerromagnetFieldQuantity(ferromagnet, 3, "exchange_field", "T") {}
 
 __device__ static inline real harmonicMean(real a, real b) {
   if (a + b == 0.0)

@@ -5,13 +5,13 @@
 class Ferromagnet;
 class Field;
 
-class Torque : public FerromagnetQuantity {
+class Torque : public FerromagnetFieldQuantity {
  public:
   Torque(Ferromagnet*);
   void evalIn(Field*) const;
 };
 
-class RelaxTorque : public FerromagnetQuantity {
+class RelaxTorque : public FerromagnetFieldQuantity {
  public:
   RelaxTorque(Ferromagnet*);
   void evalIn(Field*) const;

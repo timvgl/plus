@@ -1,13 +1,13 @@
 #pragma once
 
 #include "datatypes.hpp"
+#include "fieldquantity.hpp"
 #include "grid.hpp"
-#include "quantity.hpp"
 
 class Field;
 class CuParameter;
 
-class Parameter : public Quantity {
+class Parameter : public FieldQuantity {
  public:
   Parameter(Grid grid, real value = 0.0);
   ~Parameter();
@@ -55,7 +55,7 @@ __device__ inline real CuParameter::valueAt(int3 coo) const {
 
 class CuVectorParameter;
 
-class VectorParameter : public Quantity {
+class VectorParameter : public FieldQuantity {
  public:
   VectorParameter(Grid grid, real3 value = {0.0, 0.0, 0.0});
   ~VectorParameter();
@@ -102,4 +102,3 @@ __device__ inline real3 CuVectorParameter::vectorAt(int idx) const {
 __device__ inline real3 CuVectorParameter::vectorAt(int3 coo) const {
   return vectorAt(grid.coord2index(coo));
 }
-

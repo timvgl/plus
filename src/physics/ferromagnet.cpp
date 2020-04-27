@@ -2,6 +2,7 @@
 
 #include <random>
 
+#include "fieldquantity.hpp"
 #include "minimizer.hpp"
 
 Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
@@ -40,23 +41,23 @@ const Variable* Ferromagnet::magnetization() const {
   return &magnetization_;
 }
 
-const Quantity* Ferromagnet::demagField() const {
+const FieldQuantity* Ferromagnet::demagField() const {
   return &demagField_;
 }
 
-const Quantity* Ferromagnet::anisotropyField() const {
+const FieldQuantity* Ferromagnet::anisotropyField() const {
   return &anisotropyField_;
 }
 
-const Quantity* Ferromagnet::exchangeField() const {
+const FieldQuantity* Ferromagnet::exchangeField() const {
   return &exchangeField_;
 }
 
-const Quantity* Ferromagnet::effectiveField() const {
+const FieldQuantity* Ferromagnet::effectiveField() const {
   return &effectiveField_;
 }
 
-const Quantity* Ferromagnet::torque() const {
+const FieldQuantity* Ferromagnet::torque() const {
   return &torque_;
 }
 

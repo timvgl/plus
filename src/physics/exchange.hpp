@@ -5,7 +5,7 @@
 class Ferromagnet;
 class Field;
 
-class ExchangeField : public FerromagnetQuantity {
+class ExchangeField : public FerromagnetFieldQuantity {
  public:
   ExchangeField(Ferromagnet*);
   void evalIn(Field*) const;

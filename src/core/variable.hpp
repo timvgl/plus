@@ -3,9 +3,9 @@
 #include <string>
 
 #include "grid.hpp"
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 
-class Variable : public Quantity {
+class Variable : public FieldQuantity {
  public:
   Variable(std::string name, std::string unit, int ncomp, Grid grid);
   ~Variable();

@@ -7,7 +7,7 @@
 class Ferromagnet;
 class Field;
 
-class DemagField : public FerromagnetQuantity {
+class DemagField : public FerromagnetFieldQuantity {
  public:
   DemagField(Ferromagnet*);
   void evalIn(Field*) const;

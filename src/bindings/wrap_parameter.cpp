@@ -1,13 +1,13 @@
 #include <memory>
 
 #include "field.hpp"
+#include "fieldquantity.hpp"
 #include "parameter.hpp"
-#include "quantity.hpp"
 #include "variable.hpp"
 #include "wrappers.hpp"
 
 void wrap_parameter(py::module& m) {
-  py::class_<Parameter, Quantity>(m, "Parameter")
+  py::class_<Parameter, FieldQuantity>(m, "Parameter")
       .def("is_uniform", &Parameter::isUniform)
       .def("set", [](Parameter* p, real value) { p->set(value); })
       .def("set", [](Parameter* p, py::array_t<real> data) {
@@ -17,7 +17,7 @@ void wrap_parameter(py::module& m) {
                             // copy
       });
 
-  py::class_<VectorParameter, Quantity>(m, "VectorParameter")
+  py::class_<VectorParameter, FieldQuantity>(m, "VectorParameter")
       .def("is_uniform", &VectorParameter::isUniform)
       .def("set", [](VectorParameter* p, real3 value) { p->set(value); })
       .def("set", [](VectorParameter* p, py::array_t<real> data) {

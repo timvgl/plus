@@ -9,7 +9,7 @@ pybind11_add_module(engine
     wrap_field.cpp
     wrap_grid.cpp
     wrap_parameter.cpp
-    wrap_quantity.cpp
+    wrap_fieldquantity.cpp
     wrap_timesolver.cpp
     wrap_variable.cpp
     wrap_world.cpp

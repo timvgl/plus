@@ -10,11 +10,11 @@
 #include "field.hpp"
 #include "grid.hpp"
 #include "parameter.hpp"
-#include "quantity.hpp"
 #include "system.hpp"
 #include "torque.hpp"
 #include "variable.hpp"
 
+class FieldQuantity;
 class World;
 
 class Ferromagnet : public System {
@@ -30,11 +30,11 @@ class Ferromagnet : public System {
   VectorParameter anisU;
   Parameter msat, aex, ku1, alpha;
 
-  const Quantity* demagField() const;
-  const Quantity* anisotropyField() const;
-  const Quantity* exchangeField() const;
-  const Quantity* effectiveField() const;
-  const Quantity* torque() const;
+  const FieldQuantity* demagField() const;
+  const FieldQuantity* anisotropyField() const;
+  const FieldQuantity* exchangeField() const;
+  const FieldQuantity* effectiveField() const;
+  const FieldQuantity* torque() const;
 
   void minimize(real tol = 1e-6, int nSamples = 10);
 

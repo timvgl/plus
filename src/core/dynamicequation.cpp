@@ -2,10 +2,10 @@
 
 #include <exception>
 
-#include "quantity.hpp"
+#include "fieldquantity.hpp"
 #include "variable.hpp"
 
-DynamicEquation::DynamicEquation(const Variable* x, const Quantity* rhs)
+DynamicEquation::DynamicEquation(const Variable* x, const FieldQuantity* rhs)
     : x(x), rhs(rhs) {
   if (x->grid() != rhs->grid()) {
     throw std::runtime_error(

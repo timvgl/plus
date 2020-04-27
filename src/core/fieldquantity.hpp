@@ -9,11 +9,11 @@
 class Grid;
 class Field;
 
-/// Quantity interface
-class Quantity {
+/// FieldQuantity interface
+class FieldQuantity {
  public:
   /// Virtual destructor which does nothing
-  virtual ~Quantity();
+  virtual ~FieldQuantity();
 
   /***** PURE VIRTUAL FUNCTIONS *****/
 
@@ -31,7 +31,7 @@ class Quantity {
 
   /***** NON-PURE VIRTUAL FUNCTIONS *****/
 
-  /// Quantity values which do not need to be computed (e.g. variables,
+  /// FieldQuantity values which do not need to be computed (e.g. variables,
   /// parameters, or cached quantity values) can be accessed via a pointer to
   /// the field object in which the values are stored.
   virtual const Field* cache() const;

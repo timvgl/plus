@@ -5,7 +5,7 @@
 #include "parameter.hpp"
 
 AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
-    : FerromagnetQuantity(ferromagnet, 3, "anisotropy_field", "T") {}
+    : FerromagnetFieldQuantity(ferromagnet, 3, "anisotropy_field", "T") {}
 
 __global__ void k_anisotropyField(CuField hField,
                                   const CuField mField,

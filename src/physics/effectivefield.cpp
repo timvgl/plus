@@ -6,7 +6,7 @@
 #include "world.hpp"
 
 EffectiveField::EffectiveField(Ferromagnet* ferromagnet)
-    : FerromagnetQuantity(ferromagnet, 3, "effective_field", "T") {}
+    : FerromagnetFieldQuantity(ferromagnet, 3, "effective_field", "T") {}
 
 void EffectiveField::evalIn(Field* result) const {
   auto anisField = ferromagnet_->anisotropyField()->eval();
