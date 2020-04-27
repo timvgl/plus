@@ -10,7 +10,11 @@ void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
       .def_property_readonly("name", &Ferromagnet::name)
       .def_property_readonly("grid", &Ferromagnet::grid)
-      .def_property_readonly("magnetization", &Ferromagnet::magnetization)
+
+      .def_property("magnetization", &Ferromagnet::magnetization,
+                    [](Ferromagnet* fm, py::object data) {
+                      py::cast(fm->magnetization()).attr("set")(data);
+                    })
 
       .def_property(
           "msat", [](const Ferromagnet* fm) { return &fm->msat; },

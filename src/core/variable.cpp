@@ -1,5 +1,8 @@
 #include "variable.hpp"
 
+#include <stdexcept>
+#include <string>
+
 #include "field.hpp"
 #include "fieldops.hpp"
 
@@ -40,6 +43,22 @@ void Variable::set(const Field* src) const {
   field_->copyFrom(src);
 }
 
+void Variable::set(real value) const {
+  if (ncomp() != 1)
+    throw std::runtime_error("Variable has " + std::to_string(ncomp()) +
+                             "components instead of 1");
+  field_->setUniformComponent(value, 0);
+}
+
+void Variable::set(real3 value) const {
+  if (ncomp() != 3)
+    throw std::runtime_error("Variable has " + std::to_string(ncomp()) +
+                             "components instead of 3");
+  field_->setUniformComponent(value.x, 0);
+  field_->setUniformComponent(value.y, 1);
+  field_->setUniformComponent(value.z, 2);
+}
+
 NormalizedVariable::NormalizedVariable(std::string name,
                                        std::string unit,
                                        int ncomp,
@@ -48,6 +67,13 @@ NormalizedVariable::NormalizedVariable(std::string name,
 
 void NormalizedVariable::set(const Field* src) const {
   // TODO: check if this is possible without the extra copy
-  auto f = normalized(src);
-  field_->copyFrom(f.get());
+  Variable::set(normalized(src).get());
+}
+
+void NormalizedVariable::set(real value) const {
+  Variable::set(1);
+}
+
+void NormalizedVariable::set(real3 value) const {
+  Variable::set(normalized(value));
 }

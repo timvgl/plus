@@ -18,7 +18,10 @@ class Variable : public Quantity {
   void evalIn(Field*) const;
 
   const Field* field() const;
+
   virtual void set(const Field*) const;
+  virtual void set(real) const;
+  virtual void set(real3) const;
 
  protected:
   Field* field_;
@@ -34,4 +37,6 @@ class NormalizedVariable : public Variable {
  public:
   NormalizedVariable(std::string name, std::string unit, int ncomp, Grid grid);
   void set(const Field*) const;
+  void set(real) const;
+  void set(real3) const;
 };
