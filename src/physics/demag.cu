@@ -51,10 +51,10 @@ __global__ void k_demagfield(CuField hField,
 
 void DemagField::evalIn(Field* result) const {
   const Field* m = ferromagnet_->magnetization()->field();
-  Parameter msat = ferromagnet_->msat;
+  Parameter * msat = &ferromagnet_->msat;
   int ncells = result->grid().ncells();
 
-  convolution_.exec(result, m, &msat);
+  convolution_.exec(result, m, msat);
 
   //// brute method
   // const Field* kernel = demagkernel_.field();
