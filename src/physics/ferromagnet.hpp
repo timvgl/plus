@@ -31,6 +31,7 @@ class Ferromagnet : public System {
   Parameter msat, aex, ku1, alpha;
 
   const FieldQuantity* demagField() const;
+  const FieldQuantity* demagEnergyDensity() const;
   const FieldQuantity* anisotropyField() const;
   const FieldQuantity* anisotropyEnergyDensity() const;
   const FieldQuantity* exchangeField() const;
@@ -48,6 +49,7 @@ class Ferromagnet : public System {
   NormalizedVariable magnetization_;
 
   DemagField demagField_;
+  DemagField demagEnergyDensity_;
   AnisotropyField anisotropyField_;
   AnisotropyEnergyDensity anisotropyEnergyDensity_;
   ExchangeField exchangeField_;

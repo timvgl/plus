@@ -8,6 +8,7 @@
 Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     : System(world, name, grid),
       demagField_(this),
+      demagEnergyDensity_(this),
       anisotropyField_(this),
       anisotropyEnergyDensity_(this),
       exchangeField_(this),
@@ -45,6 +46,10 @@ const Variable* Ferromagnet::magnetization() const {
 
 const FieldQuantity* Ferromagnet::demagField() const {
   return &demagField_;
+}
+
+const FieldQuantity* Ferromagnet::demagEnergyDensity() const {
+  return &demagEnergyDensity_;
 }
 
 const FieldQuantity* Ferromagnet::anisotropyField() const {

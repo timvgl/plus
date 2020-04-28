@@ -51,7 +51,7 @@ __global__ void k_demagfield(CuField hField,
 
 void DemagField::evalIn(Field* result) const {
   const Field* m = ferromagnet_->magnetization()->field();
-  Parameter * msat = &ferromagnet_->msat;
+  Parameter* msat = &ferromagnet_->msat;
   int ncells = result->grid().ncells();
 
   convolution_.exec(result, m, msat);
@@ -60,4 +60,31 @@ void DemagField::evalIn(Field* result) const {
   // const Field* kernel = demagkernel_.field();
   // cudaLaunch(ncells, k_demagfield, result->cu(), m->cu(), kernel->cu(),
   // msat);
+}
+
+DemagEnergyDensity::DemagEnergyDensity(Ferromagnet* ferromagnet)
+    : FerromagnetFieldQuantity(ferromagnet, 1, "demag_energy_density", "J/m3") {
+}
+
+__global__ void k_demagEnergyDensity(CuField edens,
+                                     CuField hfield,
+                                     CuField mag,
+                                     CuParameter msat) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (!edens.cellInGrid(idx))
+    return;
+
+  real Ms = msat.valueAt(idx);
+  real3 h = hfield.vectorAt(idx);
+  real3 m = mag.vectorAt(idx);
+
+  edens.setValueInCell(idx, 0, -0.5 * Ms * dot(m, h));
+}
+
+void DemagEnergyDensity::evalIn(Field* result) const {
+  auto h = ferromagnet_->demagField()->eval();
+  cudaLaunch(result->grid().ncells(), k_demagEnergyDensity, result->cu(),
+             ferromagnet_->magnetization()->field()->cu(), h->cu(),
+             ferromagnet_->msat.cu());
 }

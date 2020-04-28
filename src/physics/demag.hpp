@@ -15,3 +15,9 @@ class DemagField : public FerromagnetFieldQuantity {
   DemagKernel demagkernel_;
   DemagConvolution convolution_;
 };
+
+class DemagEnergyDensity : public FerromagnetFieldQuantity {
+ public:
+  DemagEnergyDensity(Ferromagnet*);
+  void evalIn(Field*) const;
+};
