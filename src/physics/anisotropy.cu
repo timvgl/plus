@@ -3,6 +3,7 @@
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "parameter.hpp"
+#include "world.hpp"
 
 AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "anisotropy_field", "T") {}
@@ -44,7 +45,7 @@ AnisotropyEnergyDensity::AnisotropyEnergyDensity(Ferromagnet* ferromagnet)
                                "J/m3") {}
 
 __global__ void k_anisotropyEnergyDensity(CuField edens,
-                                          const CuField mField,
+                                          CuField mField,
                                           CuVectorParameter anisU,
                                           CuParameter Ku1,
                                           CuParameter msat) {
@@ -72,4 +73,14 @@ void AnisotropyEnergyDensity::evalIn(Field* edens) const {
   auto msat = ferromagnet_->msat.cu();
   int ncells = ferromagnet_->grid().ncells();
   cudaLaunch(ncells, k_anisotropyEnergyDensity, e, m, anisU, ku1, msat);
+}
+
+AnisotropyEnergy::AnisotropyEnergy(Ferromagnet* ferromagnet)
+    : FerromagnetScalarQuantity(ferromagnet, "anisotropy_energy", "J") {}
+
+real AnisotropyEnergy::eval() const {
+  int ncells = ferromagnet_->grid().ncells();
+  real edensAverage = ferromagnet_->anisotropyEnergyDensity()->average()[0];
+  real cellVolume = ferromagnet_->world()->cellVolume();
+  return ncells * edensAverage * cellVolume;
 }

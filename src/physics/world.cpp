@@ -22,6 +22,10 @@ real3 World::cellsize() const {
   return cellsize_;
 }
 
+real World::cellVolume() const {
+  return cellsize_.x * cellsize_.y * cellsize_.z;
+}
+
 Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
   for (auto fm : Ferromagnets)
     if (grid.overlaps(fm.second->grid()))

@@ -32,10 +32,14 @@ class Ferromagnet : public System {
 
   const FieldQuantity* demagField() const;
   const FieldQuantity* demagEnergyDensity() const;
+
   const FieldQuantity* anisotropyField() const;
   const FieldQuantity* anisotropyEnergyDensity() const;
+  const ScalarQuantity* anisotropyEnergy() const;
+
   const FieldQuantity* exchangeField() const;
   const FieldQuantity* exchangeEnergyDensity() const;
+
   const FieldQuantity* effectiveField() const;
   const FieldQuantity* torque() const;
 
@@ -50,10 +54,14 @@ class Ferromagnet : public System {
 
   DemagField demagField_;
   DemagField demagEnergyDensity_;
+
   AnisotropyField anisotropyField_;
   AnisotropyEnergyDensity anisotropyEnergyDensity_;
+  AnisotropyEnergy anisotropyEnergy_;
+
   ExchangeField exchangeField_;
   ExchangeEnergyDensity exchangeEnergyDensity_;
+
   EffectiveField effectiveField_;
   Torque torque_;
 };

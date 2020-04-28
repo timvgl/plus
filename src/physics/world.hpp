@@ -12,6 +12,7 @@ class World {
   World(real3 cellsize);
   ~World();
   real3 cellsize() const;
+  real cellVolume() const;
 
   real3 biasMagneticField;
 
