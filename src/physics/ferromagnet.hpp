@@ -5,6 +5,7 @@
 
 #include "anisotropy.hpp"
 #include "demag.hpp"
+#include "zeeman.hpp"
 #include "effectivefield.hpp"
 #include "exchange.hpp"
 #include "field.hpp"
@@ -34,6 +35,10 @@ class Ferromagnet : public System {
   const FieldQuantity* demagEnergyDensity() const;
   const ScalarQuantity* demagEnergy() const;
 
+  const FieldQuantity* externalField() const;
+  const FieldQuantity* zeemanEnergyDensity() const;
+  const ScalarQuantity* zeemanEnergy() const;
+
   const FieldQuantity* anisotropyField() const;
   const FieldQuantity* anisotropyEnergyDensity() const;
   const ScalarQuantity* anisotropyEnergy() const;
@@ -55,8 +60,12 @@ class Ferromagnet : public System {
   NormalizedVariable magnetization_;
 
   DemagField demagField_;
-  DemagField demagEnergyDensity_;
+  DemagEnergyDensity demagEnergyDensity_;
   DemagEnergy demagEnergy_;
+
+  ExternalField externalField_;
+  ZeemanEnergyDensity zeemanEnergyDensity_;
+  ZeemanEnergy zeemanEnergy_;
 
   AnisotropyField anisotropyField_;
   AnisotropyEnergyDensity anisotropyEnergyDensity_;

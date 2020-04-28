@@ -14,15 +14,11 @@ void EffectiveField::evalIn(Field* result) const {
   auto exchField = ferromagnet_->exchangeField()->eval();
   add(result, exchField.get(), anisField.get());
 
+  auto externalField = ferromagnet_->externalField()->eval();
+  add(result, result, externalField.get());
+
   if (ferromagnet_->enableDemag) {
     auto demagField = ferromagnet_->demagField()->eval();
     add(result, result, demagField.get());
-  }
-
-  real3 b_ext = ferromagnet_->world()->biasMagneticField;
-  if (norm(b_ext) != 0) {
-    addConstant(result, result, b_ext.x, 0);
-    addConstant(result, result, b_ext.y, 1);
-    addConstant(result, result, b_ext.z, 2);
   }
 }

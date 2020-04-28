@@ -10,6 +10,9 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       demagField_(this),
       demagEnergyDensity_(this),
       demagEnergy_(this),
+      externalField_(this),
+      zeemanEnergyDensity_(this),
+      zeemanEnergy_(this),
       anisotropyField_(this),
       anisotropyEnergyDensity_(this),
       anisotropyEnergy_(this),
@@ -53,6 +56,22 @@ const FieldQuantity* Ferromagnet::demagField() const {
 
 const FieldQuantity* Ferromagnet::demagEnergyDensity() const {
   return &demagEnergyDensity_;
+}
+
+const ScalarQuantity* Ferromagnet::demagEnergy() const {
+  return &demagEnergy_;
+}
+
+const FieldQuantity* Ferromagnet::externalField() const {
+  return &externalField_;
+}
+
+const FieldQuantity* Ferromagnet::zeemanEnergyDensity() const {
+  return &zeemanEnergyDensity_;
+}
+
+const ScalarQuantity* Ferromagnet::zeemanEnergy() const {
+  return &zeemanEnergy_;
 }
 
 const FieldQuantity* Ferromagnet::anisotropyField() const {

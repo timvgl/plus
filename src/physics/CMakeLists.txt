@@ -29,6 +29,8 @@ add_library(physics STATIC
     torque.hpp 
     world.cpp 
     world.hpp
+    zeeman.cu
+    zeeman.hpp
 )
 
 target_include_directories(physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})

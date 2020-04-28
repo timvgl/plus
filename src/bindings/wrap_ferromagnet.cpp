@@ -66,6 +66,12 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("exchange_energy",
                              &Ferromagnet::exchangeEnergy)
 
+      .def_property_readonly("external_field", &Ferromagnet::externalField)
+      .def_property_readonly("zeeman_energy_density",
+                             &Ferromagnet::zeemanEnergyDensity)
+      .def_property_readonly("zeeman_energy",
+                             &Ferromagnet::zeemanEnergy)
+
       .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
       .def_property_readonly("torque", &Ferromagnet::torque)
 
