@@ -28,7 +28,7 @@ bool Parameter::isUniform() const {
   return !field_;
 };
 
-bool Parameter::isZero() const {
+bool Parameter::assuredZero() const {
   return isUniform() && uniformValue_ == 0.0;
 }
 
@@ -78,7 +78,7 @@ bool VectorParameter::isUniform() const {
   return !field_;
 };
 
-bool VectorParameter::isZero() const {
+bool VectorParameter::assuredZero() const {
   return isUniform() && uniformValue_ == real3{0.0, 0.0, 0.0};
 }
 

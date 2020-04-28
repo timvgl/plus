@@ -29,6 +29,11 @@ __global__ void k_anisotropyField(CuField hField,
 }
 
 void AnisotropyField::evalIn(Field* result) const {
+  if (assuredZero()) {
+    result->makeZero();
+    return;
+  }
+
   CuField h = result->cu();
   const CuField m = ferromagnet_->magnetization()->field()->cu();
   auto anisU = ferromagnet_->anisU.cu();
@@ -36,6 +41,10 @@ void AnisotropyField::evalIn(Field* result) const {
   auto msat = ferromagnet_->msat.cu();
   int ncells = ferromagnet_->grid().ncells();
   cudaLaunch(ncells, k_anisotropyField, h, m, anisU, ku1, msat);
+}
+
+bool AnisotropyField::assuredZero() const {
+  return ferromagnet_->ku1.assuredZero() || ferromagnet_->anisU.assuredZero();
 }
 
 AnisotropyEnergyDensity::AnisotropyEnergyDensity(Ferromagnet* ferromagnet)
@@ -66,6 +75,11 @@ __global__ void k_anisotropyEnergyDensity(CuField edens,
 }
 
 void AnisotropyEnergyDensity::evalIn(Field* edens) const {
+  if (assuredZero()) {
+    edens->makeZero();
+    return;
+  }
+
   CuField e = edens->cu();
   const CuField m = ferromagnet_->magnetization()->field()->cu();
   auto anisU = ferromagnet_->anisU.cu();
@@ -75,10 +89,17 @@ void AnisotropyEnergyDensity::evalIn(Field* edens) const {
   cudaLaunch(ncells, k_anisotropyEnergyDensity, e, m, anisU, ku1, msat);
 }
 
+bool AnisotropyEnergyDensity::assuredZero() const {
+  return ferromagnet_->anisotropyField()->assuredZero();
+}
+
 AnisotropyEnergy::AnisotropyEnergy(Ferromagnet* ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "anisotropy_energy", "J") {}
 
 real AnisotropyEnergy::eval() const {
+  if (ferromagnet_->anisotropyEnergyDensity()->assuredZero())
+    return 0;
+
   int ncells = ferromagnet_->grid().ncells();
   real edensAverage = ferromagnet_->anisotropyEnergyDensity()->average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();

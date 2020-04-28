@@ -1,4 +1,5 @@
 #include "cudalaunch.hpp"
+#include "datatypes.hpp"
 #include "ferromagnet.hpp"
 #include "ferromagnetquantity.hpp"
 #include "field.hpp"
@@ -13,6 +14,11 @@ void ExternalField::evalIn(Field* result) const {
   result->setUniformComponent(b_ext.x, 0);
   result->setUniformComponent(b_ext.y, 1);
   result->setUniformComponent(b_ext.z, 2);
+}
+
+bool ExternalField::assuredZero() const {
+  real3 b_ext = ferromagnet_->world()->biasMagneticField;
+  return b_ext == real3{0.0, 0.0, 0.0};
 }
 
 ZeemanEnergyDensity::ZeemanEnergyDensity(Ferromagnet* ferromagnet)
@@ -38,16 +44,28 @@ __global__ void k_zeemanEnergyDensity(CuField edens,
 }
 
 void ZeemanEnergyDensity::evalIn(Field* result) const {
+  if (assuredZero()) {
+    result->makeZero();
+    return;
+  }
+
   auto h = ferromagnet_->exchangeField()->eval();
   cudaLaunch(result->grid().ncells(), k_zeemanEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
 }
 
+bool ZeemanEnergyDensity::assuredZero() const {
+  return ferromagnet_->externalField()->assuredZero();
+}
+
 ZeemanEnergy::ZeemanEnergy(Ferromagnet* ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "zeeman_energy", "J") {}
 
 real ZeemanEnergy::eval() const {
+  if (ferromagnet_->zeemanEnergyDensity()->assuredZero())
+    return 0.0;
+
   int ncells = ferromagnet_->grid().ncells();
   real edensAverage = ferromagnet_->zeemanEnergyDensity()->average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();

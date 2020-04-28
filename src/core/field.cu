@@ -71,6 +71,11 @@ void Field::setUniformComponent(real value, int comp) {
   cudaLaunch(grid_.ncells(), k_setComponent, cu(), value, comp);
 }
 
+void Field::makeZero() {
+  for (int comp = 0; comp < ncomp_; comp++)
+    setUniformComponent(0.0, comp);
+}
+
 void Field::copyFrom(const Field* src) {
   // TODO: throw error if field dimensions mismatch
   for (int c = 0; c < ncomp_; c++) {

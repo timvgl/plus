@@ -59,7 +59,16 @@ void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {
 }
 
 void ExchangeField::evalIn(Field* result) const {
+  if (assuredZero()) {
+    result->makeZero();
+    return;
+  }
+
   exchangeField(result, ferromagnet_);
+}
+
+bool ExchangeField::assuredZero() const {
+  return ferromagnet_->aex.assuredZero();
 }
 
 ExchangeEnergyDensity::ExchangeEnergyDensity(Ferromagnet* ferromagnet)
@@ -85,16 +94,27 @@ __global__ void k_exchangeEnergyDensity(CuField edens,
 }
 
 void ExchangeEnergyDensity::evalIn(Field* result) const {
+  if (assuredZero()) {
+    result->makeZero();
+    return;
+  }
   auto h = ferromagnet_->exchangeField()->eval();
   cudaLaunch(result->grid().ncells(), k_exchangeEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
 }
 
+bool ExchangeEnergyDensity::assuredZero() const {
+  return ferromagnet_->exchangeField()->assuredZero();
+}
+
 ExchangeEnergy::ExchangeEnergy(Ferromagnet* ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "exchange_energy", "J") {}
 
 real ExchangeEnergy::eval() const {
+  if (ferromagnet_->exchangeEnergyDensity()->assuredZero())
+    return 0.0;
+
   int ncells = ferromagnet_->grid().ncells();
   real edensAverage = ferromagnet_->exchangeEnergyDensity()->average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();

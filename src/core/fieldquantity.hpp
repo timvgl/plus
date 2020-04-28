@@ -45,11 +45,21 @@ class FieldQuantity {
   /// Allocate memory for a field and calls void eval(Field *)
   virtual std::unique_ptr<Field> eval() const;
 
+  /// Evaluates the quantity and add it to the given field
+  virtual void addTo(Field*) const;
+
   /// Eval the quantity and return the average of each component
   virtual std::vector<real> average() const;
 
+  /// If assuredZero() returns true, then addTo(field) doesn't add anything to the field.
+  /// This function returns false, but can be overriden in derived classes for
+  /// optimization. In this case, it is also recommended to check in evalIn(Field)
+  /// if the quantity is zero, for an early exit.
+  virtual bool assuredZero() const;
+
   /***** NON-VIRTUAL HELPER FUNCTIONS *****/
 
+ public:
   /// Checks if the quantity can be evaluated in a given field object
   bool fieldCompatibilityCheck(const Field*) const;
 };

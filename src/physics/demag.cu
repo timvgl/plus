@@ -50,16 +50,23 @@ __global__ void k_demagfield(CuField hField,
 }
 
 void DemagField::evalIn(Field* result) const {
-  const Field* m = ferromagnet_->magnetization()->field();
-  Parameter* msat = &ferromagnet_->msat;
-  int ncells = result->grid().ncells();
+  if (assuredZero()) {
+    result->makeZero();
+    return;
+  }
 
+  Parameter* msat = &ferromagnet_->msat;
+  const Field* m = ferromagnet_->magnetization()->field();
   convolution_.exec(result, m, msat);
 
   //// brute method
   // const Field* kernel = demagkernel_.field();
   // cudaLaunch(ncells, k_demagfield, result->cu(), m->cu(), kernel->cu(),
   // msat);
+}
+
+bool DemagField::assuredZero() const {
+  return !ferromagnet_->enableDemag || ferromagnet_->msat.assuredZero();
 }
 
 DemagEnergyDensity::DemagEnergyDensity(Ferromagnet* ferromagnet)
@@ -83,16 +90,27 @@ __global__ void k_demagEnergyDensity(CuField edens,
 }
 
 void DemagEnergyDensity::evalIn(Field* result) const {
+  if (assuredZero()) {
+    result->makeZero();
+    return;
+  }
   auto h = ferromagnet_->demagField()->eval();
   cudaLaunch(result->grid().ncells(), k_demagEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
 }
 
+bool DemagEnergyDensity::assuredZero() const {
+  return ferromagnet_->demagField()->assuredZero();
+}
+
 DemagEnergy::DemagEnergy(Ferromagnet* ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "demag_energy", "J") {}
 
 real DemagEnergy::eval() const {
+  if (ferromagnet_->demagEnergyDensity()->assuredZero())
+    return 0.0;
+
   int ncells = ferromagnet_->grid().ncells();
   real edensAverage = ferromagnet_->demagEnergyDensity()->average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();

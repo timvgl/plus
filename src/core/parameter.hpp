@@ -16,7 +16,7 @@ class Parameter : public FieldQuantity {
   void set(Field* values);
 
   bool isUniform() const;
-  bool isZero() const;
+  bool assuredZero() const;
   int ncomp() const;
   Grid grid() const;
   void evalIn(Field*) const;
@@ -64,7 +64,7 @@ class VectorParameter : public FieldQuantity {
   void set(Field* values);
 
   bool isUniform() const;
-  bool isZero() const;
+  bool assuredZero() const;
   int ncomp() const;
   Grid grid() const;
   void evalIn(Field*) const;

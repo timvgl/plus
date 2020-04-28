@@ -9,12 +9,14 @@ class ExchangeField : public FerromagnetFieldQuantity {
  public:
   ExchangeField(Ferromagnet*);
   void evalIn(Field*) const;
+  bool assuredZero() const override;
 };
 
 class ExchangeEnergyDensity : public FerromagnetFieldQuantity {
  public:
   ExchangeEnergyDensity(Ferromagnet*);
   void evalIn(Field*) const;
+  bool assuredZero() const override;
 };
 
 class ExchangeEnergy : public FerromagnetScalarQuantity {

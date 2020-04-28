@@ -9,12 +9,14 @@ class ExternalField : public FerromagnetFieldQuantity {
  public:
   ExternalField(Ferromagnet*);
   void evalIn(Field*) const;
+  bool assuredZero() const override;
 };
 
 class ZeemanEnergyDensity : public FerromagnetFieldQuantity {
  public:
   ZeemanEnergyDensity(Ferromagnet*);
   void evalIn(Field*) const;
+  bool assuredZero() const override;
 };
 
 class ZeemanEnergy : public FerromagnetScalarQuantity {

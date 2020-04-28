@@ -11,6 +11,7 @@ class DemagField : public FerromagnetFieldQuantity {
  public:
   DemagField(Ferromagnet*);
   void evalIn(Field*) const;
+  bool assuredZero() const override;
  private:
   DemagKernel demagkernel_;
   DemagConvolution convolution_;
@@ -20,6 +21,7 @@ class DemagEnergyDensity : public FerromagnetFieldQuantity {
  public:
   DemagEnergyDensity(Ferromagnet*);
   void evalIn(Field*) const;
+  bool assuredZero() const override;
 };
 
 class DemagEnergy : public FerromagnetScalarQuantity {
