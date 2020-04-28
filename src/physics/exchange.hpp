@@ -16,3 +16,9 @@ class ExchangeEnergyDensity : public FerromagnetFieldQuantity {
   ExchangeEnergyDensity(Ferromagnet*);
   void evalIn(Field*) const;
 };
+
+class ExchangeEnergy : public FerromagnetScalarQuantity {
+ public:
+  ExchangeEnergy(Ferromagnet*);
+  real eval() const;
+};

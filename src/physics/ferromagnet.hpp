@@ -39,6 +39,7 @@ class Ferromagnet : public System {
 
   const FieldQuantity* exchangeField() const;
   const FieldQuantity* exchangeEnergyDensity() const;
+  const ScalarQuantity* exchangeEnergy() const;
 
   const FieldQuantity* effectiveField() const;
   const FieldQuantity* torque() const;
@@ -61,6 +62,7 @@ class Ferromagnet : public System {
 
   ExchangeField exchangeField_;
   ExchangeEnergyDensity exchangeEnergyDensity_;
+  ExchangeEnergy exchangeEnergy_;
 
   EffectiveField effectiveField_;
   Torque torque_;

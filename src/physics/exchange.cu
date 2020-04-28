@@ -69,9 +69,9 @@ ExchangeEnergyDensity::ExchangeEnergyDensity(Ferromagnet* ferromagnet)
                                "J/m3") {}
 
 __global__ void k_exchangeEnergyDensity(CuField edens,
-                                        const CuField mag,
-                                        const CuField hfield,
-                                        const CuParameter msat) {
+                                        CuField mag,
+                                        CuField hfield,
+                                        CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!edens.cellInGrid(idx))
@@ -89,4 +89,14 @@ void ExchangeEnergyDensity::evalIn(Field* result) const {
   cudaLaunch(result->grid().ncells(), k_exchangeEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
+}
+
+ExchangeEnergy::ExchangeEnergy(Ferromagnet* ferromagnet)
+    : FerromagnetScalarQuantity(ferromagnet, "exchange_energy", "J") {}
+
+real ExchangeEnergy::eval() const {
+  int ncells = ferromagnet_->grid().ncells();
+  real edensAverage = ferromagnet_->exchangeEnergyDensity()->average()[0];
+  real cellVolume = ferromagnet_->world()->cellVolume();
+  return ncells * edensAverage * cellVolume;
 }
