@@ -34,6 +34,7 @@ class Ferromagnet : public System {
   const FieldQuantity* anisotropyField() const;
   const FieldQuantity* anisotropyEnergyDensity() const;
   const FieldQuantity* exchangeField() const;
+  const FieldQuantity* exchangeEnergyDensity() const;
   const FieldQuantity* effectiveField() const;
   const FieldQuantity* torque() const;
 
@@ -50,6 +51,7 @@ class Ferromagnet : public System {
   AnisotropyField anisotropyField_;
   AnisotropyEnergyDensity anisotropyEnergyDensity_;
   ExchangeField exchangeField_;
+  ExchangeEnergyDensity exchangeEnergyDensity_;
   EffectiveField effectiveField_;
   Torque torque_;
 };

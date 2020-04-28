@@ -10,3 +10,9 @@ class ExchangeField : public FerromagnetFieldQuantity {
   ExchangeField(Ferromagnet*);
   void evalIn(Field*) const;
 };
+
+class ExchangeEnergyDensity : public FerromagnetFieldQuantity {
+ public:
+  ExchangeEnergyDensity(Ferromagnet*);
+  void evalIn(Field*) const;
+};

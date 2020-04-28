@@ -61,3 +61,32 @@ void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {
 void ExchangeField::evalIn(Field* result) const {
   exchangeField(result, ferromagnet_);
 }
+
+ExchangeEnergyDensity::ExchangeEnergyDensity(Ferromagnet* ferromagnet)
+    : FerromagnetFieldQuantity(ferromagnet,
+                               1,
+                               "exchange_energy_density",
+                               "J/m3") {}
+
+__global__ void k_exchangeEnergyDensity(CuField edens,
+                                        const CuField mag,
+                                        const CuField hfield,
+                                        const CuParameter msat) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (!edens.cellInGrid(idx))
+    return;
+
+  real Ms = msat.valueAt(idx);
+  real3 h = hfield.vectorAt(idx);
+  real3 m = mag.vectorAt(idx);
+
+  edens.setValueInCell(idx, 0, -0.5 * Ms * dot(m, h));
+}
+
+void ExchangeEnergyDensity::evalIn(Field* result) const {
+  auto h = ferromagnet_->exchangeField()->eval();
+  cudaLaunch(result->grid().ncells(), k_exchangeEnergyDensity, result->cu(),
+             ferromagnet_->magnetization()->field()->cu(), h->cu(),
+             ferromagnet_->msat.cu());
+}
