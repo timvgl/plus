@@ -21,3 +21,9 @@ class DemagEnergyDensity : public FerromagnetFieldQuantity {
   DemagEnergyDensity(Ferromagnet*);
   void evalIn(Field*) const;
 };
+
+class DemagEnergy : public FerromagnetScalarQuantity {
+ public:
+  DemagEnergy(Ferromagnet*);
+  real eval() const;
+};

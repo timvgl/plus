@@ -9,6 +9,7 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     : System(world, name, grid),
       demagField_(this),
       demagEnergyDensity_(this),
+      demagEnergy_(this),
       anisotropyField_(this),
       anisotropyEnergyDensity_(this),
       anisotropyEnergy_(this),

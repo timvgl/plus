@@ -88,3 +88,13 @@ void DemagEnergyDensity::evalIn(Field* result) const {
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
 }
+
+DemagEnergy::DemagEnergy(Ferromagnet* ferromagnet)
+    : FerromagnetScalarQuantity(ferromagnet, "demag_energy", "J") {}
+
+real DemagEnergy::eval() const {
+  int ncells = ferromagnet_->grid().ncells();
+  real edensAverage = ferromagnet_->demagEnergyDensity()->average()[0];
+  real cellVolume = ferromagnet_->world()->cellVolume();
+  return ncells * edensAverage * cellVolume;
+}
