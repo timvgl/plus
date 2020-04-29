@@ -7,6 +7,7 @@ class Field;
 
 class DemagKernel {
  public:
+  DemagKernel(Grid grid, real3 cellsize);
   DemagKernel(Grid dst, Grid src, real3 cellsize);
   ~DemagKernel();
 
@@ -18,8 +19,6 @@ class DemagKernel {
 
  private:
   Grid grid_;
-  Grid dstGrid_;
-  Grid srcGrid_;
   real3 cellsize_;
   Field* kernel_;
 

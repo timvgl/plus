@@ -4,11 +4,14 @@
 #include "grid.hpp"
 #include "newell.hpp"
 
+DemagKernel::DemagKernel(Grid grid, real3 cellsize)
+    : cellsize_(cellsize), grid_(grid) {
+  kernel_ = new Field(grid_, 6);
+  compute();
+}
+
 DemagKernel::DemagKernel(Grid dst, Grid src, real3 cellsize)
-    : dstGrid_(dst),
-      srcGrid_(src),
-      cellsize_(cellsize),
-      grid_(kernelGrid(dst, src)) {
+    : cellsize_(cellsize), grid_(kernelGrid(dst, src)) {
   kernel_ = new Field(grid_, 6);
   compute();
 }
