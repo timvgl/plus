@@ -5,8 +5,8 @@
 
 #include "anisotropy.hpp"
 #include "demag.hpp"
-#include "zeeman.hpp"
 #include "effectivefield.hpp"
+#include "energy.hpp"
 #include "exchange.hpp"
 #include "field.hpp"
 #include "grid.hpp"
@@ -14,6 +14,7 @@
 #include "system.hpp"
 #include "torque.hpp"
 #include "variable.hpp"
+#include "zeeman.hpp"
 
 class FieldQuantity;
 class World;
@@ -48,6 +49,9 @@ class Ferromagnet : public System {
   const ScalarQuantity* exchangeEnergy() const;
 
   const FieldQuantity* effectiveField() const;
+  const FieldQuantity* totalEnergyDensity() const;
+  const ScalarQuantity* totalEnergy() const;
+
   const FieldQuantity* torque() const;
 
   void minimize(real tol = 1e-6, int nSamples = 10);
@@ -76,5 +80,8 @@ class Ferromagnet : public System {
   ExchangeEnergy exchangeEnergy_;
 
   EffectiveField effectiveField_;
+  TotalEnergyDensity totalEnergyDensity_;
+  TotalEnergy totalEnergy_;
+
   Torque torque_;
 };

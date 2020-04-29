@@ -20,6 +20,8 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       exchangeEnergyDensity_(this),
       exchangeEnergy_(this),
       effectiveField_(this),
+      totalEnergyDensity_(this),
+      totalEnergy_(this),
       torque_(this),
       magnetization_(name + ":magnetization", "", 3, grid),
       aex(grid, 0.0),
@@ -100,6 +102,14 @@ const ScalarQuantity* Ferromagnet::exchangeEnergy() const {
 
 const FieldQuantity* Ferromagnet::effectiveField() const {
   return &effectiveField_;
+}
+
+const FieldQuantity* Ferromagnet::totalEnergyDensity() const {
+  return &totalEnergyDensity_;
+}
+
+const ScalarQuantity* Ferromagnet::totalEnergy() const {
+  return &totalEnergy_;
 }
 
 const FieldQuantity* Ferromagnet::torque() const {

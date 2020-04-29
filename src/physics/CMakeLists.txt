@@ -13,6 +13,8 @@ add_library(physics STATIC
     demagconvolution.hpp
     effectivefield.hpp 
     effectivefield.cpp
+    energy.hpp 
+    energy.cpp
     exchange.hpp 
     exchange.cu 
     ferromagnet.cpp 

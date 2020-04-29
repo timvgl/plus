@@ -73,6 +73,9 @@ void wrap_ferromagnet(py::module& m) {
                              &Ferromagnet::zeemanEnergy)
 
       .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
+      .def_property_readonly("total_energy_density", &Ferromagnet::totalEnergyDensity)
+      .def_property_readonly("total_energy", &Ferromagnet::totalEnergy)
+
       .def_property_readonly("torque", &Ferromagnet::torque)
 
       .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
