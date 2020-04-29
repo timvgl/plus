@@ -9,7 +9,6 @@
 #include "demagkernel.hpp"
 #include "field.hpp"
 #include "parameter.hpp"
-#include "timer.hpp"
 
 #define __CUDAOP__ inline __device__ __host__
 

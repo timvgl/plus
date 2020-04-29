@@ -7,7 +7,8 @@
 #include "datatypes.hpp"
 #include "demagkernel.hpp"
 #include "grid.hpp"
-#include "parameter.hpp"
+
+class Parameter;
 
 class Field;
 
