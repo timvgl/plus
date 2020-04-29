@@ -7,10 +7,6 @@ add_library(physics STATIC
     constants.hpp
     demag.cu
     demag.hpp
-    demagkernel.cu
-    demagkernel.hpp
-    demagconvolution.cu
-    demagconvolution.hpp
     effectivefield.hpp 
     effectivefield.cpp
     energy.hpp 
@@ -23,6 +19,14 @@ add_library(physics STATIC
     ferromagnetquantity.hpp 
     minimizer.cu
     minimizer.hpp
+    magnetfield.cpp
+    magnetfield.hpp
+    magnetfieldbrute.cu
+    magnetfieldbrute.hpp
+    magnetfieldfft.cu
+    magnetfieldfft.hpp
+    magnetfieldkernel.cu
+    magnetfieldkernel.hpp
     newell.cu
     newell.hpp
     system.cpp 

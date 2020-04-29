@@ -1,26 +1,26 @@
 #include "cudalaunch.hpp"
-#include "demagkernel.hpp"
 #include "field.hpp"
 #include "grid.hpp"
+#include "magnetfieldkernel.hpp"
 #include "newell.hpp"
 
-DemagKernel::DemagKernel(Grid grid, real3 cellsize)
+MagnetFieldKernel::MagnetFieldKernel(Grid grid, real3 cellsize)
     : cellsize_(cellsize), grid_(grid) {
   kernel_ = new Field(grid_, 6);
   compute();
 }
 
-DemagKernel::DemagKernel(Grid dst, Grid src, real3 cellsize)
+MagnetFieldKernel::MagnetFieldKernel(Grid dst, Grid src, real3 cellsize)
     : cellsize_(cellsize), grid_(kernelGrid(dst, src)) {
   kernel_ = new Field(grid_, 6);
   compute();
 }
 
-DemagKernel::~DemagKernel() {
+MagnetFieldKernel::~MagnetFieldKernel() {
   delete kernel_;
 }
 
-__global__ void k_demagKernel(CuField kernel, real3 cellsize) {
+__global__ void k_magnetFieldKernel(CuField kernel, real3 cellsize) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!kernel.cellInGrid(idx))
     return;
@@ -33,22 +33,22 @@ __global__ void k_demagKernel(CuField kernel, real3 cellsize) {
   kernel.setValueInCell(idx, 5, calcNewellNyz(coo, cellsize));
 }
 
-void DemagKernel::compute() {
-  cudaLaunch(grid_.ncells(), k_demagKernel, kernel_->cu(), cellsize_);
+void MagnetFieldKernel::compute() {
+  cudaLaunch(grid_.ncells(), k_magnetFieldKernel, kernel_->cu(), cellsize_);
 }
 
-Grid DemagKernel::grid() const {
+Grid MagnetFieldKernel::grid() const {
   return grid_;
 }
-real3 DemagKernel::cellsize() const {
+real3 MagnetFieldKernel::cellsize() const {
   return cellsize_;
 }
 
-const Field* DemagKernel::field() const {
+const Field* MagnetFieldKernel::field() const {
   return kernel_;
 }
 
-Grid DemagKernel::kernelGrid(Grid dst, Grid src) {
+Grid MagnetFieldKernel::kernelGrid(Grid dst, Grid src) {
   int3 size = src.size() + dst.size() - int3{1, 1, 1};
 
   // add padding to get even dimensions if size is larger than 5

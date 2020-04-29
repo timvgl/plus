@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "demagkernel.hpp"
+#include "magnetfieldkernel.hpp"
 #include "ferromagnet.hpp"
 #include "parameter.hpp"
 #include "world.hpp"
@@ -86,7 +86,7 @@ void wrap_ferromagnet(py::module& m) {
            [](const Ferromagnet* fm) {
              Grid grid = fm->grid();
              real3 cellsize = fm->world()->cellsize();
-             DemagKernel demagKernel(grid, grid, cellsize);
+             MagnetFieldKernel demagKernel(grid, grid, cellsize);
              std::unique_ptr<Field> kernel(
                  new Field(demagKernel.field()->grid(), 6));
              kernel.get()->copyFrom(demagKernel.field());

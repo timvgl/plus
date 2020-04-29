@@ -5,23 +5,23 @@
 #include <vector>
 
 #include "datatypes.hpp"
-#include "demagkernel.hpp"
 #include "grid.hpp"
+#include "magnetfield.hpp"
+#include "magnetfieldkernel.hpp"
 
 class Parameter;
-
 class Field;
 
-class DemagConvolution {
+class MagnetFieldFFTExecutor : public MagnetFieldExecutor {
  public:
-  DemagConvolution(Grid grid, real3 cellsize);
-  ~DemagConvolution();
-  void exec(Field* h, const Field* m, Parameter* msat) const;
+  MagnetFieldFFTExecutor(Grid grid, real3 cellsize);
+  ~MagnetFieldFFTExecutor();
+  void exec(Field* h, const Field* m, const Parameter* msat) const;
 
  private:
   Grid grid_;
   real3 cellsize_;
-  DemagKernel kernel_;
+  MagnetFieldKernel kernel_;
   int3 fftSize;
   std::vector<complex*> kfft, mfft, hfft;
   cufftHandle forwardPlan;

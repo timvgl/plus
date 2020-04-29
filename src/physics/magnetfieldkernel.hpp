@@ -5,11 +5,11 @@
 
 class Field;
 
-class DemagKernel {
+class MagnetFieldKernel {
  public:
-  DemagKernel(Grid grid, real3 cellsize);
-  DemagKernel(Grid dst, Grid src, real3 cellsize);
-  ~DemagKernel();
+  MagnetFieldKernel(Grid grid, real3 cellsize);
+  MagnetFieldKernel(Grid dst, Grid src, real3 cellsize);
+  ~MagnetFieldKernel();
 
   Grid grid() const;
   real3 cellsize() const;

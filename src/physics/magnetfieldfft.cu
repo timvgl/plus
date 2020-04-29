@@ -5,9 +5,9 @@
 
 #include "constants.hpp"
 #include "cudalaunch.hpp"
-#include "demagconvolution.hpp"
-#include "demagkernel.hpp"
 #include "field.hpp"
+#include "magnetfieldfft.hpp"
+#include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
 
 #define __CUDAOP__ inline __device__ __host__
@@ -111,7 +111,7 @@ __global__ static void k_apply_kernel_2d(complex* hx,
   hz[i] = preFactor * kzz[i] * mz[i];
 }
 
-DemagConvolution::DemagConvolution(Grid grid, real3 cellsize)
+MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid grid, real3 cellsize)
     : grid_(grid),
       cellsize_(cellsize),
       kernel_(grid, grid, cellsize),
@@ -142,7 +142,7 @@ DemagConvolution::DemagConvolution(Grid grid, real3 cellsize)
                                   kfft.at(comp)));
 }
 
-DemagConvolution::~DemagConvolution() {
+MagnetFieldFFTExecutor::~MagnetFieldFFTExecutor() {
   for (auto p : mfft)
     cudaFree(p);
   for (auto p : kfft)
@@ -154,7 +154,9 @@ DemagConvolution::~DemagConvolution() {
   checkCufftResult(cufftDestroy(backwardPlan));
 }
 
-void DemagConvolution::exec(Field* h, const Field* m, Parameter* msat) const {
+void MagnetFieldFFTExecutor::exec(Field* h,
+                                  const Field* m,
+                                  const Parameter* msat) const {
   std::unique_ptr<Field> mpad(new Field(kernel_.grid(), 3));
   cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m->cu(), msat->cu());
 

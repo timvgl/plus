@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ferromagnetquantity.hpp"
-#include "demagkernel.hpp"
-#include "demagconvolution.hpp"
+#include "magnetfield.hpp"
+#include "magnetfieldkernel.hpp"
 
 class Ferromagnet;
 class Field;
@@ -12,9 +12,9 @@ class DemagField : public FerromagnetFieldQuantity {
   DemagField(Ferromagnet*);
   void evalIn(Field*) const;
   bool assuredZero() const override;
+
  private:
-  DemagKernel demagkernel_;
-  DemagConvolution convolution_;
+  MagnetField magnetfield_;
 };
 
 class DemagEnergyDensity : public FerromagnetFieldQuantity {
