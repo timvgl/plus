@@ -14,9 +14,21 @@ void ExternalField::evalIn(Field* result) const {
   result->setUniformComponent(b_ext.x, 0);
   result->setUniformComponent(b_ext.y, 1);
   result->setUniformComponent(b_ext.z, 2);
+
+  auto magnetFields = ferromagnet_->getMagnetFields();
+  for (auto magnetField : magnetFields ) {
+    magnetField->addTo(result);
+  }
 }
 
 bool ExternalField::assuredZero() const {
+  auto magnetFields = ferromagnet_->getMagnetFields();
+  for (auto magnetField : magnetFields ) {
+    if(!magnetField->assuredZero()) {
+      return false;
+    }
+  }
+
   real3 b_ext = ferromagnet_->world()->biasMagneticField;
   return b_ext == real3{0.0, 0.0, 0.0};
 }

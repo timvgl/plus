@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <string>
+#include <vector>
 
 #include "anisotropy.hpp"
 #include "demag.hpp"
@@ -9,6 +11,7 @@
 #include "exchange.hpp"
 #include "field.hpp"
 #include "grid.hpp"
+#include "magnetfield.hpp"
 #include "parameter.hpp"
 #include "system.hpp"
 #include "torque.hpp"
@@ -53,6 +56,13 @@ class Ferromagnet : public System {
 
   const FieldQuantity* torque() const;
 
+  const MagnetField* getMagnetField(Ferromagnet*) const;
+  std::vector<const MagnetField*> getMagnetFields() const;
+  void addMagnetField(
+      Ferromagnet*,
+      MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_BRUTE);
+  void removeMagnetField(Ferromagnet*);
+
   void minimize(real tol = 1e-6, int nSamples = 10);
 
  private:
@@ -83,4 +93,6 @@ class Ferromagnet : public System {
   TotalEnergy totalEnergy_;
 
   Torque torque_;
+
+  std::map<Ferromagnet*, MagnetField*> magnetFields_;
 };

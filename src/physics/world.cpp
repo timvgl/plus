@@ -38,11 +38,22 @@ Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
     name = "magnet_" + std::to_string(idxUnnamed++);
 
   if (Ferromagnets.find(name) != Ferromagnets.end())
-      throw std::runtime_error("A ferromagnet with the name '" + name +
-                               "' already exists");
+    throw std::runtime_error("A ferromagnet with the name '" + name +
+                             "' already exists");
 
-  Ferromagnets[name] = new Ferromagnet(this, name, grid);
-  return Ferromagnets[name];
+  Ferromagnet* newMagnet = new Ferromagnet(this, name, grid);
+  Ferromagnets[name] = newMagnet;
+
+  // Add the magnetic field of the other magnets in this magnet, and vice versa
+  for (auto entry : Ferromagnets) {
+    Ferromagnet* magnet = entry.second;
+    if (magnet != newMagnet) {
+      magnet->addMagnetField(newMagnet,MAGNETFIELDMETHOD_BRUTE);
+      newMagnet->addMagnetField(magnet,MAGNETFIELDMETHOD_BRUTE);
+    }
+  }
+
+  return newMagnet;
 };
 
 Ferromagnet* World::getFerromagnet(std::string name) const {

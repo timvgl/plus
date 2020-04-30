@@ -5,7 +5,7 @@
 
 class MagnetFieldBruteExecutor : public MagnetFieldExecutor {
  public:
-  MagnetFieldBruteExecutor(Grid grid, real3 cellsize);
+  MagnetFieldBruteExecutor(Grid gridOut, Grid gridIn, real3 cellsize);
   void exec(Field* h, const Field* m, const Parameter* msat) const;
 
  private:

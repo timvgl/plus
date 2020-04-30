@@ -17,12 +17,11 @@ __global__ void k_demagfield(CuField hField,
 
   real3 h{0, 0, 0};
 
-  Grid g = mField.grid;
-  int3 dstcoo = g.index2coord(idx);
+  int3 dstcoo = hField.grid.index2coord(idx);
 
-  for (int i = 0; i < g.ncells(); i++) {
-    int3 srccoo = g.index2coord(i);
-    int3 dist = dstcoo - srccoo;
+  for (int i = 0; i < mField.grid.ncells(); i++) {
+    int3 srccoo = mField.grid.index2coord(i);
+    int3 dist = srccoo - dstcoo;
 
     real3 M = msat.valueAt(i) * mField.vectorAt(i);
 
@@ -41,12 +40,15 @@ __global__ void k_demagfield(CuField hField,
   hField.setVectorInCell(idx, MU0 * h);
 }
 
-MagnetFieldBruteExecutor::MagnetFieldBruteExecutor(Grid grid, real3 cellsize)
-    : kernel_(grid, grid, cellsize) {}
+MagnetFieldBruteExecutor::MagnetFieldBruteExecutor(Grid gridOut,
+                                                   Grid gridIn,
+                                                   real3 cellsize)
+    : kernel_(gridOut, gridIn, cellsize) {}
 
 void MagnetFieldBruteExecutor::exec(Field* h,
                                     const Field* m,
                                     const Parameter* msat) const {
+  // TODO: check dimensions of fields
   const Field* kernel = kernel_.field();
   int ncells = h->grid().ncells();
   cudaLaunch(ncells, k_demagfield, h->cu(), m->cu(), kernel->cu(), msat->cu());

@@ -29,10 +29,11 @@ class MagnetField : public FieldQuantity {
               MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_AUTO);
   ~MagnetField();
 
+  void setMethod(MagnetFieldComputationMethod);
+
   int ncomp() const;
   Grid grid() const;
   void evalIn(Field*) const;
-
   std::string unit() const;
   // TODO: std::string name() const;
 

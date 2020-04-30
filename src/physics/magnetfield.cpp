@@ -9,28 +9,37 @@
 MagnetField::MagnetField(Ferromagnet* magnet,
                          Grid grid,
                          MagnetFieldComputationMethod method)
-    : magnet_(magnet), grid_(grid) {
+    : magnet_(magnet), grid_(grid), executor_(nullptr) {
+  setMethod(method);
+}
+
+MagnetField::~MagnetField() {
+  if (executor_)
+    delete executor_;
+}
+
+void MagnetField::setMethod(MagnetFieldComputationMethod method) {
+  // TODO: check if method has been changed. If not, do nothing
+  if (executor_)
+    delete executor_;
+
   switch (method) {
     case MAGNETFIELDMETHOD_AUTO:
       // TODO: make smart choice (dependent on the
       // grid sizes) when choosing between fft or
       // brute method. For now, we choose fft method
-      executor_ = new MagnetFieldFFTExecutor(magnet->grid(),
-                                             magnet->world()->cellsize());
+      executor_ = new MagnetFieldFFTExecutor(magnet_->grid(),
+                                             magnet_->world()->cellsize());
       break;
     case MAGNETFIELDMETHOD_FFT:
-      executor_ = new MagnetFieldFFTExecutor(magnet->grid(),
-                                             magnet->world()->cellsize());
+      executor_ = new MagnetFieldFFTExecutor(magnet_->grid(),
+                                             magnet_->world()->cellsize());
       break;
     case MAGNETFIELDMETHOD_BRUTE:
-      executor_ = new MagnetFieldBruteExecutor(magnet->grid(),
-                                               magnet->world()->cellsize());
+      executor_ = new MagnetFieldBruteExecutor(grid_, magnet_->grid(),
+                                               magnet_->world()->cellsize());
       break;
   }
-}
-
-MagnetField::~MagnetField() {
-  delete executor_;
 }
 
 int MagnetField::ncomp() const {

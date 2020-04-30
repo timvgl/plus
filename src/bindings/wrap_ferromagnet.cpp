@@ -78,6 +78,11 @@ void wrap_ferromagnet(py::module& m) {
 
       .def_property_readonly("torque", &Ferromagnet::torque)
 
+      .def("magnetic_field_from_magnet", 
+           [](const Ferromagnet* fm, Ferromagnet* magnet) {
+             return (FieldQuantity*)(fm->getMagnetField(magnet));
+           }, py::return_value_policy::reference)
+
       .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
            py::arg("nsamples") = 10)
 
