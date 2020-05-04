@@ -11,4 +11,5 @@ PYBIND11_MODULE(engine, m) {
   wrap_timesolver(m);
   wrap_variable(m);
   wrap_world(m);
+  wrap_magnetfield(m);
 }

@@ -52,7 +52,7 @@ Grid MagnetFieldKernel::kernelGrid(Grid dst, Grid src) {
   int3 size = src.size() + dst.size() - int3{1, 1, 1};
 
   // add padding to get even dimensions if size is larger than 5
-  // this will make the fft on this grid mush more efficient
+  // this will make the fft on this grid much more efficient
   if (size.x > 5 && size.x % 2 == 1)
     size.x += 1;
   if (size.y > 5 && size.y % 2 == 1)
@@ -60,6 +60,6 @@ Grid MagnetFieldKernel::kernelGrid(Grid dst, Grid src) {
   if (size.z > 5 && size.z % 2 == 1)
     size.z += 1;
 
-  int3 origin = src.origin() + src.size() - dst.origin() - size;
+  int3 origin = -src.origin() + src.size() + dst.origin() - size;
   return Grid(size, origin);
 }

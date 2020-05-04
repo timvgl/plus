@@ -14,11 +14,11 @@ void DemagField::evalIn(Field* result) const {
     result->makeZero();
     return;
   }
-  magnetfield_.evalIn(result);
+  ferromagnet_->getMagnetField(ferromagnet_)->evalIn(result);
 }
 
 bool DemagField::assuredZero() const {
-  return !ferromagnet_->enableDemag || magnetfield_.assuredZero();
+  return !ferromagnet_->enableDemag;
 }
 
 DemagEnergyDensity::DemagEnergyDensity(Ferromagnet* ferromagnet)

@@ -47,9 +47,9 @@ Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
   // Add the magnetic field of the other magnets in this magnet, and vice versa
   for (auto entry : Ferromagnets) {
     Ferromagnet* magnet = entry.second;
-    if (magnet != newMagnet) {
-      magnet->addMagnetField(newMagnet,MAGNETFIELDMETHOD_BRUTE);
-      newMagnet->addMagnetField(magnet,MAGNETFIELDMETHOD_BRUTE);
+    magnet->addMagnetField(newMagnet,MAGNETFIELDMETHOD_AUTO);
+    if (magnet != newMagnet) { // Avoid adding the field on itself twice
+      newMagnet->addMagnetField(magnet,MAGNETFIELDMETHOD_AUTO);
     }
   }
 

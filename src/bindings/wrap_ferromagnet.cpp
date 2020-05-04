@@ -1,7 +1,8 @@
 #include <memory>
+#include <stdexcept>
 
-#include "magnetfieldkernel.hpp"
 #include "ferromagnet.hpp"
+#include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
@@ -51,8 +52,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("demag_field", &Ferromagnet::demagField)
       .def_property_readonly("demag_energy_density",
                              &Ferromagnet::demagEnergyDensity)
-      .def_property_readonly("demag_energy",
-                             &Ferromagnet::demagEnergy)
+      .def_property_readonly("demag_energy", &Ferromagnet::demagEnergy)
 
       .def_property_readonly("anisotropy_field", &Ferromagnet::anisotropyField)
       .def_property_readonly("anisotropy_energy_density",
@@ -63,25 +63,30 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
       .def_property_readonly("exchange_energy_density",
                              &Ferromagnet::exchangeEnergyDensity)
-      .def_property_readonly("exchange_energy",
-                             &Ferromagnet::exchangeEnergy)
+      .def_property_readonly("exchange_energy", &Ferromagnet::exchangeEnergy)
 
       .def_property_readonly("external_field", &Ferromagnet::externalField)
       .def_property_readonly("zeeman_energy_density",
                              &Ferromagnet::zeemanEnergyDensity)
-      .def_property_readonly("zeeman_energy",
-                             &Ferromagnet::zeemanEnergy)
+      .def_property_readonly("zeeman_energy", &Ferromagnet::zeemanEnergy)
 
       .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
-      .def_property_readonly("total_energy_density", &Ferromagnet::totalEnergyDensity)
+      .def_property_readonly("total_energy_density",
+                             &Ferromagnet::totalEnergyDensity)
       .def_property_readonly("total_energy", &Ferromagnet::totalEnergy)
 
       .def_property_readonly("torque", &Ferromagnet::torque)
 
-      .def("magnetic_field_from_magnet", 
-           [](const Ferromagnet* fm, Ferromagnet* magnet) {
-             return (FieldQuantity*)(fm->getMagnetField(magnet));
-           }, py::return_value_policy::reference)
+      .def(
+          "magnetic_field_from_magnet",
+          [](const Ferromagnet* fm, Ferromagnet* magnet) {
+            const MagnetField* magnetField = fm->getMagnetField(magnet);
+            if (!magnetField)
+              throw std::runtime_error(
+                  "Can not compute the magnetic field of the magnet");
+            return magnetField;
+          },
+          py::return_value_policy::reference)
 
       .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
            py::arg("nsamples") = 10)

@@ -151,11 +151,6 @@ void Ferromagnet::addMagnetField(Ferromagnet* magnet,
         "not in the same world.");
   }
 
-  if (magnet == this) {
-    throw std::runtime_error(
-        "Can not define the field of the magnet on itself");
-  }
-
   auto it = magnetFields_.find(magnet);
   if (it != magnetFields_.end()) {
     // MagnetField is already registered, just need to update the method

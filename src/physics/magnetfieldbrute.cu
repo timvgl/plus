@@ -21,16 +21,15 @@ __global__ void k_demagfield(CuField hField,
 
   for (int i = 0; i < mField.grid.ncells(); i++) {
     int3 srccoo = mField.grid.index2coord(i);
-    int3 dist = srccoo - dstcoo;
+    int3 r = dstcoo -srccoo;
+    real nxx = kernel.valueAt(r, 0);
+    real nyy = kernel.valueAt(r, 1);
+    real nzz = kernel.valueAt(r, 2);
+    real nxy = kernel.valueAt(r, 3);
+    real nxz = kernel.valueAt(r, 4);
+    real nyz = kernel.valueAt(r, 5);
 
     real3 M = msat.valueAt(i) * mField.vectorAt(i);
-
-    real nxx = kernel.valueAt(dist, 0);
-    real nyy = kernel.valueAt(dist, 1);
-    real nzz = kernel.valueAt(dist, 2);
-    real nxy = kernel.valueAt(dist, 3);
-    real nxz = kernel.valueAt(dist, 4);
-    real nyz = kernel.valueAt(dist, 5);
 
     h.x -= nxx * M.x + nxy * M.y + nxz * M.z;
     h.y -= nxy * M.x + nyy * M.y + nyz * M.z;

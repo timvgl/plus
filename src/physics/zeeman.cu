@@ -17,6 +17,11 @@ void ExternalField::evalIn(Field* result) const {
 
   auto magnetFields = ferromagnet_->getMagnetFields();
   for (auto magnetField : magnetFields ) {
+
+    // Avoid the demag field, we only want external fields
+    if (magnetField->grid() == grid() )
+      continue;
+
     magnetField->addTo(result);
   }
 }

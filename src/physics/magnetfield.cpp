@@ -28,11 +28,11 @@ void MagnetField::setMethod(MagnetFieldComputationMethod method) {
       // TODO: make smart choice (dependent on the
       // grid sizes) when choosing between fft or
       // brute method. For now, we choose fft method
-      executor_ = new MagnetFieldFFTExecutor(magnet_->grid(),
+      executor_ = new MagnetFieldFFTExecutor(grid_, magnet_->grid(),
                                              magnet_->world()->cellsize());
       break;
     case MAGNETFIELDMETHOD_FFT:
-      executor_ = new MagnetFieldFFTExecutor(magnet_->grid(),
+      executor_ = new MagnetFieldFFTExecutor(grid_, magnet_->grid(),
                                              magnet_->world()->cellsize());
       break;
     case MAGNETFIELDMETHOD_BRUTE:
