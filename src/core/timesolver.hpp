@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <vector>
 
 #include "datatypes.hpp"
 #include "dynamicequation.hpp"
@@ -7,6 +8,7 @@
 class Stepper;
 class Variable;
 class FieldQuantity;
+class Table;
 
 class TimeSolver {
  public:
@@ -22,13 +24,14 @@ class TimeSolver {
   void adaptTimeStep(real corr);
   void setTime(real);
   void setTimeStep(real);
-  void enableAdaptiveTimeStep(); // default
+  void enableAdaptiveTimeStep();  // default
   void disableAdaptiveTimeStep();
 
   void step();
   void steps(unsigned int nsteps);
   void runwhile(std::function<bool(void)>);
   void run(real duration);
+  void solve(std::vector<real> timepoints, Table& table);
 
  private:
   real maxerror_;

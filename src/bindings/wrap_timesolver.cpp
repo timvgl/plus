@@ -3,6 +3,7 @@
 #include "dynamicequation.hpp"
 #include "field.hpp"
 #include "fieldquantity.hpp"
+#include "table.hpp"
 #include "timesolver.hpp"
 #include "variable.hpp"
 #include "wrappers.hpp"
@@ -26,5 +27,6 @@ void wrap_timesolver(py::module& m) {
                         solver.disableAdaptiveTimeStep();
                       }
                     })
-      .def("run", &TimeSolver::run);
+      .def("run", &TimeSolver::run)
+      .def("solve", &TimeSolver::solve);
 }

@@ -9,6 +9,7 @@
 #include "reduce.hpp"
 #include "rungekutta.hpp"
 #include "stepper.hpp"
+#include "table.hpp"
 
 TimeSolver::TimeSolver(DynamicEquation eq)
     : time_(0), maxerror_(1e-5), eq_(eq), fixedTimeStep_(false) {
@@ -94,7 +95,39 @@ void TimeSolver::runwhile(std::function<bool(void)> runcondition) {
 }
 
 void TimeSolver::run(real duration) {
+  if (duration <= 0)
+    return;
+
   real stoptime = time_ + duration;
-  auto runcondition = [this, stoptime]() { return this->time() < stoptime; };
+  auto runcondition = [this, stoptime]() {
+    return this->time() < stoptime - this->timestep();
+  };
   runwhile(runcondition);
+
+  // make final time step to end exactly at stoptime
+  setTimeStep(stoptime - time_);
+  step();
+}
+
+static bool solvableTimePoints(real currentTime, std::vector<real> timepoints) {
+  if (timepoints[0] < currentTime)
+    return false;
+
+  for (int i = 1; i < timepoints.size(); i++)
+    if (timepoints[i] <= timepoints[i - 1])
+      return false;
+
+  return true;
+}
+
+void TimeSolver::solve(std::vector<real> timepoints, Table& table) {
+  if (!solvableTimePoints(time(), timepoints))
+    throw std::runtime_error(
+        "Timepoints should be chronological timepoints in the future");
+
+  for (real tp : timepoints) {
+    real duration = tp - time();
+    run(duration);
+    table.writeLine();
+  }
 }
