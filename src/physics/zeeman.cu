@@ -16,10 +16,9 @@ void ExternalField::evalIn(Field* result) const {
   result->setUniformComponent(b_ext.z, 2);
 
   auto magnetFields = ferromagnet_->getMagnetFields();
-  for (auto magnetField : magnetFields ) {
-
+  for (auto magnetField : magnetFields) {
     // Avoid the demag field, we only want external fields
-    if (magnetField->grid() == grid() )
+    if (magnetField->grid() == grid())
       continue;
 
     magnetField->addTo(result);
@@ -28,8 +27,8 @@ void ExternalField::evalIn(Field* result) const {
 
 bool ExternalField::assuredZero() const {
   auto magnetFields = ferromagnet_->getMagnetFields();
-  for (auto magnetField : magnetFields ) {
-    if(!magnetField->assuredZero()) {
+  for (auto magnetField : magnetFields) {
+    if (!magnetField->assuredZero()) {
       return false;
     }
   }
@@ -66,7 +65,7 @@ void ZeemanEnergyDensity::evalIn(Field* result) const {
     return;
   }
 
-  auto h = ferromagnet_->exchangeField()->eval();
+  auto h = ferromagnet_->externalField()->eval();
   cudaLaunch(result->grid().ncells(), k_zeemanEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
