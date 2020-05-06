@@ -33,6 +33,8 @@ add_library(core STATIC
     scalarquantity.hpp 
     stepper.cpp
     stepper.hpp
+    table.cpp
+    table.hpp
     timesolver.cpp
     timesolver.hpp
     timer.cpp

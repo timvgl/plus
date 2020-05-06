@@ -22,3 +22,4 @@ void wrap_timesolver(py::module& m);
 void wrap_variable(py::module& m);
 void wrap_world(py::module& m);
 void wrap_magnetfield(py::module& m);
+void wrap_table(py::module& m);

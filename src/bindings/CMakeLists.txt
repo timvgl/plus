@@ -15,6 +15,7 @@ pybind11_add_module(engine
     wrap_variable.cpp
     wrap_world.cpp
     wrap_magnetfield.cpp
+    wrap_table.cpp
 )
 
 target_include_directories(engine PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
