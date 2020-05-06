@@ -66,43 +66,52 @@ real maxVecNorm(Field* f) {
   return result;
 }
 
-__global__ void k_average(real* result, CuField f) {
+__global__ void k_average(real* result, CuField f, int comp) {
   __shared__ real sdata[BLOCKDIM];
   int tid = threadIdx.x;
   int ncells = f.grid.ncells();
-  int ncomp = f.ncomp;
 
-  for (int c = 0; c < ncomp; c++) {
-    // Reduce to a block
-    real threadValue = 0.0;
-    for (int i = tid; i < ncells; i += BLOCKDIM)
-      threadValue += f.ptrs[c][i];
-    sdata[tid] = threadValue;
+  // Reduce to a block
+  real threadValue = 0.0;
+  for (int i = tid; i < ncells; i += BLOCKDIM)
+    threadValue += f.ptrs[comp][i];
+  sdata[tid] = threadValue;
+  __syncthreads();
+
+  // Reduce the block
+  for (unsigned int s = BLOCKDIM / 2; s > 0; s >>= 1) {
+    if (tid < s)
+      sdata[tid] += sdata[tid + s];
     __syncthreads();
-
-    // Reduce the block
-    for (unsigned int s = BLOCKDIM / 2; s > 0; s >>= 1) {
-      if (tid < s)
-        sdata[tid] += sdata[tid + s];
-      __syncthreads();
-    }
-    // TODO: check if loop unrolling makes sense here
-
-    // Set the result
-    if (tid == 0)
-      result[c] = sdata[0] / ncells;
   }
+  // TODO: check if loop unrolling makes sense here
+
+  // Set the result
+  if (tid == 0)
+    *result = sdata[0] / ncells;
+}
+
+real fieldComponentAverage(Field* f, int comp) {
+  if (comp >= f->ncomp()) {
+    throw std::runtime_error("Can not take the average of component " +
+                             std::to_string(comp) +
+                             " of a field which has only " +
+                             std::to_string(f->ncomp()) + " components");
+  }
+
+  real result;
+  real* d_result = bufferPool.allocate(1);
+  cudaLaunchReductionKernel(k_average, d_result, f->cu(), comp);
+  checkCudaError(cudaMemcpyAsync(&result, d_result, sizeof(real),
+                                 cudaMemcpyDeviceToHost, getCudaStream()));
+  bufferPool.recycle(d_result);
+  return result;
 }
 
 std::vector<real> fieldAverage(Field* f) {
-  real* d_result = bufferPool.allocate(f->ncomp());
-  cudaLaunchReductionKernel(k_average, d_result, f->cu());
-  // copy the result to the host and return
-  std::vector<real> result(f->ncomp());
-  checkCudaError(cudaMemcpyAsync(&result[0], d_result,
-                                 f->ncomp() * sizeof(real),
-                                 cudaMemcpyDeviceToHost, getCudaStream()));
-  bufferPool.recycle(d_result);
+  std::vector<real> result;
+  for (int c = 0; c < f->ncomp(); c++)
+    result.push_back(fieldComponentAverage(f, c));
   return result;
 }
 
