@@ -39,7 +39,7 @@ __global__ static void k_pad(CuField out, CuField in, CuParameter msat) {
   }
 }
 
-__global__ static void k_unpad(CuField out, CuField in, int3 root) {
+__global__ static void k_unpad(CuField out, CuField in) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (outIdx >= out.grid.ncells())
@@ -49,10 +49,7 @@ __global__ static void k_unpad(CuField out, CuField in, int3 root) {
   int3 outRelCoo = out.grid.index2coord(outIdx) - out.grid.origin();
 
   // Input coordinate relative to the origin of the input grid
-  int3 inRelCoo = root + outRelCoo;
-  inRelCoo.x %= in.grid.size().x;
-  inRelCoo.y %= in.grid.size().y;
-  inRelCoo.z %= in.grid.size().z;
+  int3 inRelCoo = in.grid.size() - out.grid.size() + outRelCoo;
 
   int inIdx = in.grid.coord2index(inRelCoo + in.grid.origin());
 
@@ -154,6 +151,5 @@ void MagnetFieldFFTExecutor::exec(Field* h,
         cufftExecC2R(backwardPlan, hfft.at(comp), mpad->devptr(comp)));
 
   // unpad
-  int3 root = kernel_.grid().size() - m->grid().size();
-  cudaLaunch(h->grid().ncells(), k_unpad, h->cu(), mpad->cu(), root);
+  cudaLaunch(h->grid().ncells(), k_unpad, h->cu(), mpad->cu());
 }

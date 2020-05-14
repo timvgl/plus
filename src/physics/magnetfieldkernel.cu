@@ -50,16 +50,21 @@ const Field* MagnetFieldKernel::field() const {
 
 Grid MagnetFieldKernel::kernelGrid(Grid dst, Grid src) {
   int3 size = src.size() + dst.size() - int3{1, 1, 1};
+  int3 origin = dst.origin() - (src.origin() + src.size() - int3{1, 1, 1});
 
   // add padding to get even dimensions if size is larger than 5
   // this will make the fft on this grid much more efficient
+  int3 padding{0, 0, 0};
   if (size.x > 5 && size.x % 2 == 1)
-    size.x += 1;
+    padding.x = 1;
   if (size.y > 5 && size.y % 2 == 1)
-    size.y += 1;
+    padding.y = 1;
   if (size.z > 5 && size.z % 2 == 1)
-    size.z += 1;
+    padding.z = 1;
 
-  int3 origin = -src.origin() + src.size() + dst.origin() - size;
+  size += padding;
+  origin -= padding;  // pad in front, this makes it easier to unpad after the
+                      // convolution
+
   return Grid(size, origin);
 }
