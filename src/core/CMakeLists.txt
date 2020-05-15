@@ -13,8 +13,6 @@ add_library(core STATIC
     datatypes.hpp 
     dynamicequation.hpp
     dynamicequation.cpp
-    eulerstepper.cpp
-    eulerstepper.hpp
     field.cu 
     field.hpp 
     fieldops.cu 
