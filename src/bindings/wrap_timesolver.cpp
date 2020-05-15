@@ -1,4 +1,5 @@
 #include <memory>
+#include <vector>
 
 #include "dynamicequation.hpp"
 #include "field.hpp"
@@ -15,6 +16,13 @@ void wrap_timesolver(py::module& m) {
                  new TimeSolver(DynamicEquation(x, rhs)));
            }),
            py::arg("variable"), py::arg("rhs"))
+      .def(py::init(
+               [](std::vector<std::pair<Variable*, FieldQuantity*>> eqPairs) {
+                 std::vector<DynamicEquation> eqs;
+                 for (const auto& eqPair : eqPairs)
+                   eqs.emplace_back(eqPair.first, eqPair.second);
+                 return std::unique_ptr<TimeSolver>(new TimeSolver(eqs));
+               }))
       .def_property_readonly("time", &TimeSolver::time)
       .def("step", &TimeSolver::step)
       .def("steps", &TimeSolver::steps)

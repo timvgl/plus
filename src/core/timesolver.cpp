@@ -12,12 +12,30 @@
 #include "table.hpp"
 
 TimeSolver::TimeSolver(DynamicEquation eq)
-    : time_(0), maxerror_(1e-5), eq_(eq), fixedTimeStep_(false) {
+    : time_(0), maxerror_(1e-5), fixedTimeStep_(false) {
+  eqs_.push_back(eq);
   stepper_ = new RungeKuttaStepper(this, FEHLBERG);
-  std::unique_ptr<Field> f0 = eq_.rhs->eval();
+  std::unique_ptr<Field> f0 = eqs_[0].rhs->eval();
 
   // initial guess for the timestep
   timestep_ = 0.01 / maxVecNorm(f0.get());
+}
+
+TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
+    : time_(0), maxerror_(1e-5), eqs_(eqs), fixedTimeStep_(false) {
+  stepper_ = new RungeKuttaStepper(this, FEHLBERG);
+
+  real globalMaxNorm = 0;
+  for (auto eq : eqs_) {
+    std::unique_ptr<Field> f0 = eq.rhs->eval();
+    real maxNorm = maxVecNorm(f0.get());
+    if (maxNorm > globalMaxNorm) {
+      globalMaxNorm = maxNorm;
+    }
+  }
+
+  // initial guess for the timestep
+  timestep_ = 0.01 / globalMaxNorm;
 }
 
 TimeSolver::~TimeSolver() {
@@ -29,8 +47,12 @@ real TimeSolver::time() const {
   return time_;
 }
 
-DynamicEquation TimeSolver::eq() const {
-  return eq_;
+DynamicEquation TimeSolver::equation(int idx) const {
+  return eqs_.at(idx);
+}
+
+int TimeSolver::nEquations() const {
+  return eqs_.size();
 }
 
 real TimeSolver::timestep() const {

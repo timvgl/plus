@@ -12,6 +12,7 @@ class Field;
 class RungeKuttaStepper : public Stepper {
  public:
   RungeKuttaStepper(TimeSolver*, RKmethod);
+  int nStages() const;
   void step();
 
  private:

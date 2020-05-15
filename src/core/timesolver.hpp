@@ -13,9 +13,11 @@ class Table;
 class TimeSolver {
  public:
   TimeSolver(DynamicEquation eq);
+  TimeSolver(std::vector<DynamicEquation> eqs);
   ~TimeSolver();
 
-  DynamicEquation eq() const;
+  DynamicEquation equation(int idx) const;
+  int nEquations() const;
   real time() const;
   real timestep() const;
   bool adaptiveTimeStep() const;
@@ -38,6 +40,6 @@ class TimeSolver {
   real time_;
   real timestep_;
   bool fixedTimeStep_;
-  DynamicEquation eq_;
+  std::vector<DynamicEquation> eqs_;
   Stepper* stepper_;
 };
