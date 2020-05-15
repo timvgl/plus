@@ -42,6 +42,10 @@ void MagnetField::setMethod(MagnetFieldComputationMethod method) {
   }
 }
 
+Ferromagnet * MagnetField::source() const {
+  return magnet_;
+}
+
 int MagnetField::ncomp() const {
   return 3;
 }

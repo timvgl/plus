@@ -31,6 +31,8 @@ class MagnetField : public FieldQuantity {
 
   void setMethod(MagnetFieldComputationMethod);
 
+  Ferromagnet * source() const;
+
   int ncomp() const;
   Grid grid() const;
   void evalIn(Field*) const;
