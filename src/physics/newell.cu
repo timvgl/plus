@@ -3,8 +3,8 @@
 #include "newell.hpp"
 
 // Eq. 27 in paper of Newell (doi.org/10.1029/93JB00694)
-__host__ __device__ static inline real Nxx_indefinite(int3 idx,
-                                                      real3 cellsize) {
+__host__ __device__ static inline double Nxx_indefinite(int3 idx,
+                                                        real3 cellsize) {
   double x = idx.x * cellsize.x;
   double y = idx.y * cellsize.y;
   double z = idx.z * cellsize.z;
@@ -27,8 +27,8 @@ __host__ __device__ static inline real Nxx_indefinite(int3 idx,
 }
 
 // Eq. 32 in paper of Newell
-__host__ __device__ static inline real Nxy_indefinite(int3 idx,
-                                                      real3 cellsize) {
+__host__ __device__ static inline double Nxy_indefinite(int3 idx,
+                                                        real3 cellsize) {
   if (idx.y == 0 ||
       idx.x == 0)  // Nxy=0 if x=0 and y=0, return early and avoid DBZ
     return 0.0;

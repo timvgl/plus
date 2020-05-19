@@ -36,6 +36,7 @@ class TestMumax3:
         self.mumax3sim = Mumax3Simulation(f"""
                 setcellsize{tuple(self.world.cellsize)}
                 setgridsize{tuple(self.magnet.grid.size)}
+                demagAccuracy = 10 // default is 6
                 msat = {msat}
                 aex = {aex}
                 ku1 = {ku1}
@@ -71,11 +72,11 @@ class TestMumax3:
         # Because mumax3 and mumax5 approximate in a different way the demag kernel
         err = max_relative_error(result=self.magnet.demag_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_demag"))
-        assert err < 1e-2
+        assert err < 1e-3
 
     def test_effective_field(self):
         # Here we compare to the demagfield of mumax with an increased tollerance.
         # Because mumax3 and mumax5 approximate in a different way the demag kernel
         err = max_relative_error(result=self.magnet.effective_field.eval(),
                                  wanted=self.mumax3sim.get_field("b_eff"))
-        assert err < 1e-2
+        assert err < 1e-3
