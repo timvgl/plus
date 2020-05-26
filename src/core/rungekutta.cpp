@@ -1,5 +1,6 @@
 #include "rungekutta.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -12,23 +13,6 @@
 #include "timesolver.hpp"
 #include "variable.hpp"
 
-struct RKEquation {
-  RKEquation(DynamicEquation eq, int nStages)
-      : x(eq.x),
-        rhs(eq.rhs),
-        x0(new Field(eq.grid(), eq.ncomp())),
-        xstage(new Field(eq.grid(), eq.ncomp())) {
-    k.reserve(nStages);
-    for (int stage = 0; stage < nStages; stage++) {
-      k.emplace_back(new Field(eq.grid(), eq.ncomp()));
-    }
-  }
-  const Variable* x;
-  const FieldQuantity* rhs;
-  std::unique_ptr<Field> x0;
-  std::unique_ptr<Field> xstage;
-  std::vector<std::unique_ptr<Field>> k;
-};
 
 RungeKuttaStepper::RungeKuttaStepper(TimeSolver* solver, RKmethod method)
     : butcher_(constructTableau(method)) {
@@ -40,81 +24,128 @@ int RungeKuttaStepper::nStages() const {
 }
 
 void RungeKuttaStepper::step() {
-  std::vector<RKEquation> equations;
-  equations.reserve(solver_->nEquations());
-  for (int i = 0; i < solver_->nEquations(); i++) {
-    equations.emplace_back(RKEquation(solver_->equation(i), nStages()));
-  }
+  std::vector<RungeKuttaStageExecutor> equations;
+  for (int i = 0; i < solver_->nEquations(); i++)
+    equations.emplace_back(RungeKuttaStageExecutor(solver_->equation(i), this));
 
   real dt = solver_->timestep();
   real t0 = solver_->time();
 
-  for (auto& eq : equations)
-    eq.x0->copyFrom(eq.x->field());
-
   // Apply the stages
-  for (int stage = 0; stage < butcher_.nStages; stage++) {
-    for (auto& eq : equations) {
-      solver_->setTime(t0 + dt * butcher_.nodes[stage]);
+  for (int stage = 0; stage < nStages(); stage++) {
+    solver_->setTime(t0 + dt * butcher_.nodes[stage]);
 
-      if (stage > 0) {
-        std::vector<real> weights(1 + stage);
-        std::vector<const Field*> fields(1 + stage);
-        weights[0] = 1;
-        fields[0] = eq.x0.get();
-        for (int i = 0; i < stage; i++) {
-          weights[i + 1] = dt * butcher_.rkMatrix[stage][i];
-          fields[i + 1] = eq.k[i].get();
-        }
-        add(eq.xstage.get(), fields, weights);
-        eq.x->set(eq.xstage.get());
-      }
+    for (auto& eq : equations)
+      eq.setStageX(stage);
 
-      eq.rhs->evalIn(eq.k[stage].get());
-    }
+    for (auto& eq : equations)
+      eq.setStageK(stage);
   }
 
   // Make the actual step
-  for (auto& eq : equations) {
-    std::vector<real> weights(1 + butcher_.nStages);
-    std::vector<const Field*> fields(1 + butcher_.nStages);
-    weights[0] = 1;
-    fields[0] = eq.x0.get();
-    for (int i = 0; i < butcher_.nStages; i++) {
-      weights[i + 1] = dt * butcher_.weights1[i];
-      fields[i + 1] = eq.k[i].get();
-    }
-    add(eq.xstage.get(), fields, weights);
-    eq.x->set(eq.xstage.get());
-  }
   solver_->setTime(t0 + dt);
+  for (auto& eq : equations)
+    eq.setFinalX();
 
-  // Determine the error
+  // determine the error
   real err = 0.0;
   for (auto& eq : equations) {
-    std::vector<real> weights_err(butcher_.nStages);
-    std::vector<const Field*> fields_err(butcher_.nStages);
-    for (int i = 0; i < butcher_.nStages; i++) {
-      fields_err[i] = eq.k[i].get();
-      weights_err[i] = dt * (butcher_.weights1[i] - butcher_.weights2[i]);
-    }
-    add(eq.xstage.get(), fields_err, weights_err);
-    real eqerr = maxVecNorm(eq.xstage.get());
+    real eqerr = eq.getError();
     if (eqerr > err)
       err = eqerr;
   }
 
+  // update the timestep
   real corr;
   if (err < solver_->maxerror()) {
     corr = std::pow(solver_->maxerror() / err, 1. / butcher_.order2);
-    solver_->adaptTimeStep(corr);
   } else {
     corr = std::pow(solver_->maxerror() / err, 1. / butcher_.order1);
-    solver_->adaptTimeStep(corr);
-    // undo step
-    for (auto& eq : equations) {
-      eq.x->set(eq.x0.get());
-    }
+  }
+  solver_->adaptTimeStep(corr);
+
+  // undo step if error exceeds the tolerance
+  if (err > solver_->maxerror()) {
+    for (auto& eq : equations)
+      eq.resetX();
     solver_->setTime(t0);
   }
+}
+
+RungeKuttaStageExecutor::RungeKuttaStageExecutor(DynamicEquation eq,
+                       RungeKuttaStepper* stepper)
+    : eq_(eq), x0_(new Field(eq.grid(), eq.ncomp())), stepper_(stepper) {
+
+  int nStages = stepper_->nStages();
+  k_.reserve(nStages);
+  for (int stage = 0; stage < nStages; stage++) {
+    k_.emplace_back(new Field(eq.grid(), eq.ncomp()));
+  }
+
+  x0_->copyFrom(eq_.x->field());
+}
+
+void RungeKuttaStageExecutor::setStageK(int stage) {
+  eq_.rhs->evalIn(k_[stage].get());
+}
+
+void RungeKuttaStageExecutor::setStageX(int stage) {
+  if (stage == 0)
+    return;
+
+  real dt = stepper_->solver_->timestep();
+
+  std::vector<real> weights(1 + stage);
+  std::vector<const Field*> fields(1 + stage);
+
+  weights[0] = 1;
+  fields[0] = x0_.get();
+  for (int i = 0; i < stage; i++) {
+    weights[i + 1] = dt * stepper_->butcher_.rkMatrix[stage][i];
+    fields[i + 1] = k_[i].get();
+  }
+
+  std::unique_ptr<Field> xstage(new Field(eq_.grid(), eq_.ncomp()));
+  add(xstage.get(), fields, weights);
+  eq_.x->set(xstage.get());
+}
+
+void RungeKuttaStageExecutor::setFinalX() {
+  real dt = stepper_->solver_->timestep();
+  auto butcher = stepper_->butcher_;
+
+  std::vector<real> weights(1 + butcher.nStages);
+  std::vector<const Field*> fields(1 + butcher.nStages);
+
+  weights[0] = 1;
+  fields[0] = x0_.get();
+  for (int i = 0; i < butcher.nStages; i++) {
+    weights[i + 1] = dt * butcher.weights1[i];
+    fields[i + 1] = k_[i].get();
+  }
+
+  std::unique_ptr<Field> xstage(new Field(eq_.grid(), eq_.ncomp()));
+  add(xstage.get(), fields, weights);
+  eq_.x->set(xstage.get());
+}
+
+void RungeKuttaStageExecutor::resetX() {
+  eq_.x->set(x0_.get());
+}
+
+real RungeKuttaStageExecutor::getError() {
+  real dt = stepper_->solver_->timestep();
+  auto butcher = stepper_->butcher_;
+
+  std::vector<real> weights_err(butcher.nStages);
+  std::vector<const Field*> fields_err(butcher.nStages);
+
+  for (int i = 0; i < butcher.nStages; i++) {
+    fields_err[i] = k_[i].get();
+    weights_err[i] = dt * (butcher.weights1[i] - butcher.weights2[i]);
+  }
+
+  std::unique_ptr<Field> xstage(new Field(eq_.grid(), eq_.ncomp()));
+  add(xstage.get(), fields_err, weights_err);
+  return maxVecNorm(xstage.get());
 }

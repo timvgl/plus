@@ -4,10 +4,12 @@
 #include <vector>
 
 #include "butchertableau.hpp"
+#include "dynamicequation.hpp"
 #include "stepper.hpp"
 
 class TimeSolver;
 class Field;
+class RungeKuttaStageExecutor;
 
 class RungeKuttaStepper : public Stepper {
  public:
@@ -17,4 +19,23 @@ class RungeKuttaStepper : public Stepper {
 
  private:
   ButcherTableau butcher_;
+
+  friend class RungeKuttaStageExecutor;
+};
+
+class RungeKuttaStageExecutor {
+ public:
+  RungeKuttaStageExecutor(DynamicEquation eq, RungeKuttaStepper* stepper);
+
+  void setStageK(int stage);
+  void setStageX(int stage);
+  void setFinalX();
+  void resetX();
+  real getError();
+
+ private:
+  std::unique_ptr<Field> x0_;
+  std::vector<std::unique_ptr<Field>> k_;
+  DynamicEquation eq_;
+  RungeKuttaStepper* stepper_;
 };
