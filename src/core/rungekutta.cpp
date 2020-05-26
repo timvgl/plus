@@ -33,14 +33,6 @@ struct RKEquation {
 RungeKuttaStepper::RungeKuttaStepper(TimeSolver* solver, RKmethod method)
     : butcher_(constructTableau(method)) {
   setParentTimeSolver(solver);
-
-  // TODO: fix this for multiple equations
-  DynamicEquation eq = solver_->equation(0);
-
-  k_.reserve(butcher_.nStages);
-  for (int stage = 0; stage < butcher_.nStages; stage++) {
-    k_.emplace_back(new Field(eq.grid(), eq.ncomp()));
-  }
 }
 
 int RungeKuttaStepper::nStages() const {
@@ -72,13 +64,13 @@ void RungeKuttaStepper::step() {
         fields[0] = eq.x0.get();
         for (int i = 0; i < stage; i++) {
           weights[i + 1] = dt * butcher_.rkMatrix[stage][i];
-          fields[i + 1] = k_[i].get();
+          fields[i + 1] = eq.k[i].get();
         }
         add(eq.xstage.get(), fields, weights);
         eq.x->set(eq.xstage.get());
       }
 
-      eq.rhs->evalIn(k_[stage].get());
+      eq.rhs->evalIn(eq.k[stage].get());
     }
   }
 
@@ -90,7 +82,7 @@ void RungeKuttaStepper::step() {
     fields[0] = eq.x0.get();
     for (int i = 0; i < butcher_.nStages; i++) {
       weights[i + 1] = dt * butcher_.weights1[i];
-      fields[i + 1] = k_[i].get();
+      fields[i + 1] = eq.k[i].get();
     }
     add(eq.xstage.get(), fields, weights);
     eq.x->set(eq.xstage.get());
@@ -103,7 +95,7 @@ void RungeKuttaStepper::step() {
     std::vector<real> weights_err(butcher_.nStages);
     std::vector<const Field*> fields_err(butcher_.nStages);
     for (int i = 0; i < butcher_.nStages; i++) {
-      fields_err[i] = k_[i].get();
+      fields_err[i] = eq.k[i].get();
       weights_err[i] = dt * (butcher_.weights1[i] - butcher_.weights2[i]);
     }
     add(eq.xstage.get(), fields_err, weights_err);

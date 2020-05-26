@@ -17,5 +17,4 @@ class RungeKuttaStepper : public Stepper {
 
  private:
   ButcherTableau butcher_;
-  std::vector<std::unique_ptr<Field>> k_;
 };
