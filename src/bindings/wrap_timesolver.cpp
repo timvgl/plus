@@ -16,6 +16,11 @@ void wrap_timesolver(py::module& m) {
                  new TimeSolver(DynamicEquation(x, rhs)));
            }),
            py::arg("variable"), py::arg("rhs"))
+      .def(py::init([](Variable* x, FieldQuantity* rhs, FieldQuantity * noise) {
+             return std::unique_ptr<TimeSolver>(
+                 new TimeSolver(DynamicEquation(x, rhs, noise)));
+           }),
+           py::arg("variable"), py::arg("rhs"), py::arg("noiseterm"))
       .def(py::init(
                [](std::vector<std::pair<Variable*, FieldQuantity*>> eqPairs) {
                  std::vector<DynamicEquation> eqs;

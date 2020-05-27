@@ -34,6 +34,7 @@ class RungeKuttaStageExecutor {
   real getError();
 
  private:
+  std::unique_ptr<Field> noise_;
   std::unique_ptr<Field> x0_;
   std::vector<std::unique_ptr<Field>> k_;
   DynamicEquation eq_;

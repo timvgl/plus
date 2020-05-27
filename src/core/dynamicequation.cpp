@@ -5,8 +5,10 @@
 #include "fieldquantity.hpp"
 #include "variable.hpp"
 
-DynamicEquation::DynamicEquation(const Variable* x, const FieldQuantity* rhs)
-    : x(x), rhs(rhs) {
+DynamicEquation::DynamicEquation(const Variable* x,
+                                 const FieldQuantity* rhs,
+                                 const FieldQuantity* noiseTerm)
+    : x(x), rhs(rhs), noiseTerm(noiseTerm) {
   if (x->grid() != rhs->grid()) {
     throw std::runtime_error(
         "The variable and the r.h.s. of a dynamic equation should have the "
@@ -16,6 +18,19 @@ DynamicEquation::DynamicEquation(const Variable* x, const FieldQuantity* rhs)
     throw std::runtime_error(
         "The variable and the r.h.s. of a dynamic equation should have the "
         "same number of components");
+  }
+
+  if (noiseTerm) {
+    if (x->grid() != noiseTerm->grid()) {
+      throw std::runtime_error(
+          "The variable and the noise term of a dynamic equation should have "
+          "the same grid");
+    }
+    if (x->ncomp() != noiseTerm->ncomp()) {
+      throw std::runtime_error(
+          "The variable and the noise term of a dynamic equation should have "
+          "the same number of components");
+    }
   }
 }
 

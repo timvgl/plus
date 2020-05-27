@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #include "datatypes.hpp"
 #include "grid.hpp"
@@ -22,6 +23,7 @@ class Field {
   void makeZero();
 
   void copyFrom(const Field*);
+  std::unique_ptr<Field> newCopy() const;
 
   CuField cu() const;
 

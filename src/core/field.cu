@@ -85,6 +85,12 @@ void Field::copyFrom(const Field* src) {
   }
 }
 
+std::unique_ptr<Field> Field::newCopy() const {
+  std::unique_ptr<Field> copy = std::make_unique<Field>(grid_, ncomp_);
+  copy->copyFrom(this);
+  return copy;
+}
+
 CuField Field::cu() const {
   return CuField{grid_, ncomp_, devptr_devptrs_};
 }
