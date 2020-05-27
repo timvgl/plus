@@ -47,6 +47,12 @@ void wrap_ferromagnet(py::module& m) {
             py::cast(&fm->anisU).attr("set")(data);
           })
 
+      .def_property(
+          "temperature", [](const Ferromagnet* fm) { return &fm->msat; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->temperature).attr("set")(data);
+          })
+
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
 
       .def_property_readonly("demag_field", &Ferromagnet::demagField)
@@ -76,6 +82,8 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("total_energy", &Ferromagnet::totalEnergy)
 
       .def_property_readonly("torque", &Ferromagnet::torque)
+
+      .def_property_readonly("thermal_noise", &Ferromagnet::thermalNoise)
 
       .def(
           "magnetic_field_from_magnet",

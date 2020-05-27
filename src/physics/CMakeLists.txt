@@ -31,6 +31,8 @@ add_library(physics STATIC
     newell.hpp
     system.cpp 
     system.hpp 
+    thermalnoise.cu
+    thermalnoise.hpp
     torque.cu 
     torque.hpp 
     world.cpp 
@@ -44,7 +46,7 @@ target_include_directories(physics PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(physics PUBLIC core)
 
 link_directories(${CUDA_LIBRARY_DIR})
-target_link_libraries(physics PRIVATE cufft)
+target_link_libraries(physics PRIVATE cufft curand)
 
 
 set_target_properties(physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

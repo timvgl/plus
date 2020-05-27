@@ -14,6 +14,7 @@
 #include "magnetfield.hpp"
 #include "parameter.hpp"
 #include "system.hpp"
+#include "thermalnoise.hpp"
 #include "torque.hpp"
 #include "variable.hpp"
 #include "zeeman.hpp"
@@ -32,7 +33,7 @@ class Ferromagnet : public System {
   bool enableDemag;
 
   VectorParameter anisU;
-  Parameter msat, aex, ku1, alpha;
+  Parameter msat, aex, ku1, alpha, temperature;
 
   const FieldQuantity* demagField() const;
   const FieldQuantity* demagEnergyDensity() const;
@@ -53,6 +54,8 @@ class Ferromagnet : public System {
   const FieldQuantity* effectiveField() const;
   const FieldQuantity* totalEnergyDensity() const;
   const ScalarQuantity* totalEnergy() const;
+
+  const FieldQuantity* thermalNoise() const;
 
   const FieldQuantity* torque() const;
 
@@ -91,6 +94,8 @@ class Ferromagnet : public System {
   EffectiveField effectiveField_;
   TotalEnergyDensity totalEnergyDensity_;
   TotalEnergy totalEnergy_;
+
+  ThermalNoise thermalNoise_;
 
   Torque torque_;
 

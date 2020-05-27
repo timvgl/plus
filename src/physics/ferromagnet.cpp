@@ -24,12 +24,14 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       effectiveField_(this),
       totalEnergyDensity_(this),
       totalEnergy_(this),
+      thermalNoise_(this),
       torque_(this),
       magnetization_(name + ":magnetization", "", 3, grid),
       aex(grid, 0.0),
       msat(grid, 1.0),
       ku1(grid, 0.0),
       alpha(grid, 0.0),
+      temperature(grid, 0.0),
       anisU(grid, {0, 0, 0}) {
   enableDemag = true;
   {
@@ -118,6 +120,10 @@ const ScalarQuantity* Ferromagnet::totalEnergy() const {
   return &totalEnergy_;
 }
 
+const FieldQuantity* Ferromagnet::thermalNoise() const {
+  return &thermalNoise_;
+}
+
 const FieldQuantity* Ferromagnet::torque() const {
   return &torque_;
 }
@@ -137,7 +143,7 @@ const MagnetField* Ferromagnet::getMagnetField(Ferromagnet* magnet) const {
 std::vector<const MagnetField*> Ferromagnet::getMagnetFields() const {
   std::vector<const MagnetField*> magnetFields;
   magnetFields.reserve(magnetFields_.size());
-  for (const auto& entry: magnetFields_) {
+  for (const auto& entry : magnetFields_) {
     magnetFields.push_back(entry.second);
   }
   return magnetFields;
