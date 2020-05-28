@@ -49,6 +49,10 @@ void RungeKuttaStepper::step() {
     for (auto& eq : equations)
       eq.setFinalX();
 
+    // nothing more to do if time step is fixed
+    if (!solver_->adaptiveTimeStep())
+      break;
+
     // loop over equations and get the largest error
     real error = 0.0;
     for (auto& eq : equations)
