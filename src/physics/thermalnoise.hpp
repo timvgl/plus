@@ -2,13 +2,14 @@
 
 #include "curand.h"
 #include "ferromagnetquantity.hpp"
+#include "handler.hpp"
 
 class Ferromagnet;
 class Field;
 
 class ThermalNoise : public FerromagnetFieldQuantity {
  public:
-  ThermalNoise(Ferromagnet*);
+  ThermalNoise(Handle<Ferromagnet>);
   ~ThermalNoise();
   void evalIn(Field*) const;
   bool assuredZero() const override;

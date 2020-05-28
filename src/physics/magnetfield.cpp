@@ -6,7 +6,7 @@
 #include "parameter.hpp"
 #include "world.hpp"
 
-MagnetField::MagnetField(Ferromagnet* magnet,
+MagnetField::MagnetField(Handle<Ferromagnet> magnet,
                          Grid grid,
                          MagnetFieldComputationMethod method)
     : magnet_(magnet), grid_(grid), executor_(nullptr) {
@@ -43,7 +43,7 @@ void MagnetField::setMethod(MagnetFieldComputationMethod method) {
 }
 
 Ferromagnet * MagnetField::source() const {
-  return magnet_;
+  return magnet_.get();
 }
 
 int MagnetField::ncomp() const {

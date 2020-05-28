@@ -4,9 +4,8 @@
 #include "field.hpp"
 #include "world.hpp"
 
-DemagField::DemagField(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "demag_field", "T"),
-      magnetfield_(ferromagnet,ferromagnet->grid())
+DemagField::DemagField(Handle<Ferromagnet> ferromagnet)
+    : FerromagnetFieldQuantity(ferromagnet, 3, "demag_field", "T")
  {}
 
 void DemagField::evalIn(Field* result) const {
@@ -21,7 +20,7 @@ bool DemagField::assuredZero() const {
   return !ferromagnet_->enableDemag;
 }
 
-DemagEnergyDensity::DemagEnergyDensity(Ferromagnet* ferromagnet)
+DemagEnergyDensity::DemagEnergyDensity(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 1, "demag_energy_density", "J/m3") {
 }
 
@@ -46,25 +45,25 @@ void DemagEnergyDensity::evalIn(Field* result) const {
     result->makeZero();
     return;
   }
-  auto h = ferromagnet_->demagField()->eval();
+  auto h = DemagField(ferromagnet_).eval();
   cudaLaunch(result->grid().ncells(), k_demagEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
 }
 
 bool DemagEnergyDensity::assuredZero() const {
-  return ferromagnet_->demagField()->assuredZero();
+  return DemagField(ferromagnet_).assuredZero();
 }
 
-DemagEnergy::DemagEnergy(Ferromagnet* ferromagnet)
+DemagEnergy::DemagEnergy(Handle<Ferromagnet> ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "demag_energy", "J") {}
 
 real DemagEnergy::eval() const {
-  if (ferromagnet_->demagEnergyDensity()->assuredZero())
+  if (DemagEnergyDensity(ferromagnet_).assuredZero())
     return 0.0;
 
   int ncells = ferromagnet_->grid().ncells();
-  real edensAverage = ferromagnet_->demagEnergyDensity()->average()[0];
+  real edensAverage = DemagEnergyDensity(ferromagnet_).average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();
   return ncells * edensAverage * cellVolume;
 }

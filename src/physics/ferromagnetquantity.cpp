@@ -2,7 +2,7 @@
 
 #include "ferromagnet.hpp"
 
-FerromagnetFieldQuantity::FerromagnetFieldQuantity(Ferromagnet* ferromagnet,
+FerromagnetFieldQuantity::FerromagnetFieldQuantity(Handle<Ferromagnet> ferromagnet,
                                                    int ncomp,
                                                    std::string name,
                                                    std::string unit)
@@ -24,7 +24,7 @@ std::string FerromagnetFieldQuantity::unit() const {
   return unit_;
 }
 
-FerromagnetScalarQuantity::FerromagnetScalarQuantity(Ferromagnet* ferromagnet,
+FerromagnetScalarQuantity::FerromagnetScalarQuantity(Handle<Ferromagnet> ferromagnet,
                                                      std::string name,
                                                      std::string unit)
     : ferromagnet_(ferromagnet), name_(name), unit_(unit) {}

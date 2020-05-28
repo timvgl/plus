@@ -2,6 +2,7 @@
 
 #include "fieldquantity.hpp"
 #include "grid.hpp"
+#include "handler.hpp"
 
 enum MagnetFieldComputationMethod {
   MAGNETFIELDMETHOD_BRUTE,
@@ -24,7 +25,7 @@ class MagnetFieldExecutor {
 /// magnetic field is the demagnetization field of the magnet
 class MagnetField : public FieldQuantity {
  public:
-  MagnetField(Ferromagnet* magnet,
+  MagnetField(Handle<Ferromagnet> magnet,
               Grid grid,
               MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_AUTO);
   ~MagnetField();
@@ -42,7 +43,7 @@ class MagnetField : public FieldQuantity {
   bool assuredZero() const;
 
  private:
-  Ferromagnet* magnet_;
+  Handle<Ferromagnet> magnet_;
   Grid grid_;
   MagnetFieldExecutor* executor_;
 };

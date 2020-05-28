@@ -1,8 +1,10 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "datatypes.hpp"
+#include "handler.hpp"
 
 class Ferromagnet;
 class Grid;
@@ -19,9 +21,9 @@ class World {
   Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
 
   // returns a nullptrs if there is no magnet with specified name
-  Ferromagnet* getFerromagnet(std::string name) const;
+  Handle<Ferromagnet> getFerromagnet(std::string name) const;
 
  private:
-  std::map<std::string, Ferromagnet*> Ferromagnets;
+  std::map<std::string, Handler<Ferromagnet>> Ferromagnets;
   real3 cellsize_;
 };

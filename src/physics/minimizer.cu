@@ -6,7 +6,7 @@
 #include "reduce.hpp"
 #include "torque.hpp"
 
-Minimizer::Minimizer(Ferromagnet* magnet,
+Minimizer::Minimizer(Handle<Ferromagnet> magnet,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
     : magnet_(magnet),

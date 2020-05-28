@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+//TODO: remove unnecessary headers
 #include "anisotropy.hpp"
 #include "demag.hpp"
 #include "effectivefield.hpp"
@@ -18,6 +18,7 @@
 #include "torque.hpp"
 #include "variable.hpp"
 #include "zeeman.hpp"
+#include "handler.hpp"
 
 class FieldQuantity;
 class World;
@@ -26,45 +27,30 @@ class Ferromagnet : public System {
  public:
   Ferromagnet(World* world, std::string name, Grid grid);
   ~Ferromagnet();
-  Ferromagnet(Ferromagnet&&) = default;
+  Ferromagnet(Ferromagnet&&) = default;  // TODO: check if default is ok
+
+  // A ferromagnet should have a handler in the world.
+  // This function obtains a handle from this handler
+  // TODO: check if this is ok, feels hacky
+  Handle<Ferromagnet> getHandle() const;  
 
   const Variable* magnetization() const;
 
   bool enableDemag;
 
   VectorParameter anisU;
-  Parameter msat, aex, ku1, alpha, temperature;
+  Parameter msat;
+  Parameter aex;
+  Parameter ku1;
+  Parameter alpha;
+  Parameter temperature;
 
-  const FieldQuantity* demagField() const;
-  const FieldQuantity* demagEnergyDensity() const;
-  const ScalarQuantity* demagEnergy() const;
-
-  const FieldQuantity* externalField() const;
-  const FieldQuantity* zeemanEnergyDensity() const;
-  const ScalarQuantity* zeemanEnergy() const;
-
-  const FieldQuantity* anisotropyField() const;
-  const FieldQuantity* anisotropyEnergyDensity() const;
-  const ScalarQuantity* anisotropyEnergy() const;
-
-  const FieldQuantity* exchangeField() const;
-  const FieldQuantity* exchangeEnergyDensity() const;
-  const ScalarQuantity* exchangeEnergy() const;
-
-  const FieldQuantity* effectiveField() const;
-  const FieldQuantity* totalEnergyDensity() const;
-  const ScalarQuantity* totalEnergy() const;
-
-  const FieldQuantity* thermalNoise() const;
-
-  const FieldQuantity* torque() const;
-
-  const MagnetField* getMagnetField(Ferromagnet*) const;
+  const MagnetField* getMagnetField(Handle<Ferromagnet>) const;
   std::vector<const MagnetField*> getMagnetFields() const;
   void addMagnetField(
-      Ferromagnet*,
+      Handle<Ferromagnet>,
       MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_BRUTE);
-  void removeMagnetField(Ferromagnet*);
+  void removeMagnetField(Handle<Ferromagnet>);
 
   void minimize(real tol = 1e-6, int nSamples = 10);
 
@@ -74,30 +60,5 @@ class Ferromagnet : public System {
 
  private:
   NormalizedVariable magnetization_;
-
-  DemagField demagField_;
-  DemagEnergyDensity demagEnergyDensity_;
-  DemagEnergy demagEnergy_;
-
-  ExternalField externalField_;
-  ZeemanEnergyDensity zeemanEnergyDensity_;
-  ZeemanEnergy zeemanEnergy_;
-
-  AnisotropyField anisotropyField_;
-  AnisotropyEnergyDensity anisotropyEnergyDensity_;
-  AnisotropyEnergy anisotropyEnergy_;
-
-  ExchangeField exchangeField_;
-  ExchangeEnergyDensity exchangeEnergyDensity_;
-  ExchangeEnergy exchangeEnergy_;
-
-  EffectiveField effectiveField_;
-  TotalEnergyDensity totalEnergyDensity_;
-  TotalEnergy totalEnergy_;
-
-  ThermalNoise thermalNoise_;
-
-  Torque torque_;
-
-  std::map<Ferromagnet*, MagnetField*> magnetFields_;
+  std::map<Handle<Ferromagnet>, MagnetField*> magnetFields_;
 };

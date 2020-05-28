@@ -9,14 +9,14 @@ class Ferromagnet;
 
 class Minimizer {
  public:
-  Minimizer(Ferromagnet*, real stopMaxMagDiff, int nMagDiffSamples);
+  Minimizer(Handle<Ferromagnet>, real stopMaxMagDiff, int nMagDiffSamples);
   ~Minimizer();
 
   void exec();
 
  private:
   void step();
-  Ferromagnet* magnet_;
+  Handle<Ferromagnet> magnet_;
   real stepsize_;
   int nsteps_;
 

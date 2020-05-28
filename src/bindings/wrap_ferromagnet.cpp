@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "ferromagnet.hpp"
+#include "fieldquantity.hpp"
 #include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
 #include "world.hpp"
@@ -55,40 +56,114 @@ void wrap_ferromagnet(py::module& m) {
 
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
 
-      .def_property_readonly("demag_field", &Ferromagnet::demagField)
+      .def_property_readonly("demag_field",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new DemagField(fm->getHandle()));
+                             })
+
       .def_property_readonly("demag_energy_density",
-                             &Ferromagnet::demagEnergyDensity)
-      .def_property_readonly("demag_energy", &Ferromagnet::demagEnergy)
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new DemagEnergyDensity(fm->getHandle()));
+                             })
 
-      .def_property_readonly("anisotropy_field", &Ferromagnet::anisotropyField)
-      .def_property_readonly("anisotropy_energy_density",
-                             &Ferromagnet::anisotropyEnergyDensity)
+      .def_property_readonly("demag_energy",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<ScalarQuantity>(
+                                   new DemagEnergy(fm->getHandle()));
+                             })
+
+      .def_property_readonly("anisotropy_field",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new AnisotropyField(fm->getHandle()));
+                             })
+
+      .def_property_readonly(
+          "anisotropy_energy_density",
+          [](const Ferromagnet* fm) {
+            return std::unique_ptr<FieldQuantity>(
+                new AnisotropyEnergyDensity(fm->getHandle()));
+          })
+
       .def_property_readonly("anisotropy_energy",
-                             &Ferromagnet::anisotropyEnergy)
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<ScalarQuantity>(
+                                   new AnisotropyEnergy(fm->getHandle()));
+                             })
 
-      .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
+      .def_property_readonly("exchange_field",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new ExchangeField(fm->getHandle()));
+                             })
+
       .def_property_readonly("exchange_energy_density",
-                             &Ferromagnet::exchangeEnergyDensity)
-      .def_property_readonly("exchange_energy", &Ferromagnet::exchangeEnergy)
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new ExchangeEnergyDensity(fm->getHandle()));
+                             })
 
-      .def_property_readonly("external_field", &Ferromagnet::externalField)
+      .def_property_readonly("exchange_energy",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<ScalarQuantity>(
+                                   new ExchangeEnergy(fm->getHandle()));
+                             })
+
+      .def_property_readonly("external_field",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new ExternalField(fm->getHandle()));
+                             })
+
       .def_property_readonly("zeeman_energy_density",
-                             &Ferromagnet::zeemanEnergyDensity)
-      .def_property_readonly("zeeman_energy", &Ferromagnet::zeemanEnergy)
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new ZeemanEnergyDensity(fm->getHandle()));
+                             })
 
-      .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
+      .def_property_readonly("zeeman_energy",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<ScalarQuantity>(
+                                   new ZeemanEnergy(fm->getHandle()));
+                             })
+
+      .def_property_readonly("effective_field",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new EffectiveField(fm->getHandle()));
+                             })
+
       .def_property_readonly("total_energy_density",
-                             &Ferromagnet::totalEnergyDensity)
-      .def_property_readonly("total_energy", &Ferromagnet::totalEnergy)
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new TotalEnergyDensity(fm->getHandle()));
+                             })
 
-      .def_property_readonly("torque", &Ferromagnet::torque)
+      .def_property_readonly("total_energy",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<ScalarQuantity>(
+                                   new TotalEnergy(fm->getHandle()));
+                             })
 
-      .def_property_readonly("thermal_noise", &Ferromagnet::thermalNoise)
+      .def_property_readonly(
+          "torque",
+          [](const Ferromagnet* fm) {
+            return std::unique_ptr<FieldQuantity>(new Torque(fm->getHandle()));
+          })
+
+      .def_property_readonly("thermal_noise",
+                             [](const Ferromagnet* fm) {
+                               return std::unique_ptr<FieldQuantity>(
+                                   new ThermalNoise(fm->getHandle()));
+                             })
 
       .def(
           "magnetic_field_from_magnet",
           [](const Ferromagnet* fm, Ferromagnet* magnet) {
-            const MagnetField* magnetField = fm->getMagnetField(magnet);
+            const MagnetField* magnetField =
+                fm->getMagnetField(magnet->getHandle());
             if (!magnetField)
               throw std::runtime_error(
                   "Can not compute the magnetic field of the magnet");

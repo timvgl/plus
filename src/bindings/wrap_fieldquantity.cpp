@@ -2,6 +2,8 @@
 #include "fieldquantity.hpp"
 #include "wrappers.hpp"
 
+#include<memory>
+
 void wrap_fieldquantity(py::module& m) {
   py::class_<FieldQuantity>(m, "FieldQuantity")
       .def_property_readonly("name", &FieldQuantity::name)

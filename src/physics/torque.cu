@@ -5,7 +5,7 @@
 #include "constants.hpp"
 #include "parameter.hpp"
 
-Torque::Torque(Ferromagnet* ferromagnet)
+Torque::Torque(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "torque", "T") {}
 
 __global__ void k_torque(CuField torque,
@@ -25,14 +25,14 @@ __global__ void k_torque(CuField torque,
 }
 
 void Torque::evalIn(Field* torque) const {
-  auto h = ferromagnet_->effectiveField()->eval();
+  auto h = EffectiveField(ferromagnet_).eval();
   auto m = ferromagnet_->magnetization()->field();
   auto alpha = ferromagnet_->alpha.cu();
   int ncells = torque->grid().ncells();
   cudaLaunch(ncells, k_torque, torque->cu(), m->cu(), h.get()->cu(), alpha);
 }
 
-RelaxTorque::RelaxTorque(Ferromagnet* ferromagnet)
+RelaxTorque::RelaxTorque(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "damping_torque", "T") {}
 
 __global__ void k_dampingtorque(CuField torque,
@@ -48,7 +48,7 @@ __global__ void k_dampingtorque(CuField torque,
 }
 
 void RelaxTorque::evalIn(Field* torque) const {
-  auto h = ferromagnet_->effectiveField()->eval();
+  auto h = EffectiveField(ferromagnet_).eval();
   auto m = ferromagnet_->magnetization()->field();
   int ncells = torque->grid().ncells();
   cudaLaunch(ncells, k_dampingtorque, torque->cu(), m->cu(), h.get()->cu());

@@ -5,7 +5,7 @@
 #include "parameter.hpp"
 #include "world.hpp"
 
-AnisotropyField::AnisotropyField(Ferromagnet* ferromagnet)
+AnisotropyField::AnisotropyField(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "anisotropy_field", "T") {}
 
 __global__ void k_anisotropyField(CuField hField,
@@ -47,7 +47,7 @@ bool AnisotropyField::assuredZero() const {
   return ferromagnet_->ku1.assuredZero() || ferromagnet_->anisU.assuredZero();
 }
 
-AnisotropyEnergyDensity::AnisotropyEnergyDensity(Ferromagnet* ferromagnet)
+AnisotropyEnergyDensity::AnisotropyEnergyDensity(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet,
                                1,
                                "anisotropy_energy_density",
@@ -90,18 +90,18 @@ void AnisotropyEnergyDensity::evalIn(Field* edens) const {
 }
 
 bool AnisotropyEnergyDensity::assuredZero() const {
-  return ferromagnet_->anisotropyField()->assuredZero();
+  return AnisotropyField(ferromagnet_).assuredZero();
 }
 
-AnisotropyEnergy::AnisotropyEnergy(Ferromagnet* ferromagnet)
+AnisotropyEnergy::AnisotropyEnergy(Handle<Ferromagnet> ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "anisotropy_energy", "J") {}
 
 real AnisotropyEnergy::eval() const {
-  if (ferromagnet_->anisotropyEnergyDensity()->assuredZero())
+  if (AnisotropyEnergyDensity(ferromagnet_).assuredZero())
     return 0;
 
   int ncells = ferromagnet_->grid().ncells();
-  real edensAverage = ferromagnet_->anisotropyEnergyDensity()->average()[0];
+  real edensAverage = AnisotropyEnergyDensity(ferromagnet_).average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();
   return ncells * edensAverage * cellVolume;
 }

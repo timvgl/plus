@@ -6,8 +6,10 @@
 #include "thermalnoise.hpp"
 #include "world.hpp"
 
-ThermalNoise::ThermalNoise(Ferromagnet* ferromagnet)
+ThermalNoise::ThermalNoise(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "thermal_noise", "T") {
+  // TODO: this might not be the right place to create a generator because the
+  // construction of a field quantity should be light
   curandCreateGenerator(&generator_, CURAND_RNG_PSEUDO_DEFAULT);
   curandSetPseudoRandomGeneratorSeed(generator_, 1234);
 }

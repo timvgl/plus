@@ -1,5 +1,6 @@
 #include "world.hpp"
 
+#include <handler.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -12,11 +13,7 @@ World::World(real3 cellsize)
   }
 };
 
-World::~World() {
-  for (auto fm : Ferromagnets) {
-    delete fm.second;
-  }
-}
+World::~World() {}
 
 real3 World::cellsize() const {
   return cellsize_;
@@ -27,7 +24,7 @@ real World::cellVolume() const {
 }
 
 Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
-  for (auto fm : Ferromagnets)
+  for (const auto& fm : Ferromagnets)
     if (grid.overlaps(fm.second->grid()))
       throw std::out_of_range(
           "Can not add ferromagnet because it overlaps with another "
@@ -41,24 +38,24 @@ Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
     throw std::runtime_error("A ferromagnet with the name '" + name +
                              "' already exists");
 
-  Ferromagnet* newMagnet = new Ferromagnet(this, name, grid);
-  Ferromagnets[name] = newMagnet;
+  Ferromagnets.emplace(name, new Ferromagnet(this, name, grid) );
+  Handle<Ferromagnet> newMagnet = Ferromagnets.find(name)->second;
 
   // Add the magnetic field of the other magnets in this magnet, and vice versa
-  for (auto entry : Ferromagnets) {
-    Ferromagnet* magnet = entry.second;
-    magnet->addMagnetField(newMagnet,MAGNETFIELDMETHOD_AUTO);
-    if (magnet != newMagnet) { // Avoid adding the field on itself twice
-      newMagnet->addMagnetField(magnet,MAGNETFIELDMETHOD_AUTO);
+  for (auto& entry : Ferromagnets) {
+    Handle<Ferromagnet> magnet = entry.second;
+    magnet->addMagnetField(newMagnet, MAGNETFIELDMETHOD_AUTO);
+    if (magnet != newMagnet) {  // Avoid adding the field on itself twice
+      newMagnet->addMagnetField(magnet, MAGNETFIELDMETHOD_AUTO);
     }
   }
 
-  return newMagnet;
+  return newMagnet.get(); // TODO: return handle
 };
 
-Ferromagnet* World::getFerromagnet(std::string name) const {
+Handle<Ferromagnet> World::getFerromagnet(std::string name) const {
   auto result = Ferromagnets.find(name);
   if (result == Ferromagnets.end())
-    return nullptr;
+    return Handle<Ferromagnet>();
   return result->second;
 }

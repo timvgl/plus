@@ -10,7 +10,7 @@
 void wrap_magnetfield(py::module& m) {
   py::class_<MagnetField, FieldQuantity>(m, "MagnetField")
       .def(py::init([](Ferromagnet* magnet, Grid grid) {
-             return std::unique_ptr<MagnetField>(new MagnetField(magnet,grid));
+             return std::unique_ptr<MagnetField>(new MagnetField(magnet->getHandle(),grid));
            }),
            py::arg("ferromagnet"), py::arg("grid"))
       .def("setMethod", [](MagnetField* magnetField, std::string method) {

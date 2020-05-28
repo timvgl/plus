@@ -5,7 +5,7 @@
 #include "parameter.hpp"
 #include "world.hpp"
 
-ExchangeField::ExchangeField(Ferromagnet* ferromagnet)
+ExchangeField::ExchangeField(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "exchange_field", "T") {}
 
 __device__ static inline real harmonicMean(real a, real b) {
@@ -52,7 +52,7 @@ __global__ void k_exchangeField(CuField hField,
   hField.setVectorInCell(idx, h);
 }
 
-void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {
+void exchangeField(Field* hField, Handle<Ferromagnet> ferromagnet) {
   cudaLaunch(hField->grid().ncells(), k_exchangeField, hField->cu(),
              ferromagnet->magnetization()->field()->cu(), ferromagnet->aex.cu(),
              ferromagnet->msat.cu(), ferromagnet->world()->cellsize());
@@ -71,7 +71,7 @@ bool ExchangeField::assuredZero() const {
   return ferromagnet_->aex.assuredZero();
 }
 
-ExchangeEnergyDensity::ExchangeEnergyDensity(Ferromagnet* ferromagnet)
+ExchangeEnergyDensity::ExchangeEnergyDensity(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet,
                                1,
                                "exchange_energy_density",
@@ -98,25 +98,25 @@ void ExchangeEnergyDensity::evalIn(Field* result) const {
     result->makeZero();
     return;
   }
-  auto h = ferromagnet_->exchangeField()->eval();
+  auto h = ExchangeField(ferromagnet_).eval();
   cudaLaunch(result->grid().ncells(), k_exchangeEnergyDensity, result->cu(),
              ferromagnet_->magnetization()->field()->cu(), h->cu(),
              ferromagnet_->msat.cu());
 }
 
 bool ExchangeEnergyDensity::assuredZero() const {
-  return ferromagnet_->exchangeField()->assuredZero();
+  return ExchangeField(ferromagnet_).assuredZero();
 }
 
-ExchangeEnergy::ExchangeEnergy(Ferromagnet* ferromagnet)
+ExchangeEnergy::ExchangeEnergy(Handle<Ferromagnet> ferromagnet)
     : FerromagnetScalarQuantity(ferromagnet, "exchange_energy", "J") {}
 
 real ExchangeEnergy::eval() const {
-  if (ferromagnet_->exchangeEnergyDensity()->assuredZero())
+  if (ExchangeEnergyDensity(ferromagnet_).assuredZero())
     return 0.0;
 
   int ncells = ferromagnet_->grid().ncells();
-  real edensAverage = ferromagnet_->exchangeEnergyDensity()->average()[0];
+  real edensAverage = ExchangeEnergyDensity(ferromagnet_).average()[0];
   real cellVolume = ferromagnet_->world()->cellVolume();
   return ncells * edensAverage * cellVolume;
 }

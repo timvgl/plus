@@ -3,14 +3,14 @@
 #include "ferromagnet.hpp"
 #include "field.hpp"
 
-EffectiveField::EffectiveField(Ferromagnet* ferromagnet)
+EffectiveField::EffectiveField(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "effective_field", "T") {}
 
 void EffectiveField::evalIn(Field* result) const {
   result->makeZero();
 
-  ferromagnet_->anisotropyField()->addTo(result);
-  ferromagnet_->exchangeField()->addTo(result);
-  ferromagnet_->externalField()->addTo(result);
-  ferromagnet_->demagField()->addTo(result);
+  AnisotropyField(ferromagnet_).addTo(result);
+  ExchangeField(ferromagnet_).addTo(result);
+  ExternalField(ferromagnet_).addTo(result);
+  DemagField(ferromagnet_).addTo(result);
 }
