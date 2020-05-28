@@ -1,12 +1,20 @@
 #include <memory>
 #include <stdexcept>
 
+#include "anisotropy.hpp"
+#include "demag.hpp"
+#include "effectivefield.hpp"
+#include "energy.hpp"
+#include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
 #include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
+#include "thermalnoise.hpp"
+#include "torque.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
+#include "zeeman.hpp"
 
 void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")

@@ -2,6 +2,8 @@
 
 #include <deque>
 
+#include "torque.hpp"
+
 class Ferromagnet;
 
 // Minimize follows the steepest descent method as per Exl et al., JAP 115,

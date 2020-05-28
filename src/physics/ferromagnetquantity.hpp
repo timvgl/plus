@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+
+#include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
 #include "handler.hpp"
 #include "scalarquantity.hpp"
@@ -26,7 +29,9 @@ class FerromagnetFieldQuantity : public FieldQuantity {
 
 class FerromagnetScalarQuantity : public ScalarQuantity {
  public:
-  FerromagnetScalarQuantity(Handle<Ferromagnet>, std::string name, std::string unit);
+  FerromagnetScalarQuantity(Handle<Ferromagnet>,
+                            std::string name,
+                            std::string unit);
   std::string name() const;
   std::string unit() const;
 

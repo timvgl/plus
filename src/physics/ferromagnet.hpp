@@ -3,21 +3,12 @@
 #include <map>
 #include <string>
 #include <vector>
-//TODO: remove unnecessary headers
-#include "anisotropy.hpp"
-#include "demag.hpp"
-#include "effectivefield.hpp"
-#include "energy.hpp"
-#include "exchange.hpp"
 #include "field.hpp"
 #include "grid.hpp"
 #include "magnetfield.hpp"
 #include "parameter.hpp"
 #include "system.hpp"
-#include "thermalnoise.hpp"
-#include "torque.hpp"
 #include "variable.hpp"
-#include "zeeman.hpp"
 #include "handler.hpp"
 
 class FieldQuantity;

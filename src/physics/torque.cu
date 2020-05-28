@@ -1,9 +1,10 @@
+#include "constants.hpp"
 #include "cudalaunch.hpp"
+#include "effectivefield.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
-#include "torque.hpp"
-#include "constants.hpp"
 #include "parameter.hpp"
+#include "torque.hpp"
 
 Torque::Torque(Handle<Ferromagnet> ferromagnet)
     : FerromagnetFieldQuantity(ferromagnet, 3, "torque", "T") {}
@@ -17,7 +18,7 @@ __global__ void k_torque(CuField torque,
     return;
   real3 m = mField.vectorAt(idx);
   real3 h = hField.vectorAt(idx);
-  real  a = alpha.valueAt(idx);
+  real a = alpha.valueAt(idx);
   real3 mxh = cross(m, h);
   real3 mxmxh = cross(m, mxh);
   real3 t = -GAMMALL / (1 + a * a) * (mxh + a * mxmxh);
@@ -43,7 +44,7 @@ __global__ void k_dampingtorque(CuField torque,
     return;
   real3 m = mField.vectorAt(idx);
   real3 h = hField.vectorAt(idx);
-  real3 t = -GAMMALL*cross(m, cross(m, h));
+  real3 t = -GAMMALL * cross(m, cross(m, h));
   torque.setVectorInCell(idx, t);
 }
 
