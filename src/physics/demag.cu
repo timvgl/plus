@@ -5,8 +5,7 @@
 #include "world.hpp"
 
 DemagField::DemagField(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "demag_field", "T"),
-      magnetfield_(ferromagnet,ferromagnet->grid())
+    : FerromagnetFieldQuantity(ferromagnet, 3, "demag_field", "T")
  {}
 
 void DemagField::evalIn(Field* result) const {
