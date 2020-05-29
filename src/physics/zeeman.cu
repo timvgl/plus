@@ -6,42 +6,41 @@
 #include "world.hpp"
 #include "zeeman.hpp"
 
-ExternalField::ExternalField(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "external_field", "T") {}
-
-void ExternalField::evalIn(Field* result) const {
-  real3 b_ext = ferromagnet_->world()->biasMagneticField;
-  result->setUniformComponent(b_ext.x, 0);
-  result->setUniformComponent(b_ext.y, 1);
-  result->setUniformComponent(b_ext.z, 2);
-
-  auto magnetFields = ferromagnet_->getMagnetFields();
-  for (auto magnetField : magnetFields) {
-    // Avoid the demag field, we only want external fields
-    if (magnetField->source() == ferromagnet_)
-      continue;
-
-    magnetField->addTo(result);
-  }
-}
-
-bool ExternalField::assuredZero() const {
-  auto magnetFields = ferromagnet_->getMagnetFields();
+bool externalFieldAssuredZero(const Ferromagnet* magnet) {
+  auto magnetFields = magnet->getMagnetFields();
   for (auto magnetField : magnetFields) {
     if (!magnetField->assuredZero()) {
       return false;
     }
   }
 
-  real3 b_ext = ferromagnet_->world()->biasMagneticField;
+  real3 b_ext = magnet->world()->biasMagneticField;
   return b_ext == real3{0.0, 0.0, 0.0};
 }
 
-ZeemanEnergyDensity::ZeemanEnergyDensity(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet,
-                               1,
-                               "zeeman_energy_density",
-                               "J/m3") {}
+Field evalExternalField(const Ferromagnet* magnet) {
+  Field h(magnet->grid(), 3);
+  if (externalFieldAssuredZero(magnet)) {
+    h.makeZero();
+    return h;
+  }
+
+  real3 b_ext = magnet->world()->biasMagneticField;
+  h.setUniformComponent(b_ext.x, 0);
+  h.setUniformComponent(b_ext.y, 1);
+  h.setUniformComponent(b_ext.z, 2);
+
+  auto magnetFields = magnet->getMagnetFields();
+  for (auto magnetField : magnetFields) {
+    // Avoid the demag field, we only want external fields
+    if (magnetField->source() == magnet)
+      continue;
+
+    magnetField->addTo(&h);
+  }
+  return h;
+}
+
 
 __global__ void k_zeemanEnergyDensity(CuField edens,
                                       CuField mag,
@@ -59,31 +58,39 @@ __global__ void k_zeemanEnergyDensity(CuField edens,
   edens.setValueInCell(idx, 0, -Ms * dot(m, h));
 }
 
-void ZeemanEnergyDensity::evalIn(Field* result) const {
-  if (assuredZero()) {
-    result->makeZero();
-    return;
+Field evalZeemanEnergyDensity(const Ferromagnet* magnet){
+  Field edens(magnet->grid(),1);
+  if (externalFieldAssuredZero(magnet)) {
+    edens.makeZero();
+    return edens;
+  }
+  Field h = evalExternalField(magnet);
+  cudaLaunch(edens.grid().ncells(), k_zeemanEnergyDensity, edens.cu(),
+             magnet->magnetization()->field()->cu(), h.cu(),
+             magnet->msat.cu());
+  return edens;
+}
+
+real zeemanEnergy(const Ferromagnet* magnet){
+  if (externalFieldAssuredZero(magnet)) {
+    return 0.0;
   }
 
-  auto h = ferromagnet_->externalField()->eval();
-  cudaLaunch(result->grid().ncells(), k_zeemanEnergyDensity, result->cu(),
-             ferromagnet_->magnetization()->field()->cu(), h->cu(),
-             ferromagnet_->msat.cu());
+  real edens = zeemanEnergyDensityQuantity(magnet).average()[0];
+  int ncells = magnet->grid().ncells();
+  real cellVolume = magnet->world()->cellVolume();
+  return ncells * edens * cellVolume;
 }
 
-bool ZeemanEnergyDensity::assuredZero() const {
-  return ferromagnet_->externalField()->assuredZero();
+FM_FieldQuantity externalFieldQuantity(const Ferromagnet * magnet) {
+  return FM_FieldQuantity(magnet, evalExternalField, 3, "external_field", "T");
 }
 
-ZeemanEnergy::ZeemanEnergy(Ferromagnet* ferromagnet)
-    : FerromagnetScalarQuantity(ferromagnet, "zeeman_energy", "J") {}
+FM_FieldQuantity zeemanEnergyDensityQuantity(const Ferromagnet * magnet) {
+  return FM_FieldQuantity(magnet, evalZeemanEnergyDensity, 1,
+                             "zeeman_energy_density", "J/m3");
+}
 
-real ZeemanEnergy::eval() const {
-  if (ferromagnet_->zeemanEnergyDensity()->assuredZero())
-    return 0.0;
-
-  int ncells = ferromagnet_->grid().ncells();
-  real edensAverage = ferromagnet_->zeemanEnergyDensity()->average()[0];
-  real cellVolume = ferromagnet_->world()->cellVolume();
-  return ncells * edensAverage * cellVolume;
+FM_ScalarQuantity zeemanEnergyQuantity(const Ferromagnet * magnet) {
+  return FM_ScalarQuantity(magnet, zeemanEnergy, "zeeman_energy", "J");
 }

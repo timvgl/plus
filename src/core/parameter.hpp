@@ -19,7 +19,7 @@ class Parameter : public FieldQuantity {
   bool assuredZero() const;
   int ncomp() const;
   Grid grid() const;
-  void evalIn(Field*) const;
+  Field eval() const;
 
   CuParameter cu() const;
 
@@ -67,7 +67,7 @@ class VectorParameter : public FieldQuantity {
   bool assuredZero() const;
   int ncomp() const;
   Grid grid() const;
-  void evalIn(Field*) const;
+  Field eval() const;
 
   CuVectorParameter cu() const;
 

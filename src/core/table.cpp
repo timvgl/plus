@@ -34,7 +34,7 @@ std::vector<real> Table::getValues(std::string name) const {
 }
 
 void Table::Column::writeValue() {
-  std::unique_ptr<Field> field = quantity->eval();
-  real value = fieldComponentAverage(field.get(), comp);
+  Field field = quantity->eval();
+  real value = fieldComponentAverage(&field, comp);
   values.push_back(value);
 }

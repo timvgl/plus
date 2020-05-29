@@ -6,25 +6,16 @@
 #include "reduce.hpp"
 #include "torque.hpp"
 
-Minimizer::Minimizer(Ferromagnet* magnet,
+Minimizer::Minimizer(const Ferromagnet* magnet,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
     : magnet_(magnet),
-      torque_(magnet_),
+      torque_(relaxTorqueQuantity(magnet)),
       nMagDiffSamples_(nMagDiffSamples),
       stopMaxMagDiff_(stopMaxMagDiff) {
   stepsize_ = 1e-14;  // TODO: figure out how to make descent guess
 
   // TODO: check if input arguments are sane
-
-  t_new = new Field(magnet_->grid(), 3);
-  t_old = new Field(magnet_->grid(), 3);
-  m_new = new Field(magnet_->grid(), 3);
-  m_old = new Field(magnet_->grid(), 3);
-}
-
-Minimizer::~Minimizer() {
-  delete t_new, t_old, m_new, m_old;
 }
 
 void Minimizer::exec() {
@@ -69,24 +60,25 @@ static inline real BarzilianBorweinStepSize(Field* dm, Field* dtorque, int n) {
 }
 
 void Minimizer::step() {
-  m_old->copyFrom(magnet_->magnetization()->field());
+  m0 = magnet_->magnetization()->eval();
 
   if (nsteps_ == 0)
-    torque_.evalIn(t_old);
+    t0 = torque_.eval();
   else
-    t_old->copyFrom(t_new);
+    t0 = t1;
 
-  int N = m_new->grid().ncells();
-  cudaLaunch(N, k_step, m_new->cu(), m_old->cu(), t_old->cu(), stepsize_);
+  m1 = Field(magnet_->grid(), 3);
+  int N = m1.grid().ncells();
+  cudaLaunch(N, k_step, m1.cu(), m0.cu(), t0.cu(), stepsize_);
 
-  magnet_->magnetization()->set(m_new);  // normalizes
+  magnet_->magnetization()->set(&m1);  // normalizes
 
-  torque_.evalIn(t_new);
+  t1 = torque_.eval();
 
-  auto dm = m_old;  // let's reuse m_old
-  auto dt = t_old;  // "
-  add(dm, +1, m_new, -1, m_old);
-  add(dt, -1, t_new, +1, t_old);  // TODO: check sign difference
+  Field* dm = &m0;  // let's reuse m_old
+  Field* dt = &t0;  // "
+  add(dm, +1, &m1, -1, &m0);
+  add(dt, -1, &t1, +1, &t0);  // TODO: check sign difference
 
   stepsize_ = BarzilianBorweinStepSize(dm, dt, nsteps_);
 

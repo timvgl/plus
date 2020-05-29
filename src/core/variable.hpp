@@ -15,7 +15,7 @@ class Variable : public FieldQuantity {
   std::string name() const;
   std::string unit() const;
 
-  void evalIn(Field*) const;
+  Field eval() const;
 
   const Field* field() const;
 

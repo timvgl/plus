@@ -1,8 +1,10 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "datatypes.hpp"
+#include "handler.hpp"
 
 class Ferromagnet;
 class Grid;

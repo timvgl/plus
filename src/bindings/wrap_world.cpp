@@ -1,8 +1,10 @@
 #include <string>
 
-#include "world.hpp"
-#include "wrappers.hpp"
 #include "ferromagnet.hpp"
+#include "grid.hpp"
+#include "world.hpp"
+#include "handler.hpp"
+#include "wrappers.hpp"
 
 void wrap_world(py::module& m) {
   // TODO: avoid destructor being called when python ref out of scope

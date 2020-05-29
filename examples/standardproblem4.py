@@ -30,10 +30,10 @@ table = Table()
 table.add("mx", magnet.magnetization, 0)
 table.add("my", magnet.magnetization, 1)
 table.add("mz", magnet.magnetization, 2)
-table.add("e_total", magnet.total_energy_density, 0)
-table.add("e_exchange", magnet.exchange_energy_density, 0)
-table.add("e_zeeman", magnet.zeeman_energy_density, 0)
-table.add("e_demag", magnet.demag_energy_density, 0)
+#table.add("e_total", magnet.total_energy_density, 0)
+#table.add("e_exchange", magnet.exchange_energy_density, 0)
+#table.add("e_zeeman", magnet.zeeman_energy_density, 0)
+#table.add("e_demag", magnet.demag_energy_density, 0)
 
 solver = TimeSolver(magnet.magnetization, magnet.torque)
 solver.solve(timepoints, table)
@@ -43,10 +43,10 @@ for key in ["mx", "my", "mz"]:
     plt.plot(timepoints, table[key], label=key)
 plt.legend()
 
-plt.subplot(212)
-for key in ["e_total", "e_exchange", "e_zeeman", "e_demag"]:
-    plt.plot(timepoints, table[key], label=key)
-plt.legend()
+# plt.subplot(212)
+# for key in ["e_total", "e_exchange", "e_zeeman", "e_demag"]:
+#    plt.plot(timepoints, table[key], label=key)
+# plt.legend()
 
 plt.show()
 

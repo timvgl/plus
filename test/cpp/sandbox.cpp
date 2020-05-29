@@ -10,13 +10,6 @@
 
 int main() {
   World world({1.0, 1.0, 1.0});
-  Ferromagnet* magnet = world.addFerromagnet(Grid({128, 64, 1}),"my_magnet");
-  DynamicEquation llg(magnet->magnetization(), magnet->torque());
-  TimeSolver solver(llg);
-
-  solver.steps(1000);
-
-  timer.printTimings();
-
+  Ferromagnet* magnet = world.addFerromagnet(Grid({128, 64, 1}), "my_magnet");
   return 0;
 }

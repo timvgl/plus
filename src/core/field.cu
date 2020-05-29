@@ -6,16 +6,68 @@
 #include "cudalaunch.hpp"
 #include "cudastream.hpp"
 #include "field.hpp"
+#include "fieldops.hpp"
+
+Field::Field() : grid_({0, 0, 0}), ncomp_(0), devptr_devptrs_(nullptr) {}
 
 Field::Field(Grid grid, int nComponents)
     : grid_(grid), ncomp_(nComponents), devptrs_(nComponents) {
-  if (ncomp_ <= 0) {
-    throw std::invalid_argument(
-        "Number of components should be larger than zero");
+  if (ncomp_ < 0) {
+    throw std::invalid_argument("Number of components should be positive");
   }
 
+  if (grid_.ncells() == 0 || ncomp_ == 0) {
+    devptr_devptrs_ = nullptr;
+    return;
+  }
+
+  allocate();
+}
+
+// Move constructer
+Field::Field(Field&& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
+  devptrs_ = other.devptrs_;
+  devptr_devptrs_ = other.devptr_devptrs_;
+  other.devptrs_.clear();
+  other.devptr_devptrs_ = nullptr;
+}
+
+// Assignment operator
+Field& Field::operator=(const Field& other) {
+  if (this == &other) {
+    return *this;
+  }
+  if (grid_ != other.grid_ || ncomp_ != other.ncomp_) {
+    free();
+    grid_ = other.grid_;
+    ncomp_ = other.ncomp_;
+    allocate();
+  } else {
+    grid_ = other.grid_;
+    ncomp_ = other.ncomp_;
+  }
+  copyFrom(&other);
+  return *this;
+}
+
+// Move assignment operator
+Field& Field::operator=(Field&& other) {
+  grid_ = other.grid_;
+  ncomp_ = other.ncomp_;
+  devptrs_ = other.devptrs_;
+  devptr_devptrs_ = other.devptr_devptrs_;
+  other.devptrs_.clear();
+  other.devptr_devptrs_ = nullptr;
+  return *this;
+}
+
+Field::~Field() {
+  free();
+}
+
+void Field::allocate() {
   for (auto& p : devptrs_) {
-    p = bufferPool.allocate(grid.ncells());
+    p = bufferPool.allocate(grid_.ncells());
   }
   checkCudaError(cudaMalloc((void**)&devptr_devptrs_, ncomp_ * sizeof(real*)));
   checkCudaError(cudaMemcpyAsync(devptr_devptrs_, &devptrs_[0],
@@ -23,11 +75,13 @@ Field::Field(Grid grid, int nComponents)
                                  getCudaStream()));
 }
 
-Field::~Field() {
+void Field::free() {
   for (auto p : devptrs_) {
     bufferPool.recycle(p);
   }
-  cudaFree(devptr_devptrs_);
+  if (devptr_devptrs_)
+    cudaFree(devptr_devptrs_);
+  devptr_devptrs_ = nullptr;
 }
 
 Grid Field::grid() const {
@@ -85,12 +139,10 @@ void Field::copyFrom(const Field* src) {
   }
 }
 
-std::unique_ptr<Field> Field::newCopy() const {
-  std::unique_ptr<Field> copy = std::make_unique<Field>(grid_, ncomp_);
-  copy->copyFrom(this);
-  return copy;
-}
-
 CuField Field::cu() const {
   return CuField{grid_, ncomp_, devptr_devptrs_};
+}
+
+void Field::operator+=(const Field& x) {
+  add(*this, *this, x);
 }

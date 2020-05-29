@@ -1,12 +1,12 @@
+#include <memory>
+
+#include "constants.hpp"
 #include "cudalaunch.hpp"
+#include "effectivefield.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
-#include "torque.hpp"
-#include "constants.hpp"
 #include "parameter.hpp"
-
-Torque::Torque(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "torque", "T") {}
+#include "torque.hpp"
 
 __global__ void k_torque(CuField torque,
                          CuField mField,
@@ -17,23 +17,22 @@ __global__ void k_torque(CuField torque,
     return;
   real3 m = mField.vectorAt(idx);
   real3 h = hField.vectorAt(idx);
-  real  a = alpha.valueAt(idx);
+  real a = alpha.valueAt(idx);
   real3 mxh = cross(m, h);
   real3 mxmxh = cross(m, mxh);
   real3 t = -GAMMALL / (1 + a * a) * (mxh + a * mxmxh);
   torque.setVectorInCell(idx, t);
 }
 
-void Torque::evalIn(Field* torque) const {
-  auto h = ferromagnet_->effectiveField()->eval();
-  auto m = ferromagnet_->magnetization()->field();
-  auto alpha = ferromagnet_->alpha.cu();
-  int ncells = torque->grid().ncells();
-  cudaLaunch(ncells, k_torque, torque->cu(), m->cu(), h.get()->cu(), alpha);
+Field evalTorque(const Ferromagnet* magnet) {
+  Field torque(magnet->grid(),3);
+  Field h = evalEffectiveField(magnet);
+  const Field* m = magnet->magnetization()->field();
+  const Parameter * alpha = &magnet->alpha;
+  int ncells = torque.grid().ncells();
+  cudaLaunch(ncells, k_torque, torque.cu(), m->cu(), h.cu(), alpha->cu());
+  return torque;
 }
-
-RelaxTorque::RelaxTorque(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "damping_torque", "T") {}
 
 __global__ void k_dampingtorque(CuField torque,
                                 CuField mField,
@@ -43,13 +42,23 @@ __global__ void k_dampingtorque(CuField torque,
     return;
   real3 m = mField.vectorAt(idx);
   real3 h = hField.vectorAt(idx);
-  real3 t = -GAMMALL*cross(m, cross(m, h));
+  real3 t = -GAMMALL * cross(m, cross(m, h));
   torque.setVectorInCell(idx, t);
 }
 
-void RelaxTorque::evalIn(Field* torque) const {
-  auto h = ferromagnet_->effectiveField()->eval();
-  auto m = ferromagnet_->magnetization()->field();
-  int ncells = torque->grid().ncells();
-  cudaLaunch(ncells, k_dampingtorque, torque->cu(), m->cu(), h.get()->cu());
+Field evalRelaxTorque(const Ferromagnet* magnet){
+  Field torque(magnet->grid(),3);
+  Field h = evalEffectiveField(magnet);
+  const Field* m = magnet->magnetization()->field();
+  int ncells = torque.grid().ncells();
+  cudaLaunch(ncells, k_dampingtorque, torque.cu(), m->cu(), h.cu());
+  return torque;
+}
+
+FM_FieldQuantity torqueQuantity(const Ferromagnet * magnet) {
+  return FM_FieldQuantity(magnet, evalTorque, 3, "torque", "T");
+}
+
+FM_FieldQuantity relaxTorqueQuantity(const Ferromagnet * magnet) {
+  return FM_FieldQuantity(magnet, evalRelaxTorque, 3, "damping_torque", "T");
 }

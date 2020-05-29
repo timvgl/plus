@@ -1,26 +1,16 @@
 #pragma once
 
 #include "ferromagnetquantity.hpp"
+#include "handler.hpp"
 
 class Ferromagnet;
 class Field;
 
-class ExternalField : public FerromagnetFieldQuantity {
- public:
-  ExternalField(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
+bool externalFieldAssuredZero(const Ferromagnet *);
+Field evalExternalField(const Ferromagnet*);
+Field evalZeemanEnergyDensity(const Ferromagnet*);
+real zeemanEnergy(const Ferromagnet*);
 
-class ZeemanEnergyDensity : public FerromagnetFieldQuantity {
- public:
-  ZeemanEnergyDensity(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
-
-class ZeemanEnergy : public FerromagnetScalarQuantity {
- public:
-  ZeemanEnergy(Ferromagnet*);
-  real eval() const;
-};
+FM_FieldQuantity externalFieldQuantity(const Ferromagnet *);
+FM_FieldQuantity zeemanEnergyDensityQuantity(const Ferromagnet *);
+FM_ScalarQuantity zeemanEnergyQuantity(const Ferromagnet *);

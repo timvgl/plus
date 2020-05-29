@@ -12,5 +12,6 @@ PYBIND11_MODULE(engine, m) {
   wrap_variable(m);
   wrap_world(m);
   wrap_magnetfield(m);
+  wrap_ferromagnetfieldquantity(m);
   wrap_table(m);
 }

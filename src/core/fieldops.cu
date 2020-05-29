@@ -29,6 +29,10 @@ void add(Field* y, const Field* x1, const Field* x2) {
   add(y, 1, x1, 1, x2);
 }
 
+void add(Field& y, const Field& x1, const Field& x2) {
+  add(&y, 1, &x1, 1, &x2);
+}
+
 // TODO: this can be done much more efficient
 void add(Field* y, std::vector<const Field*> x, std::vector<real> weights) {
   // TODO:: throw error if inputs are not compatible

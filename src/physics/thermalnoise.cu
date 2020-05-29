@@ -1,3 +1,5 @@
+#include <curand.h>
+
 #include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
@@ -6,10 +8,8 @@
 #include "thermalnoise.hpp"
 #include "world.hpp"
 
-ThermalNoise::ThermalNoise(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "thermal_noise", "T") {
-  curandCreateGenerator(&generator_, CURAND_RNG_PSEUDO_DEFAULT);
-  curandSetPseudoRandomGeneratorSeed(generator_, 1234);
+bool thermalNoiseAssuredZero(const Ferromagnet *magnet) {
+  return magnet->temperature.assuredZero();
 }
 
 __global__ void k_thermalNoise(CuField noiseField,
@@ -32,36 +32,32 @@ __global__ void k_thermalNoise(CuField noiseField,
   noiseField.setVectorInCell(idx, noise);
 }
 
-ThermalNoise::~ThermalNoise() {
-  curandDestroyGenerator(generator_);
-}
-
-void ThermalNoise::evalIn(Field* result) const {
-  if (assuredZero()) {
-    result->makeZero();
-    return;
+Field evalThermalNoise(const Ferromagnet * magnet) {
+  Field noise(magnet->grid(),3);
+  if (thermalNoiseAssuredZero(magnet)) {
+    noise.makeZero();
+    return noise;
   }
 
-  int N = result->grid().ncells();
+  int N = noise.grid().ncells();
   real mean = 0.0;
   real stddev = 1.0;
   for (int c = 0; c < 3; c++) {
-    curandGenerateNormal(generator_, result->devptr(c), N, mean, stddev);
+    curandGenerateNormal(magnet->randomGenerator, noise.devptr(c), N, mean, stddev);
     // TODO: make this also work for real = double   (using
     // curandGenerateNormalDouble)
   }
 
-  int ncells = ferromagnet_->grid().ncells();
-  auto noise = result->cu();
-  auto msat = ferromagnet_->msat.cu();
-  auto alpha = ferromagnet_->alpha.cu();
-  auto temperature = ferromagnet_->temperature.cu();
-  real cellVolume = ferromagnet_->world()->cellVolume();
+  auto msat = magnet->msat.cu();
+  auto alpha = magnet->alpha.cu();
+  auto temperature = magnet->temperature.cu();
+  real cellVolume = magnet->world()->cellVolume();
   real preFactor = 2 * KB * GAMMALL / cellVolume;
-  cudaLaunch(ncells, k_thermalNoise, noise, msat, alpha, temperature,
+  cudaLaunch(N, k_thermalNoise, noise.cu(), msat, alpha, temperature,
              preFactor);
+  return noise;
 }
 
-bool ThermalNoise::assuredZero() const {
-  return ferromagnet_->temperature.assuredZero();
+FM_FieldQuantity thermalNoiseQuantity(const Ferromagnet * magnet) {
+  return FM_FieldQuantity(magnet, evalThermalNoise, 3, "thermalNoise", "");
 }

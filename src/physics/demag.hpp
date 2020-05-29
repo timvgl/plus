@@ -1,28 +1,15 @@
 #pragma once
 
 #include "ferromagnetquantity.hpp"
-#include "magnetfield.hpp"
-#include "magnetfieldkernel.hpp"
 
 class Ferromagnet;
 class Field;
 
-class DemagField : public FerromagnetFieldQuantity {
- public:
-  DemagField(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
+bool demagFieldAssuredZero(const Ferromagnet *);
+Field evalDemagField(const Ferromagnet*);
+Field evalDemagEnergyDensity(const Ferromagnet*);
+real evalDemagEnergy(const Ferromagnet*);
 
-class DemagEnergyDensity : public FerromagnetFieldQuantity {
- public:
-  DemagEnergyDensity(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
-
-class DemagEnergy : public FerromagnetScalarQuantity {
- public:
-  DemagEnergy(Ferromagnet*);
-  real eval() const;
-};
+FM_FieldQuantity demagFieldQuantity(const Ferromagnet *);
+FM_FieldQuantity demagEnergyDensityQuantity(const Ferromagnet *);
+FM_ScalarQuantity demagEnergyQuantity(const Ferromagnet *);

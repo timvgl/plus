@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
+#include <iostream>
 #include <memory>
+#include <vector>
 
 #include "datatypes.hpp"
 #include "grid.hpp"
@@ -9,9 +10,28 @@
 class CuField;
 
 class Field {
+  int ncomp_;
+  Grid grid_;
+  std::vector<real*> devptrs_;
+  real** devptr_devptrs_;
+
  public:
+  Field();
   Field(Grid grid, int nComponents);
   ~Field();
+
+  /// Disabled copy constructor. It's possible to implement this,
+  /// but it would make it easy to write inefficient code
+  Field(const Field&) = delete;
+
+  /// Move constructer
+  Field(Field&& other);
+
+  /// Assignment operator (data is copied)
+  Field& operator=(const Field& other);
+
+  /// Move assignment operator
+  Field& operator=(Field&& other);
 
   Grid grid() const;
   int ncomp() const;
@@ -23,16 +43,14 @@ class Field {
   void makeZero();
 
   void copyFrom(const Field*);
-  std::unique_ptr<Field> newCopy() const;
 
   CuField cu() const;
 
-  const int ncomp_;
-  const Grid grid_;
+  void operator+=(const Field& x);
 
  private:
-  std::vector<real*> devptrs_;
-  real** devptr_devptrs_;
+  void allocate();
+  void free();
 };
 
 struct CuField {

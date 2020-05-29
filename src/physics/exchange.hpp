@@ -1,26 +1,16 @@
 #pragma once
 
 #include "ferromagnetquantity.hpp"
+#include "handler.hpp"
 
 class Ferromagnet;
 class Field;
 
-class ExchangeField : public FerromagnetFieldQuantity {
- public:
-  ExchangeField(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
+bool exchangeAssuredZero(const Ferromagnet *);
+Field evalExchangeField(const Ferromagnet*);
+Field evalExchangeEnergyDensity(const Ferromagnet*);
+real evalExchangeEnergy(const Ferromagnet*);
 
-class ExchangeEnergyDensity : public FerromagnetFieldQuantity {
- public:
-  ExchangeEnergyDensity(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
-
-class ExchangeEnergy : public FerromagnetScalarQuantity {
- public:
-  ExchangeEnergy(Ferromagnet*);
-  real eval() const;
-};
+FM_FieldQuantity exchangeFieldQuantity(const Ferromagnet *);
+FM_FieldQuantity exchangeEnergyDensityQuantity(const Ferromagnet*);
+FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet *);

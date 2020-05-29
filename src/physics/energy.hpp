@@ -1,18 +1,13 @@
 #pragma once
 
 #include "ferromagnetquantity.hpp"
+#include "handler.hpp"
 
 class Ferromagnet;
 class Field;
 
-class TotalEnergyDensity: public FerromagnetFieldQuantity {
- public:
-  TotalEnergyDensity(Ferromagnet*);
-  void evalIn(Field*) const;
-};
+Field evalTotalEnergyDensity(const Ferromagnet*);
+real evalTotalEnergy(const Ferromagnet*);
 
-class TotalEnergy : public FerromagnetScalarQuantity {
- public:
-  TotalEnergy(Ferromagnet*);
-  real eval() const;
-};
+FM_FieldQuantity totalEnergyDensityQuantity(const Ferromagnet *);
+FM_ScalarQuantity totalEnergyQuantity(const Ferromagnet *);

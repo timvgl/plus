@@ -1,5 +1,6 @@
 #include "world.hpp"
 
+#include <handler.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -27,7 +28,7 @@ real World::cellVolume() const {
 }
 
 Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
-  for (auto fm : Ferromagnets)
+  for (const auto& fm : Ferromagnets)
     if (grid.overlaps(fm.second->grid()))
       throw std::out_of_range(
           "Can not add ferromagnet because it overlaps with another "
@@ -40,16 +41,15 @@ Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
   if (Ferromagnets.find(name) != Ferromagnets.end())
     throw std::runtime_error("A ferromagnet with the name '" + name +
                              "' already exists");
-
   Ferromagnet* newMagnet = new Ferromagnet(this, name, grid);
   Ferromagnets[name] = newMagnet;
 
   // Add the magnetic field of the other magnets in this magnet, and vice versa
   for (auto entry : Ferromagnets) {
     Ferromagnet* magnet = entry.second;
-    magnet->addMagnetField(newMagnet,MAGNETFIELDMETHOD_AUTO);
-    if (magnet != newMagnet) { // Avoid adding the field on itself twice
-      newMagnet->addMagnetField(magnet,MAGNETFIELDMETHOD_AUTO);
+    magnet->addMagnetField(newMagnet, MAGNETFIELDMETHOD_AUTO);
+    if (magnet != newMagnet) {  // Avoid adding the field on itself twice
+      newMagnet->addMagnetField(magnet, MAGNETFIELDMETHOD_AUTO);
     }
   }
 

@@ -5,22 +5,11 @@
 class Ferromagnet;
 class Field;
 
-class AnisotropyField : public FerromagnetFieldQuantity {
- public:
-  AnisotropyField(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
+bool anisotropyAssuredZero(const Ferromagnet *);
+Field evalAnisotropyField(const Ferromagnet*);
+Field evalAnisotropyEnergyDensity(const Ferromagnet*);
+real evalAnisotropyEnergy(const Ferromagnet*);
 
-class AnisotropyEnergyDensity : public FerromagnetFieldQuantity {
- public:
-  AnisotropyEnergyDensity(Ferromagnet*);
-  void evalIn(Field*) const;
-  bool assuredZero() const override;
-};
-
-class AnisotropyEnergy : public FerromagnetScalarQuantity {
- public:
-  AnisotropyEnergy(Ferromagnet*);
-  real eval() const;
-};
+FM_FieldQuantity anisotropyFieldQuantity(const Ferromagnet *);
+FM_FieldQuantity anisotropyEnergyDensityQuantity(const Ferromagnet *);
+FM_ScalarQuantity anisotropyEnergyQuantity(const Ferromagnet *);

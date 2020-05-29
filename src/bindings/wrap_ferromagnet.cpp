@@ -1,11 +1,20 @@
 #include <memory>
 #include <stdexcept>
 
+#include "anisotropy.hpp"
+#include "demag.hpp"
+#include "effectivefield.hpp"
+#include "energy.hpp"
+#include "exchange.hpp"
 #include "ferromagnet.hpp"
+#include "fieldquantity.hpp"
 #include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
+#include "thermalnoise.hpp"
+#include "torque.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
+#include "zeeman.hpp"
 
 void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
@@ -55,40 +64,80 @@ void wrap_ferromagnet(py::module& m) {
 
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
 
-      .def_property_readonly("demag_field", &Ferromagnet::demagField)
-      .def_property_readonly("demag_energy_density",
-                             &Ferromagnet::demagEnergyDensity)
-      .def_property_readonly("demag_energy", &Ferromagnet::demagEnergy)
+      .def_property_readonly(
+          "demag_field",
+          [](const Ferromagnet* fm) { return demagFieldQuantity(fm); })
 
-      .def_property_readonly("anisotropy_field", &Ferromagnet::anisotropyField)
+      .def_property_readonly(
+          "demag_energy_density",
+          [](const Ferromagnet* fm) { return demagEnergyDensityQuantity(fm); })
+
+      .def_property_readonly(
+          "demag_energy",
+          [](const Ferromagnet* fm) { return demagEnergyQuantity(fm); })
+
+      .def_property_readonly(
+          "anisotropy_field",
+          [](const Ferromagnet* fm) { return anisotropyFieldQuantity(fm); })
+
       .def_property_readonly("anisotropy_energy_density",
-                             &Ferromagnet::anisotropyEnergyDensity)
-      .def_property_readonly("anisotropy_energy",
-                             &Ferromagnet::anisotropyEnergy)
+                             [](const Ferromagnet* fm) {
+                               return anisotropyEnergyDensityQuantity(fm);
+                             })
 
-      .def_property_readonly("exchange_field", &Ferromagnet::exchangeField)
+      .def_property_readonly(
+          "anisotropy_energy",
+          [](const Ferromagnet* fm) { return anisotropyEnergyQuantity(fm); })
+
+      .def_property_readonly(
+          "exchange_field",
+          [](const Ferromagnet* fm) { return exchangeFieldQuantity(fm); })
+
       .def_property_readonly("exchange_energy_density",
-                             &Ferromagnet::exchangeEnergyDensity)
-      .def_property_readonly("exchange_energy", &Ferromagnet::exchangeEnergy)
+                             [](const Ferromagnet* fm) {
+                               return exchangeEnergyDensityQuantity(fm);
+                             })
 
-      .def_property_readonly("external_field", &Ferromagnet::externalField)
-      .def_property_readonly("zeeman_energy_density",
-                             &Ferromagnet::zeemanEnergyDensity)
-      .def_property_readonly("zeeman_energy", &Ferromagnet::zeemanEnergy)
+      .def_property_readonly(
+          "exchange_energy",
+          [](const Ferromagnet* fm) { return exchangeEnergyQuantity(fm); })
 
-      .def_property_readonly("effective_field", &Ferromagnet::effectiveField)
-      .def_property_readonly("total_energy_density",
-                             &Ferromagnet::totalEnergyDensity)
-      .def_property_readonly("total_energy", &Ferromagnet::totalEnergy)
+      .def_property_readonly(
+          "external_field",
+          [](const Ferromagnet* fm) { return externalFieldQuantity(fm); })
 
-      .def_property_readonly("torque", &Ferromagnet::torque)
+      .def_property_readonly(
+          "zeeman_energy_density",
+          [](const Ferromagnet* fm) { return zeemanEnergyDensityQuantity(fm); })
 
-      .def_property_readonly("thermal_noise", &Ferromagnet::thermalNoise)
+      .def_property_readonly(
+          "zeeman_energy",
+          [](const Ferromagnet* fm) { return zeemanEnergyQuantity(fm); })
+
+      .def_property_readonly(
+          "effective_field",
+          [](const Ferromagnet* fm) { return effectiveFieldQuantity(fm); })
+
+      .def_property_readonly(
+          "total_energy_density",
+          [](const Ferromagnet* fm) { return totalEnergyDensityQuantity(fm); })
+
+      .def_property_readonly(
+          "total_energy",
+          [](const Ferromagnet* fm) { return totalEnergyQuantity(fm); })
+
+      .def_property_readonly(
+          "torque", [](const Ferromagnet* fm) { return torqueQuantity(fm); })
+
+      .def_property_readonly(
+          "thermal_noise",
+          [](const Ferromagnet* fm) { return thermalNoiseQuantity(fm); })
 
       .def(
           "magnetic_field_from_magnet",
           [](const Ferromagnet* fm, Ferromagnet* magnet) {
-            const MagnetField* magnetField = fm->getMagnetField(magnet);
+            const MagnetField* magnetField =
+                fm->getMagnetField(magnet);
             if (!magnetField)
               throw std::runtime_error(
                   "Can not compute the magnetic field of the magnet");

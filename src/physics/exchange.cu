@@ -2,11 +2,14 @@
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
+#include "handler.hpp"
 #include "parameter.hpp"
+#include "reduce.hpp"
 #include "world.hpp"
 
-ExchangeField::ExchangeField(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "exchange_field", "T") {}
+bool exchangeAssuredZero(const Ferromagnet* magnet) {
+  return magnet->aex.assuredZero();
+}
 
 __device__ static inline real harmonicMean(real a, real b) {
   if (a + b == 0.0)
@@ -52,30 +55,17 @@ __global__ void k_exchangeField(CuField hField,
   hField.setVectorInCell(idx, h);
 }
 
-void exchangeField(Field* hField, const Ferromagnet* ferromagnet) {
-  cudaLaunch(hField->grid().ncells(), k_exchangeField, hField->cu(),
-             ferromagnet->magnetization()->field()->cu(), ferromagnet->aex.cu(),
-             ferromagnet->msat.cu(), ferromagnet->world()->cellsize());
-}
-
-void ExchangeField::evalIn(Field* result) const {
-  if (assuredZero()) {
-    result->makeZero();
-    return;
+Field evalExchangeField(const Ferromagnet* magnet) {
+  Field hField(magnet->grid(), 3);
+  if (exchangeAssuredZero(magnet)) {
+    hField.makeZero();
+    return hField;
   }
-
-  exchangeField(result, ferromagnet_);
+  cudaLaunch(hField.grid().ncells(), k_exchangeField, hField.cu(),
+             magnet->magnetization()->field()->cu(), magnet->aex.cu(),
+             magnet->msat.cu(), magnet->world()->cellsize());
+  return hField;
 }
-
-bool ExchangeField::assuredZero() const {
-  return ferromagnet_->aex.assuredZero();
-}
-
-ExchangeEnergyDensity::ExchangeEnergyDensity(Ferromagnet* ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet,
-                               1,
-                               "exchange_energy_density",
-                               "J/m3") {}
 
 __global__ void k_exchangeEnergyDensity(CuField edens,
                                         CuField mag,
@@ -93,30 +83,38 @@ __global__ void k_exchangeEnergyDensity(CuField edens,
   edens.setValueInCell(idx, 0, -0.5 * Ms * dot(m, h));
 }
 
-void ExchangeEnergyDensity::evalIn(Field* result) const {
-  if (assuredZero()) {
-    result->makeZero();
-    return;
+Field evalExchangeEnergyDensity(const Ferromagnet* magnet) {
+  Field edens(magnet->grid(), 1);
+  if (exchangeAssuredZero(magnet)) {
+    edens.makeZero();
+    return edens;
   }
-  auto h = ferromagnet_->exchangeField()->eval();
-  cudaLaunch(result->grid().ncells(), k_exchangeEnergyDensity, result->cu(),
-             ferromagnet_->magnetization()->field()->cu(), h->cu(),
-             ferromagnet_->msat.cu());
+  Field h = evalExchangeField(magnet);
+  cudaLaunch(edens.grid().ncells(), k_exchangeEnergyDensity, edens.cu(),
+             magnet->magnetization()->field()->cu(), h.cu(), magnet->msat.cu());
+  return edens;
 }
 
-bool ExchangeEnergyDensity::assuredZero() const {
-  return ferromagnet_->exchangeField()->assuredZero();
+real evalExchangeEnergy(const Ferromagnet* magnet) {
+  if (exchangeAssuredZero(magnet))
+    return 0;
+  Field edens = evalExchangeEnergyDensity(magnet);
+  int ncells = magnet->grid().ncells();
+  real cellVolume = magnet->world()->cellVolume();
+  return ncells * fieldAverage(&edens)[0] * cellVolume;
 }
 
-ExchangeEnergy::ExchangeEnergy(Ferromagnet* ferromagnet)
-    : FerromagnetScalarQuantity(ferromagnet, "exchange_energy", "J") {}
+FM_FieldQuantity exchangeFieldQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalExchangeField, 3, "exchange_field",
+                             "T");
+}
 
-real ExchangeEnergy::eval() const {
-  if (ferromagnet_->exchangeEnergyDensity()->assuredZero())
-    return 0.0;
+FM_FieldQuantity exchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalExchangeEnergyDensity, 1,
+                             "exchange_energy_density", "J/m3");
+}
 
-  int ncells = ferromagnet_->grid().ncells();
-  real edensAverage = ferromagnet_->exchangeEnergyDensity()->average()[0];
-  real cellVolume = ferromagnet_->world()->cellVolume();
-  return ncells * edensAverage * cellVolume;
+FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalExchangeEnergy, "exchange_energy",
+                              "J");
 }
