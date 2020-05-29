@@ -2,7 +2,7 @@
 
 #include <deque>
 
-#include "torque.hpp"
+#include "ferromagnetquantity.hpp"
 
 class Ferromagnet;
 
@@ -11,19 +11,18 @@ class Ferromagnet;
 
 class Minimizer {
  public:
-  Minimizer(Handle<Ferromagnet>, real stopMaxMagDiff, int nMagDiffSamples);
-  ~Minimizer();
+  Minimizer(const Ferromagnet*, real stopMaxMagDiff, int nMagDiffSamples);
 
   void exec();
 
  private:
   void step();
-  Handle<Ferromagnet> magnet_;
+  const Ferromagnet* magnet_;
   real stepsize_;
   int nsteps_;
 
-  RelaxTorque torque_;
-  Field *t_old, *t_new, *m_old, *m_new;
+  FM_FieldQuantity torque_;
+  Field t0, t1, m0, m1;
 
   real stopMaxMagDiff_;
   int nMagDiffSamples_;

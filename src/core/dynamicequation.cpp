@@ -6,7 +6,7 @@
 #include "variable.hpp"
 
 DynamicEquation::DynamicEquation(const Variable* x,
-                                 const FieldQuantity* rhs,
+                                 std::shared_ptr<FieldQuantity> rhs,
                                  const FieldQuantity* noiseTerm)
     : x(x), rhs(rhs), noiseTerm(noiseTerm) {
   if (x->grid() != rhs->grid()) {

@@ -21,9 +21,9 @@ class World {
   Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
 
   // returns a nullptrs if there is no magnet with specified name
-  Handle<Ferromagnet> getFerromagnet(std::string name) const;
+  Ferromagnet* getFerromagnet(std::string name) const;
 
  private:
-  std::map<std::string, Handler<Ferromagnet>> Ferromagnets;
+  std::map<std::string, Ferromagnet*> Ferromagnets;
   real3 cellsize_;
 };

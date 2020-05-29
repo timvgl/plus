@@ -1,11 +1,14 @@
 #include "ferromagnet.hpp"
 
+#include <curand.h>
+
 #include <random>
 
 #include "fieldquantity.hpp"
 #include "magnetfield.hpp"
 #include "minimizer.hpp"
 #include "world.hpp"
+#include "ref.hpp"
 
 Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     : System(world, name, grid),
@@ -31,16 +34,16 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     randomField.setData(&randomValues[0]);
     magnetization_.set(&randomField);
   }
+  // TODO: move the generator to somewhere else
+  curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);
+  curandSetPseudoRandomGeneratorSeed(randomGenerator, 1234);
 }
 
 Ferromagnet::~Ferromagnet() {
   for (auto& entry : magnetFields_) {
     delete entry.second;
   }
-}
-
-Handle<Ferromagnet> Ferromagnet::getHandle() const {
-  return world_->getFerromagnet(name_);
+  curandDestroyGenerator(randomGenerator);
 }
 
 const Variable* Ferromagnet::magnetization() const {
@@ -48,12 +51,12 @@ const Variable* Ferromagnet::magnetization() const {
 }
 
 void Ferromagnet::minimize(real tol, int nSamples) {
-  Minimizer minimizer(getHandle(), tol, nSamples);
+  Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
 }
 
 const MagnetField* Ferromagnet::getMagnetField(
-    Handle<Ferromagnet> magnet) const {
+   const Ferromagnet * magnet) const {
   auto it = magnetFields_.find(magnet);
   if (it == magnetFields_.end())
     return nullptr;
@@ -69,9 +72,9 @@ std::vector<const MagnetField*> Ferromagnet::getMagnetFields() const {
   return magnetFields;
 }
 
-void Ferromagnet::addMagnetField(Handle<Ferromagnet> magnet,
+void Ferromagnet::addMagnetField(const Ferromagnet* magnet,
                                  MagnetFieldComputationMethod method) {
-  if (world_->getFerromagnet(magnet->name()).get() == nullptr) {
+  if (world_->getFerromagnet(magnet->name()) == nullptr) {
     throw std::runtime_error(
         "Can not define the field of the magnet on this magnet because it is "
         "not in the same world.");
@@ -87,7 +90,7 @@ void Ferromagnet::addMagnetField(Handle<Ferromagnet> magnet,
   magnetFields_[magnet] = new MagnetField(magnet, grid_, method);
 }
 
-void Ferromagnet::removeMagnetField(Handle<Ferromagnet> magnet) {
+void Ferromagnet::removeMagnetField(const Ferromagnet * magnet) {
   auto it = magnetFields_.find(magnet);
   if (it != magnetFields_.end()) {
     delete it->second;

@@ -22,12 +22,6 @@ std::string FieldQuantity::name() const {
   return "";
 }
 
-std::unique_ptr<Field> FieldQuantity::eval() const {
-  std::unique_ptr<Field> f(new Field(grid(), ncomp()));
-  evalIn(f.get());
-  return f;
-}
-
 void FieldQuantity::addTo(Field* f) const {
   if (!fieldCompatibilityCheck(f))
     throw std::invalid_argument(
@@ -35,14 +29,13 @@ void FieldQuantity::addTo(Field* f) const {
         "incompatible.");
   if (assuredZero())
     return;
-  auto result = eval();
-  add(f, f, result.get());
+  Field result = eval();
+  add(f, f, &result);
 }
 
 std::vector<real> FieldQuantity::average() const {
-  std::unique_ptr<Field> f(new Field(grid(), ncomp()));
-  evalIn(f.get());
-  return fieldAverage(f.get());
+  Field f = eval();
+  return fieldAverage(&f);
 }
 
 bool FieldQuantity::assuredZero() const {

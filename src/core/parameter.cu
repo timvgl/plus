@@ -40,12 +40,14 @@ Grid Parameter::grid() const {
   return grid_;
 }
 
-void Parameter::evalIn(Field* f) const {
+Field Parameter::eval() const {
+  Field p(grid(), ncomp());
   if (field_) {
-    f->copyFrom(field_);
+    p.copyFrom(field_);
   } else {
-    f->setUniformComponent(uniformValue_, 0);
+    p.setUniformComponent(uniformValue_, 0);
   }
+  return p;
 }
 
 CuParameter Parameter::cu() const {
@@ -90,12 +92,14 @@ Grid VectorParameter::grid() const {
   return grid_;
 }
 
-void VectorParameter::evalIn(Field* f) const {
+Field VectorParameter::eval() const {
+  Field p(grid(), ncomp());
   if (field_)
-    f->copyFrom(field_);
-  f->setUniformComponent(uniformValue_.x, 0);
-  f->setUniformComponent(uniformValue_.y, 1);
-  f->setUniformComponent(uniformValue_.z, 2);
+    p.copyFrom(field_);
+  p.setUniformComponent(uniformValue_.x, 0);
+  p.setUniformComponent(uniformValue_.y, 1);
+  p.setUniformComponent(uniformValue_.z, 2);
+  return p;
 }
 
 CuVectorParameter VectorParameter::cu() const {

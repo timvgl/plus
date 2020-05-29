@@ -5,8 +5,9 @@
 #include "parameter.hpp"
 #include "world.hpp"
 
-AnisotropyField::AnisotropyField(Handle<Ferromagnet> ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "anisotropy_field", "T") {}
+bool anisotropyAssuredZero(const Ferromagnet* magnet) {
+  return magnet->ku1.assuredZero() || magnet->anisU.assuredZero();
+}
 
 __global__ void k_anisotropyField(CuField hField,
                                   const CuField mField,
@@ -28,30 +29,21 @@ __global__ void k_anisotropyField(CuField hField,
   hField.setVectorInCell(idx, h);
 }
 
-void AnisotropyField::evalIn(Field* result) const {
-  if (assuredZero()) {
-    result->makeZero();
-    return;
+Field evalAnisotropyField(const Ferromagnet* magnet) {
+  Field result(magnet->grid(), 3);
+  if (anisotropyAssuredZero(magnet)) {
+    result.makeZero();
+    return result;
   }
-
-  CuField h = result->cu();
-  const CuField m = ferromagnet_->magnetization()->field()->cu();
-  auto anisU = ferromagnet_->anisU.cu();
-  auto ku1 = ferromagnet_->ku1.cu();
-  auto msat = ferromagnet_->msat.cu();
-  int ncells = ferromagnet_->grid().ncells();
+  CuField h = result.cu();
+  const CuField m = magnet->magnetization()->field()->cu();
+  auto anisU = magnet->anisU.cu();
+  auto ku1 = magnet->ku1.cu();
+  auto msat = magnet->msat.cu();
+  int ncells = magnet->grid().ncells();
   cudaLaunch(ncells, k_anisotropyField, h, m, anisU, ku1, msat);
+  return result;
 }
-
-bool AnisotropyField::assuredZero() const {
-  return ferromagnet_->ku1.assuredZero() || ferromagnet_->anisU.assuredZero();
-}
-
-AnisotropyEnergyDensity::AnisotropyEnergyDensity(Handle<Ferromagnet> ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet,
-                               1,
-                               "anisotropy_energy_density",
-                               "J/m3") {}
 
 __global__ void k_anisotropyEnergyDensity(CuField edens,
                                           CuField mField,
@@ -74,34 +66,44 @@ __global__ void k_anisotropyEnergyDensity(CuField edens,
   edens.setValueInCell(idx, 0, -k * dot(m, u) * dot(m, u));
 }
 
-void AnisotropyEnergyDensity::evalIn(Field* edens) const {
-  if (assuredZero()) {
-    edens->makeZero();
-    return;
+Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
+  Field edens(magnet->grid(), 1);
+  if (anisotropyAssuredZero(magnet)) {
+    edens.makeZero();
+    return edens;
   }
 
-  CuField e = edens->cu();
-  const CuField m = ferromagnet_->magnetization()->field()->cu();
-  auto anisU = ferromagnet_->anisU.cu();
-  auto ku1 = ferromagnet_->ku1.cu();
-  auto msat = ferromagnet_->msat.cu();
-  int ncells = ferromagnet_->grid().ncells();
+  CuField e = edens.cu();
+  const CuField m = magnet->magnetization()->field()->cu();
+  auto anisU = magnet->anisU.cu();
+  auto ku1 = magnet->ku1.cu();
+  auto msat = magnet->msat.cu();
+  int ncells = magnet->grid().ncells();
   cudaLaunch(ncells, k_anisotropyEnergyDensity, e, m, anisU, ku1, msat);
+  return edens;
 }
 
-bool AnisotropyEnergyDensity::assuredZero() const {
-  return AnisotropyField(ferromagnet_).assuredZero();
-}
-
-AnisotropyEnergy::AnisotropyEnergy(Handle<Ferromagnet> ferromagnet)
-    : FerromagnetScalarQuantity(ferromagnet, "anisotropy_energy", "J") {}
-
-real AnisotropyEnergy::eval() const {
-  if (AnisotropyEnergyDensity(ferromagnet_).assuredZero())
+real evalAnisotropyEnergy(const Ferromagnet* magnet) {
+  if (anisotropyAssuredZero(magnet))
     return 0;
 
-  int ncells = ferromagnet_->grid().ncells();
-  real edensAverage = AnisotropyEnergyDensity(ferromagnet_).average()[0];
-  real cellVolume = ferromagnet_->world()->cellVolume();
-  return ncells * edensAverage * cellVolume;
+  real edens = anisotropyEnergyDensityQuantity(magnet).average()[0];
+  int ncells = magnet->grid().ncells();
+  real cellVolume = magnet->world()->cellVolume();
+  return ncells * edens * cellVolume;
+}
+
+FM_FieldQuantity anisotropyFieldQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalAnisotropyField, 3, "anisotropy_field",
+                             "T");
+}
+
+FM_FieldQuantity anisotropyEnergyDensityQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalAnisotropyEnergyDensity, 1,
+                             "anisotropy_energy_density", "J/m3");
+}
+
+FM_ScalarQuantity anisotropyEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalAnisotropyEnergy, "anisotropy_energy",
+                              "J");
 }

@@ -5,38 +5,68 @@
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
 #include "handler.hpp"
+#include "ref.hpp"
 #include "scalarquantity.hpp"
 
 class Ferromagnet;
 
-class FerromagnetFieldQuantity : public FieldQuantity {
- public:
-  FerromagnetFieldQuantity(Handle<Ferromagnet>,
-                           int ncomp,
-                           std::string name,
-                           std::string unit);
-  int ncomp() const;
-  Grid grid() const;
-  std::string name() const;
-  std::string unit() const;
+typedef std::function<Field(const Ferromagnet*)> FM_FieldFunc;
+typedef std::function<real(const Ferromagnet*)> FM_ScalarFunc;
 
- protected:
-  Handle<Ferromagnet> ferromagnet_;
+class FM_FieldQuantity : public FieldQuantity {
+ public:
+  FM_FieldQuantity(const Ferromagnet* ferromagnet,
+                   FM_FieldFunc evalfunc,
+                   int ncomp,
+                   std::string name,
+                   std::string unit)
+      : ferromagnet_(ferromagnet),
+        evalfunc_(evalfunc),
+        ncomp_(ncomp),
+        name_(name),
+        unit_(unit) {}
+
+  FM_FieldQuantity* clone() {
+    return new FM_FieldQuantity(ferromagnet_, evalfunc_, ncomp_, name_, unit_);
+  }
+
+  int ncomp() const { return ncomp_; }
+  Grid grid() const { return ferromagnet_->grid(); }
+  std::string name() const { return name_; }
+  std::string unit() const { return unit_; }
+  void evalIn(Field* result) const {
+    *result = std::move(evalfunc_(ferromagnet_));
+  }
+
+  Field eval() const { return evalfunc_(ferromagnet_); }
+  Field operator()() const { return evalfunc_(ferromagnet_); }
+
+ private:
+  const Ferromagnet* ferromagnet_;
   int ncomp_;
   std::string name_;
   std::string unit_;
+  FM_FieldFunc evalfunc_;
 };
 
-class FerromagnetScalarQuantity : public ScalarQuantity {
+class FM_ScalarQuantity : public ScalarQuantity {
  public:
-  FerromagnetScalarQuantity(Handle<Ferromagnet>,
-                            std::string name,
-                            std::string unit);
-  std::string name() const;
-  std::string unit() const;
+  FM_ScalarQuantity(const Ferromagnet* ferromagnet,
+                    FM_ScalarFunc evalfunc,
+                    std::string name,
+                    std::string unit)
+      : ferromagnet_(ferromagnet),
+        evalfunc_(evalfunc),
+        name_(name),
+        unit_(unit) {}
 
- protected:
-  Handle<Ferromagnet> ferromagnet_;
+  std::string name() const { return name_; }
+  std::string unit() const { return unit_; }
+  real eval() const { return evalfunc_(ferromagnet_); }
+
+ private:
+  const Ferromagnet* ferromagnet_;
   std::string name_;
   std::string unit_;
+  FM_ScalarFunc evalfunc_;
 };

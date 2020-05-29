@@ -6,7 +6,7 @@
 #include "parameter.hpp"
 #include "world.hpp"
 
-MagnetField::MagnetField(Handle<Ferromagnet> magnet,
+MagnetField::MagnetField(const Ferromagnet * magnet,
                          Grid grid,
                          MagnetFieldComputationMethod method)
     : magnet_(magnet), grid_(grid), executor_(nullptr) {
@@ -42,8 +42,8 @@ void MagnetField::setMethod(MagnetFieldComputationMethod method) {
   }
 }
 
-Ferromagnet * MagnetField::source() const {
-  return magnet_.get();
+const Ferromagnet * MagnetField::source() const {
+  return magnet_;
 }
 
 int MagnetField::ncomp() const {
@@ -59,9 +59,21 @@ void MagnetField::evalIn(Field* h) const {
     h->makeZero();
     return;
   }
-  Parameter* msat = &magnet_->msat;
+  const Parameter* msat = &magnet_->msat;
   const Field* m = magnet_->magnetization()->field();
   executor_->exec(h, m, msat);
+}
+
+Field MagnetField::eval() const {
+  Field h(grid(), ncomp());
+  if (assuredZero()) {
+    h.makeZero();
+    return h;
+  }
+  const Parameter* msat = &magnet_->msat;
+  const Field* m = magnet_->magnetization()->field();
+  executor_->exec(&h, m, msat);
+  return h;
 }
 
 std::string MagnetField::unit() const {

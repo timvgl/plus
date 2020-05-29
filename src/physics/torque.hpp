@@ -6,14 +6,8 @@
 class Ferromagnet;
 class Field;
 
-class Torque : public FerromagnetFieldQuantity {
- public:
-  Torque(Handle<Ferromagnet>);
-  void evalIn(Field*) const;
-};
+Field evalTorque(const Ferromagnet *);
+Field evalRelaxTorque(const Ferromagnet *);
 
-class RelaxTorque : public FerromagnetFieldQuantity {
- public:
-  RelaxTorque(Handle<Ferromagnet>);
-  void evalIn(Field*) const;
-};
+FM_FieldQuantity torqueQuantity(const Ferromagnet *);
+FM_FieldQuantity relaxTorqueQuantity(const Ferromagnet *);

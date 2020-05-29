@@ -7,14 +7,16 @@
 #include "demag.hpp"
 #include "zeeman.hpp"
 
-EffectiveField::EffectiveField(Handle<Ferromagnet> ferromagnet)
-    : FerromagnetFieldQuantity(ferromagnet, 3, "effective_field", "T") {}
+#include"fieldops.hpp"
 
-void EffectiveField::evalIn(Field* result) const {
-  result->makeZero();
+Field evalEffectiveField(const Ferromagnet *magnet){
+  Field h = demagFieldQuantity(magnet)();
+  anisotropyFieldQuantity(magnet).addTo(&h);
+  exchangeFieldQuantity(magnet).addTo(&h);
+  externalFieldQuantity(magnet).addTo(&h);
+  return h;
+}
 
-  AnisotropyField(ferromagnet_).addTo(result);
-  ExchangeField(ferromagnet_).addTo(result);
-  ExternalField(ferromagnet_).addTo(result);
-  DemagField(ferromagnet_).addTo(result);
+FM_FieldQuantity effectiveFieldQuantity(const Ferromagnet * magnet) {
+  return FM_FieldQuantity(magnet, evalEffectiveField, 3, "effective_field", "T");
 }

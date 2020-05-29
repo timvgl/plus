@@ -84,14 +84,15 @@ RungeKuttaStageExecutor::RungeKuttaStageExecutor(DynamicEquation eq,
     : eq_(eq), stepper_(stepper), k_(stepper->nStages()) {
   // Noise term evaluated only here, it remains constant throughout all stages
   if (eq_.noiseTerm && !eq_.noiseTerm->assuredZero())
-    noise_ = eq_.noiseTerm->eval();
+    noise_.reset(new Field(eq_.noiseTerm->eval())); // TODO: this can be done better
 
   // make back up of the x value
-  x0_ = eq_.x->field()->newCopy();
+  x0_.reset( new Field(eq_.x->eval()));
 }
 
 void RungeKuttaStageExecutor::setStageK(int stage) {
-  k_[stage] = eq_.rhs->eval();
+
+  k_[stage].reset( new Field(eq_.rhs->eval())); // TODO: this can be done better
 
   if (noise_) {
     real dt = stepper_->solver_->timestep();

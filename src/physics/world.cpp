@@ -13,7 +13,11 @@ World::World(real3 cellsize)
   }
 };
 
-World::~World() {}
+World::~World() {
+  for (auto fm : Ferromagnets) {
+    delete fm.second;
+  }
+}
 
 real3 World::cellsize() const {
   return cellsize_;
@@ -37,25 +41,24 @@ Ferromagnet* World::addFerromagnet(Grid grid, std::string name) {
   if (Ferromagnets.find(name) != Ferromagnets.end())
     throw std::runtime_error("A ferromagnet with the name '" + name +
                              "' already exists");
-
-  Ferromagnets.emplace(name, new Ferromagnet(this, name, grid) );
-  Handle<Ferromagnet> newMagnet = Ferromagnets.find(name)->second;
+  Ferromagnet* newMagnet = new Ferromagnet(this, name, grid);
+  Ferromagnets[name] = newMagnet;
 
   // Add the magnetic field of the other magnets in this magnet, and vice versa
-  for (auto& entry : Ferromagnets) {
-    Handle<Ferromagnet> magnet = entry.second;
+  for (auto entry : Ferromagnets) {
+    Ferromagnet* magnet = entry.second;
     magnet->addMagnetField(newMagnet, MAGNETFIELDMETHOD_AUTO);
     if (magnet != newMagnet) {  // Avoid adding the field on itself twice
       newMagnet->addMagnetField(magnet, MAGNETFIELDMETHOD_AUTO);
     }
   }
 
-  return newMagnet.get(); // TODO: return handle
+  return newMagnet;
 };
 
-Handle<Ferromagnet> World::getFerromagnet(std::string name) const {
+Ferromagnet* World::getFerromagnet(std::string name) const {
   auto result = Ferromagnets.find(name);
   if (result == Ferromagnets.end())
-    return Handle<Ferromagnet>();
+    return nullptr;
   return result->second;
 }

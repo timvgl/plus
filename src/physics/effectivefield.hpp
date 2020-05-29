@@ -6,8 +6,6 @@
 class Ferromagnet;
 class Field;
 
-class EffectiveField : public FerromagnetFieldQuantity {
- public:
-  EffectiveField(Handle<Ferromagnet>);
-  void evalIn(Field*) const;
-};
+Field evalEffectiveField(const Ferromagnet*);
+
+FM_FieldQuantity effectiveFieldQuantity(const Ferromagnet*);

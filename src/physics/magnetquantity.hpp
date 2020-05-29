@@ -6,9 +6,9 @@
 #include"ferromagnet.hpp"
 
 
-class MagnetFieldQuantity {
+class FM_FieldQuantity {
   public:
-    MagnetFieldQuantity(Ferromagnet * magnet) : magnet_(magnet) {}
+    FM_FieldQuantity(Ferromagnet * magnet) : magnet_(magnet) {}
   private:
     std::weak_ptr<Ferromagnet> magnet_;
 };

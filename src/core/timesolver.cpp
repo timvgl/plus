@@ -13,12 +13,13 @@
 
 TimeSolver::TimeSolver(DynamicEquation eq)
     : time_(0), maxerror_(1e-5), fixedTimeStep_(false) {
+
   eqs_.push_back(eq);
   stepper_ = new RungeKuttaStepper(this, FEHLBERG);
-  std::unique_ptr<Field> f0 = eqs_[0].rhs->eval();
+  Field f0 = eqs_[0].rhs->eval();
 
   // initial guess for the timestep
-  timestep_ = 0.01 / maxVecNorm(f0.get());
+  timestep_ = 0.01 / maxVecNorm(&f0);
 }
 
 TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
@@ -27,8 +28,8 @@ TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
 
   real globalMaxNorm = 0;
   for (auto eq : eqs_) {
-    std::unique_ptr<Field> f0 = eq.rhs->eval();
-    real maxNorm = maxVecNorm(f0.get());
+    Field f0 = eq.rhs->eval();
+    real maxNorm = maxVecNorm(&f0);
     if (maxNorm > globalMaxNorm) {
       globalMaxNorm = maxNorm;
     }

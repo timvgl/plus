@@ -24,10 +24,8 @@ class FieldQuantity {
   /// Returns the grid on which the quantity lives
   virtual Grid grid() const = 0;
 
-  /// Evaluates the quantity and saves the results on a given field object. The
-  /// field object should live on the same grid as the quantity and should have
-  /// the same number of components
-  virtual void evalIn(Field*) const = 0;
+  /// Evaluates the quantity, the returned Field is moved instead of copied
+  virtual Field eval() const = 0;
 
   /***** NON-PURE VIRTUAL FUNCTIONS *****/
 
@@ -41,9 +39,6 @@ class FieldQuantity {
 
   /// Returns the name of the quantity (empty string by default)
   virtual std::string name() const;
-
-  /// Allocate memory for a field and calls void eval(Field *)
-  virtual std::unique_ptr<Field> eval() const;
 
   /// Evaluates the quantity and add it to the given field
   virtual void addTo(Field*) const;

@@ -25,25 +25,25 @@ class MagnetFieldExecutor {
 /// magnetic field is the demagnetization field of the magnet
 class MagnetField : public FieldQuantity {
  public:
-  MagnetField(Handle<Ferromagnet> magnet,
+  MagnetField(const Ferromagnet * magnet,
               Grid grid,
               MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_AUTO);
   ~MagnetField();
 
   void setMethod(MagnetFieldComputationMethod);
 
-  Ferromagnet * source() const;
+  const Ferromagnet * source() const;
 
   int ncomp() const;
   Grid grid() const;
-  void evalIn(Field*) const;
   std::string unit() const;
-  // TODO: std::string name() const;
+  void evalIn(Field*) const;
+  Field eval() const;
 
   bool assuredZero() const;
 
  private:
-  Handle<Ferromagnet> magnet_;
+  const Ferromagnet* magnet_;
   Grid grid_;
   MagnetFieldExecutor* executor_;
 };

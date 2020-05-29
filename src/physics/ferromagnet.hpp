@@ -1,15 +1,19 @@
 #pragma once
 
+#include <curand.h>
+
 #include <map>
 #include <string>
 #include <vector>
+
 #include "field.hpp"
 #include "grid.hpp"
+#include "handler.hpp"
 #include "magnetfield.hpp"
 #include "parameter.hpp"
+#include "ref.hpp"
 #include "system.hpp"
 #include "variable.hpp"
-#include "handler.hpp"
 
 class FieldQuantity;
 class World;
@@ -19,11 +23,6 @@ class Ferromagnet : public System {
   Ferromagnet(World* world, std::string name, Grid grid);
   ~Ferromagnet();
   Ferromagnet(Ferromagnet&&) = default;  // TODO: check if default is ok
-
-  // A ferromagnet should have a handler in the world.
-  // This function obtains a handle from this handler
-  // TODO: check if this is ok, feels hacky
-  Handle<Ferromagnet> getHandle() const;  
 
   const Variable* magnetization() const;
 
@@ -36,12 +35,12 @@ class Ferromagnet : public System {
   Parameter alpha;
   Parameter temperature;
 
-  const MagnetField* getMagnetField(Handle<Ferromagnet>) const;
+  const MagnetField* getMagnetField(const Ferromagnet*) const;
   std::vector<const MagnetField*> getMagnetFields() const;
   void addMagnetField(
-      Handle<Ferromagnet>,
+      const Ferromagnet*,
       MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_BRUTE);
-  void removeMagnetField(Handle<Ferromagnet>);
+  void removeMagnetField(const Ferromagnet*);
 
   void minimize(real tol = 1e-6, int nSamples = 10);
 
@@ -51,5 +50,8 @@ class Ferromagnet : public System {
 
  private:
   NormalizedVariable magnetization_;
-  std::map<Handle<Ferromagnet>, MagnetField*> magnetFields_;
+  std::map<const Ferromagnet*, MagnetField*> magnetFields_;
+
+ public:
+  curandGenerator_t randomGenerator;
 };

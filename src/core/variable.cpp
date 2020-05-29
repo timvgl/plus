@@ -31,8 +31,10 @@ std::string Variable::unit() const {
   return unit_;
 }
 
-void Variable::evalIn(Field* result) const {
-  result->copyFrom(field_);
+Field Variable::eval() const {
+  Field result(grid(), ncomp());
+  result.copyFrom(field_);
+  return result;
 }
 
 const Field* Variable::field() const {
