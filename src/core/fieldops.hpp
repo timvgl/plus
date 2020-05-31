@@ -4,15 +4,19 @@
 
 #include "field.hpp"
 
-// add two fields
-void add(Field* y, real a1, const Field* x1, real a2, const Field* x2);
-void add(Field* y, const Field* x1, const Field* x2);
-void add(Field* y, std::vector<const Field*> x, std::vector<real> weights);
+/// a1*x1 + a2*x2
+Field add(real a1, const Field& x1, real a2, const Field& x2);
 
-void add(Field& y, const Field& x1, const Field& x2);
+/// x1 + x2
+Field add(const Field& x1, const Field& x2);
 
-void addConstant(Field* y, Field* x, real value, int comp = 0);
+/// y += a*x
+void addTo(Field& y, real a, const Field& x);
 
-void normalized(Field* dst, const Field* src);
-std::unique_ptr<Field> normalized(const Field* src);
-void normalize(Field*);
+/// sum_i( weight[i]*x[i] )
+Field add(std::vector<const Field*> x, std::vector<real> weights);
+
+Field operator*(real a, const Field& x);
+
+Field normalized(const Field& src);
+void normalize(Field&);

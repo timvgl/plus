@@ -18,8 +18,8 @@ class TimeSolver {
 
   DynamicEquation equation(int idx) const;
   int nEquations() const;
-  real time() const;
-  real timestep() const;
+  const real& time() const;
+  const real& timestep() const;
   bool adaptiveTimeStep() const;
   real maxerror() const;
 

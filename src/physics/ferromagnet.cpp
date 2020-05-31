@@ -32,7 +32,7 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     }
     Field randomField(grid_, ncomp);
     randomField.setData(&randomValues[0]);
-    magnetization_.set(&randomField);
+    magnetization_.set(randomField);
   }
   // TODO: move the generator to somewhere else
   curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);

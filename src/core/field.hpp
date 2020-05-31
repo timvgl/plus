@@ -8,6 +8,7 @@
 #include "grid.hpp"
 
 class CuField;
+class FieldQuantity;
 
 class Field {
   int ncomp_;
@@ -18,17 +19,20 @@ class Field {
  public:
   Field();
   Field(Grid grid, int nComponents);
+
   ~Field();
 
-  /// Disabled copy constructor. It's possible to implement this,
-  /// but it would make it easy to write inefficient code
-  Field(const Field&) = delete;
+  /// Copy constructor (data on gpu is copied)
+  Field(const Field&);
 
   /// Move constructer
   Field(Field&& other);
 
-  /// Assignment operator (data is copied)
+  /// Assignment operator (data on gpu is copied)
   Field& operator=(const Field& other);
+
+  /// Evaluates quantity and sets the result in this field
+  Field& operator=(const FieldQuantity& other);
 
   /// Move assignment operator
   Field& operator=(Field&& other);

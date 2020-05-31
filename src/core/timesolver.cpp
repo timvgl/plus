@@ -16,10 +16,9 @@ TimeSolver::TimeSolver(DynamicEquation eq)
 
   eqs_.push_back(eq);
   stepper_ = new RungeKuttaStepper(this, FEHLBERG);
-  Field f0 = eqs_[0].rhs->eval();
 
   // initial guess for the timestep
-  timestep_ = 0.01 / maxVecNorm(&f0);
+  timestep_ = 0.01 / maxVecNorm(eqs_[0].rhs->eval());
 }
 
 TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
@@ -27,13 +26,9 @@ TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
   stepper_ = new RungeKuttaStepper(this, FEHLBERG);
 
   real globalMaxNorm = 0;
-  for (auto eq : eqs_) {
-    Field f0 = eq.rhs->eval();
-    real maxNorm = maxVecNorm(&f0);
-    if (maxNorm > globalMaxNorm) {
+  for (auto eq : eqs_)
+    if( real maxNorm = maxVecNorm(eq.rhs->eval()); maxNorm > globalMaxNorm)
       globalMaxNorm = maxNorm;
-    }
-  }
 
   // initial guess for the timestep
   timestep_ = 0.01 / globalMaxNorm;
@@ -44,7 +39,7 @@ TimeSolver::~TimeSolver() {
     delete stepper_;
 }
 
-real TimeSolver::time() const {
+const real& TimeSolver::time() const {
   return time_;
 }
 
@@ -56,7 +51,7 @@ int TimeSolver::nEquations() const {
   return eqs_.size();
 }
 
-real TimeSolver::timestep() const {
+const real& TimeSolver::timestep() const {
   return timestep_;
 }
 

@@ -1,8 +1,8 @@
 #include "rungekutta.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <vector>
+#include <optional>
 
 #include "butchertableau.hpp"
 #include "datatypes.hpp"
@@ -13,6 +13,26 @@
 #include "reduce.hpp"
 #include "timesolver.hpp"
 #include "variable.hpp"
+
+class RungeKuttaStageExecutor {
+ public:
+  RungeKuttaStageExecutor(DynamicEquation eq, RungeKuttaStepper* stepper);
+
+  void setStageK(int stage);
+  void setStageX(int stage);
+  void setFinalX();
+  void resetX();
+  real getError() const;
+
+ private:
+  Field x0;
+  const ButcherTableau butcher;
+  const real& dt;
+  const Variable& x;  // TODO: make this non constant
+  std::optional<Field> noise;
+  std::vector<Field> k;
+  DynamicEquation eq_;
+};
 
 RungeKuttaStepper::RungeKuttaStepper(TimeSolver* solver, RKmethod method)
     : butcher_(constructTableau(method)) {
@@ -81,84 +101,58 @@ void RungeKuttaStepper::step() {
 
 RungeKuttaStageExecutor::RungeKuttaStageExecutor(DynamicEquation eq,
                                                  RungeKuttaStepper* stepper)
-    : eq_(eq), stepper_(stepper), k_(stepper->nStages()) {
+    : eq_(eq),
+      k(stepper->nStages()),
+      x(*eq.x),
+      x0(eq.x->eval()),
+      dt(stepper->solver_->timestep()),
+      butcher(stepper->butcher_) {
   // Noise term evaluated only here, it remains constant throughout all stages
   if (eq_.noiseTerm && !eq_.noiseTerm->assuredZero())
-    noise_.reset(new Field(eq_.noiseTerm->eval())); // TODO: this can be done better
-
-  // make back up of the x value
-  x0_.reset( new Field(eq_.x->eval()));
+    noise = eq_.noiseTerm->eval();
 }
 
 void RungeKuttaStageExecutor::setStageK(int stage) {
+  k[stage] = eq_.rhs->eval();
 
-  k_[stage].reset( new Field(eq_.rhs->eval())); // TODO: this can be done better
-
-  if (noise_) {
-    real dt = stepper_->solver_->timestep();
-
-    // k += sqrt(1/dt)*noise
-    add(k_[stage].get(), 1.0, k_[stage].get(), 1 / sqrt(dt), noise_.get());
-  }
+  // k += noise/sqrt(dt)
+  if (noise)
+    addTo(k[stage], 1 / sqrt(dt), noise.value());
 }
 
 void RungeKuttaStageExecutor::setStageX(int stage) {
   if (stage == 0)
     return;
 
-  real dt = stepper_->solver_->timestep();
+  Field xstage = x0;
+  for (int i = 0; i < stage; i++)
+    addTo(xstage, dt * butcher.rkMatrix[stage][i], k[i]);
 
-  std::vector<real> weights(1 + stage);
-  std::vector<const Field*> fields(1 + stage);
-
-  weights[0] = 1;
-  fields[0] = x0_.get();
-  for (int i = 0; i < stage; i++) {
-    weights[i + 1] = dt * stepper_->butcher_.rkMatrix[stage][i];
-    fields[i + 1] = k_[i].get();
-  }
-
-  std::unique_ptr<Field> xstage(new Field(eq_.grid(), eq_.ncomp()));
-  add(xstage.get(), fields, weights);
-  eq_.x->set(xstage.get());
+  // If x is a normalized variable, then xstage will be normalized during the
+  // assignment. For this reason, we use a temporary xstage field instead of
+  // working directly on x
+  x = xstage;
 }
 
 void RungeKuttaStageExecutor::setFinalX() {
-  real dt = stepper_->solver_->timestep();
-  auto butcher = stepper_->butcher_;
+  Field xstage = x0;
+  for (int i = 0; i < butcher.nStages; i++)
+    addTo(xstage, dt * butcher.weights1[i], k[i]);
 
-  std::vector<real> weights(1 + butcher.nStages);
-  std::vector<const Field*> fields(1 + butcher.nStages);
-
-  weights[0] = 1;
-  fields[0] = x0_.get();
-  for (int i = 0; i < butcher.nStages; i++) {
-    weights[i + 1] = dt * butcher.weights1[i];
-    fields[i + 1] = k_[i].get();
-  }
-
-  std::unique_ptr<Field> xstage(new Field(eq_.grid(), eq_.ncomp()));
-  add(xstage.get(), fields, weights);
-  eq_.x->set(xstage.get());
+  // If x is a normalized variable, then xstage will be normalized during the
+  // assignment. For this reason, we use a temporary xstage field instead of
+  // working directly on x
+  x = xstage;
 }
 
 void RungeKuttaStageExecutor::resetX() {
-  eq_.x->set(x0_.get());
+  x = x0;
 }
 
-real RungeKuttaStageExecutor::getError() {
-  real dt = stepper_->solver_->timestep();
-  auto butcher = stepper_->butcher_;
-
-  std::vector<real> weights_err(butcher.nStages);
-  std::vector<const Field*> fields_err(butcher.nStages);
-
-  for (int i = 0; i < butcher.nStages; i++) {
-    fields_err[i] = k_[i].get();
-    weights_err[i] = dt * (butcher.weights1[i] - butcher.weights2[i]);
-  }
-
-  std::unique_ptr<Field> xstage(new Field(eq_.grid(), eq_.ncomp()));
-  add(xstage.get(), fields_err, weights_err);
-  return maxVecNorm(xstage.get());
+real RungeKuttaStageExecutor::getError() const {
+  Field err(x.grid(), x.ncomp());
+  err.makeZero();
+  for (int i = 0; i < butcher.nStages; i++)
+    addTo(err, dt * (butcher.weights1[i] - butcher.weights2[i]), k[i]);
+  return maxVecNorm(err);
 }

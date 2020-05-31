@@ -44,7 +44,7 @@ __global__ static void k_step(CuField mField,
   mField.setVectorInCell(idx, m);
 }
 
-static inline real BarzilianBorweinStepSize(Field* dm, Field* dtorque, int n) {
+static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
   real nom, div;
   if (n % 2 == 0) {
     nom = dotSum(dm, dm);
@@ -71,14 +71,12 @@ void Minimizer::step() {
   int N = m1.grid().ncells();
   cudaLaunch(N, k_step, m1.cu(), m0.cu(), t0.cu(), stepsize_);
 
-  magnet_->magnetization()->set(&m1);  // normalizes
+  magnet_->magnetization()->set(m1);  // normalizes
 
   t1 = torque_.eval();
 
-  Field* dm = &m0;  // let's reuse m_old
-  Field* dt = &t0;  // "
-  add(dm, +1, &m1, -1, &m0);
-  add(dt, -1, &t1, +1, &t0);  // TODO: check sign difference
+  Field dm = add(real(+1), m1, real(-1), m0);
+  Field dt = add(real(-1), t1, real(+1), t0);  // TODO: check sign difference
 
   stepsize_ = BarzilianBorweinStepSize(dm, dt, nsteps_);
 

@@ -7,21 +7,18 @@
 #include "cudastream.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
+#include "fieldquantity.hpp"
 
 Field::Field() : grid_({0, 0, 0}), ncomp_(0), devptr_devptrs_(nullptr) {}
 
 Field::Field(Grid grid, int nComponents)
-    : grid_(grid), ncomp_(nComponents), devptrs_(nComponents) {
-  if (ncomp_ < 0) {
-    throw std::invalid_argument("Number of components should be positive");
-  }
-
-  if (grid_.ncells() == 0 || ncomp_ == 0) {
-    devptr_devptrs_ = nullptr;
-    return;
-  }
-
+    : grid_(grid), ncomp_(nComponents), devptr_devptrs_(nullptr) {
   allocate();
+}
+
+Field::Field(const Field& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
+  allocate();
+  copyFrom(&other);
 }
 
 // Move constructer
@@ -42,12 +39,14 @@ Field& Field::operator=(const Field& other) {
     grid_ = other.grid_;
     ncomp_ = other.ncomp_;
     allocate();
-  } else {
-    grid_ = other.grid_;
-    ncomp_ = other.ncomp_;
   }
   copyFrom(&other);
   return *this;
+}
+
+// Evaluate quantity in this field
+Field& Field::operator=(const FieldQuantity& q) {
+  return operator=(q.eval());
 }
 
 // Move assignment operator
@@ -66,6 +65,9 @@ Field::~Field() {
 }
 
 void Field::allocate() {
+  if (ncomp_ == 0 || grid_.ncells() == 0)
+    return;
+  devptrs_.resize(ncomp_);
   for (auto& p : devptrs_) {
     p = bufferPool.allocate(grid_.ncells());
   }
@@ -144,5 +146,5 @@ CuField Field::cu() const {
 }
 
 void Field::operator+=(const Field& x) {
-  add(*this, *this, x);
+  addTo(*this, 1, x);
 }

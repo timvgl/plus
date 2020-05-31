@@ -13,7 +13,7 @@ class Field;
 class FieldQuantity {
  public:
   /// Virtual destructor which does nothing
-  virtual ~FieldQuantity();
+  virtual ~FieldQuantity(){};
 
   /***** PURE VIRTUAL FUNCTIONS *****/
 
@@ -29,16 +29,11 @@ class FieldQuantity {
 
   /***** NON-PURE VIRTUAL FUNCTIONS *****/
 
-  /// FieldQuantity values which do not need to be computed (e.g. variables,
-  /// parameters, or cached quantity values) can be accessed via a pointer to
-  /// the field object in which the values are stored.
-  virtual const Field* cache() const;
-
   /// Returns the unit of the quantity (empty string by default)
-  virtual std::string unit() const;
+  virtual std::string unit() const { return ""; }
 
   /// Returns the name of the quantity (empty string by default)
-  virtual std::string name() const;
+  virtual std::string name() const { return ""; }
 
   /// Evaluates the quantity and add it to the given field
   virtual void addTo(Field*) const;
@@ -46,11 +41,11 @@ class FieldQuantity {
   /// Eval the quantity and return the average of each component
   virtual std::vector<real> average() const;
 
-  /// If assuredZero() returns true, then addTo(field) doesn't add anything to the field.
-  /// This function returns false, but can be overriden in derived classes for
-  /// optimization. In this case, it is also recommended to check in evalIn(Field)
-  /// if the quantity is zero, for an early exit.
-  virtual bool assuredZero() const;
+  /// If assuredZero() returns true, then addTo(field) doesn't add anything to
+  /// the field. This function returns false, but can be overriden in derived
+  /// classes for optimization. In this case, it is also recommended to check in
+  /// evalIn(Field) if the quantity is zero, for an early exit.
+  virtual bool assuredZero() const { return false; }
 
   /***** NON-VIRTUAL HELPER FUNCTIONS *****/
 

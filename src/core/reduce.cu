@@ -49,14 +49,14 @@ __global__ void k_maxVecNorm(real* result, CuField f) {
     *result = sdata[0];
 }
 
-real maxVecNorm(Field* f) {
-  if (f->ncomp() != 3) {
+real maxVecNorm(const Field& f) {
+  if (f.ncomp() != 3) {
     throw std::runtime_error(
         "the input field of maxVecNorm should have 3 components");
   }
 
   real* d_result = bufferPool.allocate(1);
-  cudaLaunchReductionKernel(k_maxVecNorm, d_result, f->cu());
+  cudaLaunchReductionKernel(k_maxVecNorm, d_result, f.cu());
 
   // copy the result to the host and return
   real result;
@@ -91,26 +91,26 @@ __global__ void k_average(real* result, CuField f, int comp) {
     *result = sdata[0] / ncells;
 }
 
-real fieldComponentAverage(Field* f, int comp) {
-  if (comp >= f->ncomp()) {
+real fieldComponentAverage(const Field& f, int comp) {
+  if (comp >= f.ncomp()) {
     throw std::runtime_error("Can not take the average of component " +
                              std::to_string(comp) +
                              " of a field which has only " +
-                             std::to_string(f->ncomp()) + " components");
+                             std::to_string(f.ncomp()) + " components");
   }
 
   real result;
   real* d_result = bufferPool.allocate(1);
-  cudaLaunchReductionKernel(k_average, d_result, f->cu(), comp);
+  cudaLaunchReductionKernel(k_average, d_result, f.cu(), comp);
   checkCudaError(cudaMemcpyAsync(&result, d_result, sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
   bufferPool.recycle(d_result);
   return result;
 }
 
-std::vector<real> fieldAverage(Field* f) {
+std::vector<real> fieldAverage(const Field& f) {
   std::vector<real> result;
-  for (int c = 0; c < f->ncomp(); c++)
+  for (int c = 0; c < f.ncomp(); c++)
     result.push_back(fieldComponentAverage(f, c));
   return result;
 }
@@ -140,9 +140,9 @@ __global__ void k_dotSum(real* result, CuField f, CuField g) {
     *result = sdata[0];
 }
 
-real dotSum(Field* f, Field* g) {
+real dotSum(const Field& f, const Field& g) {
   real* d_result = bufferPool.allocate(1);
-  cudaLaunchReductionKernel(k_dotSum, d_result, f->cu(), g->cu());
+  cudaLaunchReductionKernel(k_dotSum, d_result, f.cu(), g.cu());
   // copy the result to the host and return
   real result;
   checkCudaError(cudaMemcpyAsync(&result, d_result, sizeof(real),

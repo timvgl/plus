@@ -41,8 +41,8 @@ const Field* Variable::field() const {
   return field_;
 }
 
-void Variable::set(const Field* src) const {
-  field_->copyFrom(src);
+void Variable::set(const Field& src) const {
+  field_->copyFrom(&src);
 }
 
 void Variable::set(real value) const {
@@ -67,9 +67,9 @@ NormalizedVariable::NormalizedVariable(std::string name,
                                        Grid grid)
     : Variable(name, unit, ncomp, grid) {}
 
-void NormalizedVariable::set(const Field* src) const {
+void NormalizedVariable::set(const Field& src) const {
   // TODO: check if this is possible without the extra copy
-  Variable::set(normalized(src).get());
+  Variable::set(normalized(src));
 }
 
 void NormalizedVariable::set(real value) const {
