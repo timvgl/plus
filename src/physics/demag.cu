@@ -19,9 +19,9 @@ Field evalDemagField(const Ferromagnet* magnet) {
 }
 
 __global__ void k_demagEnergyDensity(CuField edens,
-                                     CuField hfield,
-                                     CuField mag,
-                                     CuParameter msat) {
+                                     const CuField hfield,
+                                     const CuField mag,
+                                     const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!edens.cellInGrid(idx))

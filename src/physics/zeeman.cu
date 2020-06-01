@@ -43,9 +43,9 @@ Field evalExternalField(const Ferromagnet* magnet) {
 
 
 __global__ void k_zeemanEnergyDensity(CuField edens,
-                                      CuField mag,
-                                      CuField hfield,
-                                      CuParameter msat) {
+                                      const CuField mag,
+                                      const CuField hfield,
+                                      const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!edens.cellInGrid(idx))

@@ -18,9 +18,9 @@ __device__ static inline real harmonicMean(real a, real b) {
 }
 
 __global__ void k_exchangeField(CuField hField,
-                                CuField mField,
-                                CuParameter aex,
-                                CuParameter msat,
+                                const CuField mField,
+                                const CuParameter aex,
+                                const CuParameter msat,
                                 real3 cellsize) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -68,9 +68,9 @@ Field evalExchangeField(const Ferromagnet* magnet) {
 }
 
 __global__ void k_exchangeEnergyDensity(CuField edens,
-                                        CuField mag,
-                                        CuField hfield,
-                                        CuParameter msat) {
+                                        const CuField mag,
+                                        const CuField hfield,
+                                        const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!edens.cellInGrid(idx))

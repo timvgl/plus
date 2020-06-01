@@ -10,10 +10,10 @@
 #include"fieldops.hpp"
 
 Field evalEffectiveField(const Ferromagnet *magnet){
-  Field h = demagFieldQuantity(magnet)();
-  anisotropyFieldQuantity(magnet).addToField(&h);
-  exchangeFieldQuantity(magnet).addToField(&h);
-  externalFieldQuantity(magnet).addToField(&h);
+  Field h = evalDemagField(magnet);
+  h += evalAnisotropyField(magnet);
+  h += evalExchangeField(magnet);
+  h += evalExternalField(magnet);
   return h;
 }
 

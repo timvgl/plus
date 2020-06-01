@@ -8,9 +8,9 @@ __device__ static const real PI = 3.14159265358979323846;
 __device__ static const real MU0 = 4 * PI * 1e-7;
 
 __global__ void k_demagfield(CuField hField,
-                             CuField mField,
-                             CuField kernel,
-                             CuParameter msat) {
+                             const CuField mField,
+                             const CuField kernel,
+                             const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!hField.cellInGrid(idx))
     return;

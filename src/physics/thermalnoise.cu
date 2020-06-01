@@ -13,9 +13,9 @@ bool thermalNoiseAssuredZero(const Ferromagnet *magnet) {
 }
 
 __global__ void k_thermalNoise(CuField noiseField,
-                               CuParameter msat,
-                               CuParameter alpha,
-                               CuParameter temperature,
+                               const CuParameter msat,
+                               const CuParameter alpha,
+                               const CuParameter temperature,
                                real preFactor) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 

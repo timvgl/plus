@@ -6,9 +6,9 @@
 
 __global__ void k_addFields(CuField y,
                             real a1,
-                            CuField x1,
+                            const CuField x1,
                             real a2,
-                            CuField x2) {
+                            const CuField x2) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!y.cellInGrid(idx))
     return;
@@ -57,14 +57,14 @@ Field operator*(real a, const Field& x) {
   return add(0, x, a, x);
 }
 
-__global__ void k_addConstant(CuField y, CuField x, real value, int comp) {
+__global__ void k_addConstant(CuField y, const CuField x, real value, int comp) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!y.cellInGrid(idx))
     return;
   y.setValueInCell(idx, comp, x.valueAt(idx, comp) + value);
 }
 
-__global__ void k_normalize(CuField dst, CuField src) {
+__global__ void k_normalize(CuField dst, const CuField src) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!dst.cellInGrid(idx))
     return;

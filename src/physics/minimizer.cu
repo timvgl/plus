@@ -27,8 +27,8 @@ void Minimizer::exec() {
 }
 
 __global__ static void k_step(CuField mField,
-                              CuField m0Field,
-                              CuField torqueField,
+                              const CuField m0Field,
+                              const CuField torqueField,
                               real dt) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 

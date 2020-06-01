@@ -9,9 +9,9 @@
 #include "torque.hpp"
 
 __global__ void k_torque(CuField torque,
-                         CuField mField,
-                         CuField hField,
-                         CuParameter alpha) {
+                         const CuField mField,
+                         const CuField hField,
+                         const CuParameter alpha) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!torque.cellInGrid(idx))
     return;
@@ -35,8 +35,8 @@ Field evalTorque(const Ferromagnet* magnet) {
 }
 
 __global__ void k_dampingtorque(CuField torque,
-                                CuField mField,
-                                CuField hField) {
+                                const CuField mField,
+                                const CuField hField) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!torque.cellInGrid(idx))
     return;

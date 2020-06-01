@@ -11,9 +11,9 @@ bool anisotropyAssuredZero(const Ferromagnet* magnet) {
 
 __global__ void k_anisotropyField(CuField hField,
                                   const CuField mField,
-                                  CuVectorParameter anisU,
-                                  CuParameter Ku1,
-                                  CuParameter msat) {
+                                  const CuVectorParameter anisU,
+                                  const CuParameter Ku1,
+                                  const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!hField.cellInGrid(idx))
@@ -46,10 +46,10 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
 }
 
 __global__ void k_anisotropyEnergyDensity(CuField edens,
-                                          CuField mField,
-                                          CuVectorParameter anisU,
-                                          CuParameter Ku1,
-                                          CuParameter msat) {
+                                          const CuField mField,
+                                          const CuVectorParameter anisU,
+                                          const CuParameter Ku1,
+                                          const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!edens.cellInGrid(idx))
