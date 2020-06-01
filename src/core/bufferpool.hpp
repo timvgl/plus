@@ -2,6 +2,9 @@
 #include <map>
 #include <vector>
 
+#include "cudaerror.hpp"
+#include "cudastream.hpp"
+
 class BufferPool {
  public:
   BufferPool() = default;
@@ -22,44 +25,62 @@ class BufferPool {
 extern BufferPool bufferPool;
 
 template <typename T>
-class GpuPtr {
+class GpuBuffer {
  public:
-  GpuPtr(int N) {allocate(N);}
-  GpuPtr() : ptr(nullptr) {}
-  ~GpuPtr() { recycle(); }
+  GpuBuffer(size_t N) { allocate(N); }
+  GpuBuffer() : ptr_(nullptr) {}
+  ~GpuBuffer() { recycle(); }
 
   // disable copy constructor
-  GpuPtr(const GpuPtr&) = delete;
+  GpuBuffer(const GpuBuffer&) = delete;
+
+  GpuBuffer(const std::vector<T>& other) {
+    allocate(other.size());
+    checkCudaError(cudaMemcpyAsync(ptr_, &other[0], size_ * sizeof(T),
+                                   cudaMemcpyHostToDevice, getCudaStream()));
+  }
 
   // Move constructor
-  GpuPtr(GpuPtr&& other) {
-    ptr = other.ptr;
-    other.ptr = nullptr;
+  GpuBuffer(GpuBuffer&& other) {
+    ptr_ = other.ptr_;
+    size_ = other.size_;
+    other.ptr_ = nullptr;
+    other.size_ = 0;
   }
 
   // Move assignment
-  GpuPtr<T>& operator=(GpuPtr<T>&& other){
-    ptr = other.ptr;
-    other.ptr = nullptr;
+  GpuBuffer<T>& operator=(GpuBuffer<T>&& other) {
+    ptr_ = other.ptr_;
+    size_ = other.size_;
+    other.ptr_ = nullptr;
+    other.size_ = 0;
     return *this;
   }
 
   // disable assignment operator
-  GpuPtr<T>& operator=(const GpuPtr<T>&) = delete;
+  GpuBuffer<T>& operator=(const GpuBuffer<T>&) = delete;
 
-  void allocate(int N) {
+  void allocate(size_t size) {
     recycle();
-    ptr = (T*)bufferPool.allocate(N * sizeof(T));
+    if (size != 0) {
+      ptr_ = (T*)bufferPool.allocate(size * sizeof(T));
+    } else {
+      ptr_ = nullptr;
+    }
+    size_ = size;
   }
 
   void recycle() {
-    if (ptr)
-      bufferPool.recycle((void**)&ptr);
-    ptr = nullptr;
+    if (ptr_)
+      bufferPool.recycle((void**)&ptr_);
+    ptr_ = nullptr;
+    size_ = 0;
   }
 
-  T* get() const { return ptr; }
+  int size() { return size_; }
+  T* get() const { return ptr_; }
 
  private:
-  T* ptr;
+  T* ptr_;
+  size_t size_;
 };

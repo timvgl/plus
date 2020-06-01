@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -19,22 +20,22 @@ Field::Field(const Field& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
   allocate();
 
   for (int c = 0; c < ncomp_; c++) {
-    checkCudaError(cudaMemcpyAsync(devptrs_[c].get(), other.devptrs_[c].get(),
+    checkCudaError(cudaMemcpyAsync(buffers_[c].get(), other.buffers_[c].get(),
                                    grid_.ncells() * sizeof(real),
                                    cudaMemcpyDeviceToDevice, getCudaStream()));
   }
 }
 
 Field::Field(Field&& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
-  devptrs_ = std::move(other.devptrs_);
-  devptr_devptrs_ = std::move(other.devptr_devptrs_);
+  buffers_ = std::move(other.buffers_);
+  bufferPtrs_ = std::move(other.bufferPtrs_);
   other.clear();
 }
 
 Field& Field::operator=(const Field& other) {
   if (this == &other)
     return *this;
-  return *this = std::move(Field(other)); // moves a copy of other to this
+  return *this = std::move(Field(other));  // moves a copy of other to this
 }
 
 Field& Field::operator=(const FieldQuantity& q) {
@@ -44,8 +45,8 @@ Field& Field::operator=(const FieldQuantity& q) {
 Field& Field::operator=(Field&& other) {
   grid_ = other.grid_;
   ncomp_ = other.ncomp_;
-  devptrs_ = std::move(other.devptrs_);
-  devptr_devptrs_ = std::move(other.devptr_devptrs_);
+  buffers_ = std::move(other.buffers_);
+  bufferPtrs_ = std::move(other.bufferPtrs_);
   other.clear();
   return *this;
 }
@@ -62,32 +63,36 @@ void Field::allocate() {
   if (empty())
     return;
 
-  devptrs_.resize(ncomp_);
-  for (auto& p : devptrs_)
+  // get a gpu buffer for each component
+  buffers_.resize(ncomp_);
+  for (auto& p : buffers_)
     p.allocate(grid_.ncells());
 
-  devptr_devptrs_.allocate(ncomp_);
+  // get the ptrs to the buffers in bufferPtrsOnHost
+  std::vector<real*> bufferPtrsOnHost(ncomp_);
+  std::transform(buffers_.begin(), buffers_.end(), bufferPtrsOnHost.begin(),
+                 [](auto& buf) { return buf.get(); });
 
-  // The &devptrs_[0], is tricky here. This works because a DevPtr has only the
-  // actual ptr as a datamember. TODO: check if this needs to be changed
-  checkCudaError(cudaMemcpyAsync(devptr_devptrs_.get(), &devptrs_[0],
+  // put the ptrs to the buffers in a gpu buffer
+  bufferPtrs_.allocate(ncomp_);
+  checkCudaError(cudaMemcpyAsync(bufferPtrs_.get(), &bufferPtrsOnHost[0],
                                  ncomp_ * sizeof(real*), cudaMemcpyHostToDevice,
                                  getCudaStream()));
 }
 
 void Field::free() {
-  devptrs_.clear();
-  devptr_devptrs_.recycle();
+  buffers_.clear();
+  bufferPtrs_.recycle();
 }
 
 CuField Field::cu() const {
-  return CuField(grid_,ncomp_,devptr_devptrs_.get());
+  return CuField(grid_, ncomp_, bufferPtrs_.get());
 }
 
 void Field::getData(real* buffer) const {
   for (int c = 0; c < ncomp_; c++) {
     real* bufferComponent = buffer + c * grid_.ncells();
-    checkCudaError(cudaMemcpyAsync(bufferComponent, devptrs_[c].get(),
+    checkCudaError(cudaMemcpyAsync(bufferComponent, buffers_[c].get(),
                                    grid_.ncells() * sizeof(real),
                                    cudaMemcpyDeviceToHost, getCudaStream()));
   }
@@ -96,7 +101,7 @@ void Field::getData(real* buffer) const {
 void Field::setData(real* buffer) {
   for (int c = 0; c < ncomp_; c++) {
     real* bufferComponent = buffer + c * grid_.ncells();
-    checkCudaError(cudaMemcpyAsync(devptrs_[c].get(), bufferComponent,
+    checkCudaError(cudaMemcpyAsync(buffers_[c].get(), bufferComponent,
                                    grid_.ncells() * sizeof(real),
                                    cudaMemcpyHostToDevice, getCudaStream()));
   }

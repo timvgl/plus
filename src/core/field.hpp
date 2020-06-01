@@ -14,8 +14,8 @@ class CuField;
 class Field : public FieldQuantity {
   int ncomp_;
   Grid grid_;
-  std::vector<GpuPtr<real>> devptrs_;
-  GpuPtr<real*> devptr_devptrs_;
+  std::vector<GpuBuffer<real>> buffers_;
+  GpuBuffer<real*> bufferPtrs_;
 
  public:
   Field();
@@ -41,7 +41,7 @@ class Field : public FieldQuantity {
   bool empty() { return grid_.ncells() == 0 || ncomp_ == 0; }
   Grid grid() const { return grid_; }
   int ncomp() const { return ncomp_; }
-  real* devptr(int comp) const { return devptrs_[comp].get(); };
+  real* devptr(int comp) const { return buffers_[comp].get(); };
 
   CuField cu() const;
 
