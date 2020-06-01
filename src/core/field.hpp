@@ -50,8 +50,6 @@ class Field : public FieldQuantity {
   void setUniformComponent(real value, int comp);
   void makeZero();
 
-  void copyFrom(const Field&);
-
  private:
   void allocate();
   void free();

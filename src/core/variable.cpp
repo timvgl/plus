@@ -40,7 +40,7 @@ const Field& Variable::field() const {
 }
 
 void Variable::set(const Field& src) const {
-  field_->copyFrom(src);
+  *field_ = src;
 }
 
 void Variable::set(real value) const {

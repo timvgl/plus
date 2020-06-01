@@ -17,12 +17,18 @@ Field::Field(Grid grid, int nComponents) : grid_(grid), ncomp_(nComponents) {
 
 Field::Field(const Field& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
   allocate();
-  copyFrom(other);
+
+  for (int c = 0; c < ncomp_; c++) {
+    checkCudaError(cudaMemcpyAsync(devptrs_[c].get(), other.devptrs_[c].get(),
+                                   grid_.ncells() * sizeof(real),
+                                   cudaMemcpyDeviceToDevice, getCudaStream()));
+  }
 }
 
 Field::Field(Field&& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
   devptrs_ = std::move(other.devptrs_);
   devptr_devptrs_ = std::move(other.devptr_devptrs_);
+  other.clear();
 }
 
 Field& Field::operator=(const Field& other) {
@@ -110,15 +116,6 @@ void Field::setUniformComponent(real value, int comp) {
 void Field::makeZero() {
   for (int comp = 0; comp < ncomp_; comp++)
     setUniformComponent(0.0, comp);
-}
-
-void Field::copyFrom(const Field& src) {
-  // TODO: throw error if field dimensions mismatch
-  for (int c = 0; c < ncomp_; c++) {
-    checkCudaError(cudaMemcpyAsync(devptrs_[c].get(), src.devptrs_[c].get(),
-                                   grid_.ncells() * sizeof(real),
-                                   cudaMemcpyDeviceToDevice, getCudaStream()));
-  }
 }
 
 Field& Field::operator+=(const Field& other) {
