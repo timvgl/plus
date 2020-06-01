@@ -36,7 +36,7 @@ Field evalExternalField(const Ferromagnet* magnet) {
     if (magnetField->source() == magnet)
       continue;
 
-    magnetField->addTo(&h);
+    magnetField->addToField(&h);
   }
   return h;
 }
@@ -66,7 +66,7 @@ Field evalZeemanEnergyDensity(const Ferromagnet* magnet){
   }
   Field h = evalExternalField(magnet);
   cudaLaunch(edens.grid().ncells(), k_zeemanEnergyDensity, edens.cu(),
-             magnet->magnetization()->field()->cu(), h.cu(),
+             magnet->magnetization()->field().cu(), h.cu(),
              magnet->msat.cu());
   return edens;
 }

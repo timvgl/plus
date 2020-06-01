@@ -18,7 +18,7 @@ void Parameter::set(real value) {
   }
 }
 
-void Parameter::set(Field* values) {
+void Parameter::set(const Field& values) {
   if (!field_)
     field_ = new Field(grid_, 1);
   field_->copyFrom(values);
@@ -43,7 +43,7 @@ Grid Parameter::grid() const {
 Field Parameter::eval() const {
   Field p(grid(), ncomp());
   if (field_) {
-    p.copyFrom(field_);
+    p.copyFrom(*field_);
   } else {
     p.setUniformComponent(uniformValue_, 0);
   }
@@ -70,7 +70,7 @@ void VectorParameter::set(real3 value) {
     delete field_;
 }
 
-void VectorParameter::set(Field* values) {
+void VectorParameter::set(const Field& values) {
   if (!field_)
     field_ = new Field(grid_, 3);
   field_->copyFrom(values);
@@ -95,7 +95,7 @@ Grid VectorParameter::grid() const {
 Field VectorParameter::eval() const {
   Field p(grid(), ncomp());
   if (field_)
-    p.copyFrom(field_);
+    p.copyFrom(*field_);
   p.setUniformComponent(uniformValue_.x, 0);
   p.setUniformComponent(uniformValue_.y, 1);
   p.setUniformComponent(uniformValue_.z, 2);

@@ -62,7 +62,7 @@ Field evalExchangeField(const Ferromagnet* magnet) {
     return hField;
   }
   cudaLaunch(hField.grid().ncells(), k_exchangeField, hField.cu(),
-             magnet->magnetization()->field()->cu(), magnet->aex.cu(),
+             magnet->magnetization()->field().cu(), magnet->aex.cu(),
              magnet->msat.cu(), magnet->world()->cellsize());
   return hField;
 }
@@ -91,7 +91,7 @@ Field evalExchangeEnergyDensity(const Ferromagnet* magnet) {
   }
   Field h = evalExchangeField(magnet);
   cudaLaunch(edens.grid().ncells(), k_exchangeEnergyDensity, edens.cu(),
-             magnet->magnetization()->field()->cu(), h.cu(), magnet->msat.cu());
+             magnet->magnetization()->field().cu(), h.cu(), magnet->msat.cu());
   return edens;
 }
 

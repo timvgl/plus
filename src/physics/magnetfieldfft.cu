@@ -110,7 +110,7 @@ MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid gridOut,
   cufftSetStream(backwardPlan, getCudaStream());
 
   for (int comp = 0; comp < 6; comp++)
-    checkCufftResult(cufftExecR2C(forwardPlan, kernel_.field()->devptr(comp),
+    checkCufftResult(cufftExecR2C(forwardPlan, kernel_.field().devptr(comp),
                                   kfft.at(comp)));
 }
 

@@ -32,17 +32,15 @@ std::string Variable::unit() const {
 }
 
 Field Variable::eval() const {
-  Field result(grid(), ncomp());
-  result.copyFrom(field_);
-  return result;
+  return field_->eval();
 }
 
-const Field* Variable::field() const {
-  return field_;
+const Field& Variable::field() const {
+  return *field_;
 }
 
 void Variable::set(const Field& src) const {
-  field_->copyFrom(&src);
+  field_->copyFrom(src);
 }
 
 void Variable::set(real value) const {

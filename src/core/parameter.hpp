@@ -13,7 +13,7 @@ class Parameter : public FieldQuantity {
   ~Parameter();
 
   void set(real value);
-  void set(Field* values);
+  void set(const Field& values);
 
   bool isUniform() const;
   bool assuredZero() const;
@@ -61,7 +61,7 @@ class VectorParameter : public FieldQuantity {
   ~VectorParameter();
 
   void set(real3 value);
-  void set(Field* values);
+  void set(const Field& values);
 
   bool isUniform() const;
   bool assuredZero() const;

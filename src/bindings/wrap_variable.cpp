@@ -10,7 +10,7 @@ void wrap_variable(py::module& m) {
       .def("get", [](const Variable* v) { return fieldToArray(v->field()); })
       .def("set", [](const Variable* v, py::array_t<real> data) {
         Field tmp(v->grid(), v->ncomp());
-        setArrayInField(&tmp, data);
-        v->set(tmp);
+        setArrayInField(tmp, data);
+        v->set(std::move(tmp));
       });
 }

@@ -42,7 +42,7 @@ Field evalDemagEnergyDensity(const Ferromagnet* magnet) {
   }
   auto h = evalDemagField(magnet);
   cudaLaunch(edens.grid().ncells(), k_demagEnergyDensity, edens.cu(),
-             magnet->magnetization()->field()->cu(), h.cu(),
+             magnet->magnetization()->field().cu(), h.cu(),
              magnet->msat.cu());
   return edens;
 }

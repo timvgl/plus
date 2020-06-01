@@ -11,19 +11,17 @@ void wrap_parameter(py::module& m) {
       .def("is_uniform", &Parameter::isUniform)
       .def("set", [](Parameter* p, real value) { p->set(value); })
       .def("set", [](Parameter* p, py::array_t<real> data) {
-        std::unique_ptr<Field> tmp(new Field(p->grid(), 1));
-        setArrayInField(tmp.get(), data);
-        p->set(tmp.get());  // TODO: check if this can be done without an extra
-                            // copy
+        Field tmp(p->grid(), 1);
+        setArrayInField(tmp, data);
+        p->set(std::move(tmp));  
       });
 
   py::class_<VectorParameter, FieldQuantity>(m, "VectorParameter")
       .def("is_uniform", &VectorParameter::isUniform)
       .def("set", [](VectorParameter* p, real3 value) { p->set(value); })
       .def("set", [](VectorParameter* p, py::array_t<real> data) {
-        std::unique_ptr<Field> tmp(new Field(p->grid(), 3));
-        setArrayInField(tmp.get(), data);
-        p->set(tmp.get());  // TODO: check if this can be done without an extra
-                            // copy
+        Field tmp(p->grid(), 3);
+        setArrayInField(tmp, data);
+        p->set(std::move(tmp));  
       });
 }

@@ -5,6 +5,8 @@
 #include "fieldquantity.hpp"
 #include "grid.hpp"
 
+class CuField;
+
 class Variable : public FieldQuantity {
  public:
   Variable(std::string name, std::string unit, int ncomp, Grid grid);
@@ -17,7 +19,7 @@ class Variable : public FieldQuantity {
 
   Field eval() const;
 
-  const Field* field() const;
+  const Field& field() const;
 
   virtual void set(const Field&) const;
   virtual void set(real) const;

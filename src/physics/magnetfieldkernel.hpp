@@ -13,7 +13,7 @@ class MagnetFieldKernel {
 
   Grid grid() const;
   real3 cellsize() const;
-  const Field* field() const;
+  const Field& field() const;
 
   void compute();
 

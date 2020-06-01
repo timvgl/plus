@@ -44,8 +44,8 @@ real3 MagnetFieldKernel::cellsize() const {
   return cellsize_;
 }
 
-const Field* MagnetFieldKernel::field() const {
-  return kernel_;
+const Field& MagnetFieldKernel::field() const {
+  return *kernel_;
 }
 
 Grid MagnetFieldKernel::kernelGrid(Grid dst, Grid src) {

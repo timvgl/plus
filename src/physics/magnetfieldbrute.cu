@@ -48,7 +48,6 @@ void MagnetFieldBruteExecutor::exec(Field* h,
                                     const Field* m,
                                     const Parameter* msat) const {
   // TODO: check dimensions of fields
-  const Field* kernel = kernel_.field();
   int ncells = h->grid().ncells();
-  cudaLaunch(ncells, k_demagfield, h->cu(), m->cu(), kernel->cu(), msat->cu());
+  cudaLaunch(ncells, k_demagfield, h->cu(), m->cu(), kernel_.field().cu(), msat->cu());
 }

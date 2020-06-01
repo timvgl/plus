@@ -1,13 +1,16 @@
 #include "bufferpool.hpp"
 #include "cudaerror.hpp"
-#include "datatypes.hpp"
 
 BufferPool bufferPool;
 
-real* BufferPool::allocate(int size) {
-  real* ptr;
+BufferPool::~BufferPool() {
+  // TODO: clean up buffers
+}
+
+void* BufferPool::allocate(int size) {
+  void* ptr;
   if (pool_[size].size() == 0) {
-    checkCudaError(cudaMalloc((void**)&ptr, size * sizeof(real)));
+    checkCudaError(cudaMalloc((void**)&ptr, size));
   } else {
     ptr = pool_[size].back();
     pool_[size].pop_back();
@@ -16,16 +19,16 @@ real* BufferPool::allocate(int size) {
   return ptr;
 }
 
-void BufferPool::free(real*& ptr) {
-  inUse_.erase(ptr);
-  cudaFree(ptr);
-  ptr = nullptr;
+void BufferPool::free(void** ptr) {
+  inUse_.erase(*ptr);
+  checkCudaError(cudaFree(*ptr));
+  *ptr = nullptr;
 }
 
-void BufferPool::recycle(real*& ptr) {
-  auto inUseIt = inUse_.find(ptr);
+void BufferPool::recycle(void** ptr) {
+  auto inUseIt = inUse_.find(*ptr);
   int size = inUseIt->second;
   inUse_.erase(inUseIt);
-  pool_[size].push_back(ptr);
-  ptr = nullptr;
+  pool_[size].push_back(*ptr);
+  *ptr = nullptr;
 }

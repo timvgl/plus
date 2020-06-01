@@ -11,9 +11,9 @@
 
 Field evalEffectiveField(const Ferromagnet *magnet){
   Field h = demagFieldQuantity(magnet)();
-  anisotropyFieldQuantity(magnet).addTo(&h);
-  exchangeFieldQuantity(magnet).addTo(&h);
-  externalFieldQuantity(magnet).addTo(&h);
+  anisotropyFieldQuantity(magnet).addToField(&h);
+  exchangeFieldQuantity(magnet).addToField(&h);
+  externalFieldQuantity(magnet).addToField(&h);
   return h;
 }
 

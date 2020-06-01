@@ -154,10 +154,7 @@ void wrap_ferromagnet(py::module& m) {
              Grid grid = fm->grid();
              real3 cellsize = fm->world()->cellsize();
              MagnetFieldKernel demagKernel(grid, grid, cellsize);
-             std::unique_ptr<Field> kernel(
-                 new Field(demagKernel.field()->grid(), 6));
-             kernel.get()->copyFrom(demagKernel.field());
-             return fieldToArray(kernel.get());
+             return fieldToArray(demagKernel.field());
            })
 
       //.def("__repr__", [](const Ferromagnet &f) {

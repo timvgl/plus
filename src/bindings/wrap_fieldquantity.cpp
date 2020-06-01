@@ -1,9 +1,9 @@
+#include <memory>
+
+#include "ferromagnetquantity.hpp"
 #include "field.hpp"
 #include "fieldquantity.hpp"
-#include "ferromagnetquantity.hpp"
 #include "wrappers.hpp"
-
-#include<memory>
 
 void wrap_fieldquantity(py::module& m) {
   py::class_<FieldQuantity>(m, "FieldQuantity")
@@ -12,9 +12,7 @@ void wrap_fieldquantity(py::module& m) {
       .def_property_readonly("ncomp", &FieldQuantity::ncomp)
       .def_property_readonly("grid", &FieldQuantity::grid)
       .def("eval",
-           [](const FieldQuantity* q) { 
-             Field f = q->eval();
-             return fieldToArray(&f); })
+           [](const FieldQuantity* q) { return fieldToArray((*q).eval()); })
       .def("average", &FieldQuantity::average);
 }
 

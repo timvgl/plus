@@ -36,7 +36,7 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     return result;
   }
   CuField h = result.cu();
-  const CuField m = magnet->magnetization()->field()->cu();
+  const CuField m = magnet->magnetization()->field().cu();
   auto anisU = magnet->anisU.cu();
   auto ku1 = magnet->ku1.cu();
   auto msat = magnet->msat.cu();
@@ -74,7 +74,7 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
   }
 
   CuField e = edens.cu();
-  const CuField m = magnet->magnetization()->field()->cu();
+  const CuField m = magnet->magnetization()->field().cu();
   auto anisU = magnet->anisU.cu();
   auto ku1 = magnet->ku1.cu();
   auto msat = magnet->msat.cu();

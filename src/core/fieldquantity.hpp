@@ -36,7 +36,7 @@ class FieldQuantity {
   virtual std::string name() const { return ""; }
 
   /// Evaluates the quantity and add it to the given field
-  virtual void addTo(Field*) const;
+  virtual void addToField(Field*) const;
 
   /// Eval the quantity and return the average of each component
   virtual std::vector<real> average() const;

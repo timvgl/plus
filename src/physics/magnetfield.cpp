@@ -60,8 +60,8 @@ void MagnetField::evalIn(Field* h) const {
     return;
   }
   const Parameter* msat = &magnet_->msat;
-  const Field* m = magnet_->magnetization()->field();
-  executor_->exec(h, m, msat);
+  const Field& m = magnet_->magnetization()->field();
+  executor_->exec(h, &m, msat);
 }
 
 Field MagnetField::eval() const {
@@ -71,8 +71,8 @@ Field MagnetField::eval() const {
     return h;
   }
   const Parameter* msat = &magnet_->msat;
-  const Field* m = magnet_->magnetization()->field();
-  executor_->exec(&h, m, msat);
+  const Field& m = magnet_->magnetization()->field();
+  executor_->exec(&h, &m, msat);
   return h;
 }
 

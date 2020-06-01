@@ -4,53 +4,53 @@
 #include <memory>
 #include <vector>
 
+#include "bufferpool.hpp"
 #include "datatypes.hpp"
 #include "grid.hpp"
+#include "fieldquantity.hpp"
 
 class CuField;
-class FieldQuantity;
 
-class Field {
+class Field : public FieldQuantity {
   int ncomp_;
   Grid grid_;
-  std::vector<real*> devptrs_;
-  real** devptr_devptrs_;
+  std::vector<GpuPtr<real>> devptrs_;
+  GpuPtr<real*> devptr_devptrs_;
 
  public:
   Field();
   Field(Grid grid, int nComponents);
+  Field(const Field&);   // copies gpu field data
+  Field(Field&& other);  // moves gpu field data
 
-  ~Field();
+  ~Field() {}
 
-  /// Copy constructor (data on gpu is copied)
-  Field(const Field&);
+  Field eval() const {return Field(*this);}
 
-  /// Move constructer
-  Field(Field&& other);
+  Field& operator=(Field&& other);               // moves gpu field data
+  Field& operator=(const Field& other);          // copies gpu field data
+  Field& operator=(const FieldQuantity& other);  // evaluates quantity on this
 
-  /// Assignment operator (data on gpu is copied)
-  Field& operator=(const Field& other);
+  Field& operator+=(const Field& other);
+  Field& operator-=(const Field& other);
+  Field& operator+=(const FieldQuantity& other);
+  Field& operator-=(const FieldQuantity& other);
 
-  /// Evaluates quantity and sets the result in this field
-  Field& operator=(const FieldQuantity& other);
+  void clear();
 
-  /// Move assignment operator
-  Field& operator=(Field&& other);
+  bool empty() { return grid_.ncells() == 0 || ncomp_ == 0; }
+  Grid grid() const { return grid_; }
+  int ncomp() const { return ncomp_; }
+  real* devptr(int comp) const { return devptrs_[comp].get(); };
 
-  Grid grid() const;
-  int ncomp() const;
-  real* devptr(int comp) const;
+  CuField cu() const;
 
   void getData(real* buffer) const;
   void setData(real* buffer);
   void setUniformComponent(real value, int comp);
   void makeZero();
 
-  void copyFrom(const Field*);
-
-  CuField cu() const;
-
-  void operator+=(const Field& x);
+  void copyFrom(const Field&);
 
  private:
   void allocate();

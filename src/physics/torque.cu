@@ -27,10 +27,10 @@ __global__ void k_torque(CuField torque,
 Field evalTorque(const Ferromagnet* magnet) {
   Field torque(magnet->grid(),3);
   Field h = evalEffectiveField(magnet);
-  const Field* m = magnet->magnetization()->field();
-  const Parameter * alpha = &magnet->alpha;
+  const Field& m = magnet->magnetization()->field();
+  const Parameter& alpha = magnet->alpha;
   int ncells = torque.grid().ncells();
-  cudaLaunch(ncells, k_torque, torque.cu(), m->cu(), h.cu(), alpha->cu());
+  cudaLaunch(ncells, k_torque, torque.cu(), m.cu(), h.cu(), alpha.cu());
   return torque;
 }
 
@@ -49,9 +49,9 @@ __global__ void k_dampingtorque(CuField torque,
 Field evalRelaxTorque(const Ferromagnet* magnet){
   Field torque(magnet->grid(),3);
   Field h = evalEffectiveField(magnet);
-  const Field* m = magnet->magnetization()->field();
+  const Field& m = magnet->magnetization()->field();
   int ncells = torque.grid().ncells();
-  cudaLaunch(ncells, k_dampingtorque, torque.cu(), m->cu(), h.cu());
+  cudaLaunch(ncells, k_dampingtorque, torque.cu(), m.cu(), h.cu());
   return torque;
 }
 
