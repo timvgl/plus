@@ -54,7 +54,7 @@ __global__ static void k_unpad(CuField out, CuField in) {
   int inIdx = in.grid.coord2index(inRelCoo + in.grid.origin());
 
   for (int c = 0; c < out.ncomp; c++) {
-    out.ptrs[c][outIdx] = in.ptrs[c][inIdx];
+    out.setValueInCell(outIdx, c, in.valueAt(inIdx, c));
   }
 }
 
@@ -110,8 +110,8 @@ MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid gridOut,
   cufftSetStream(backwardPlan, getCudaStream());
 
   for (int comp = 0; comp < 6; comp++)
-    checkCufftResult(cufftExecR2C(forwardPlan, kernel_.field().devptr(comp),
-                                  kfft.at(comp)));
+    checkCufftResult(
+        cufftExecR2C(forwardPlan, kernel_.field().devptr(comp), kfft.at(comp)));
 }
 
 MagnetFieldFFTExecutor::~MagnetFieldFFTExecutor() {

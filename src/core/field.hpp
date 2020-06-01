@@ -6,8 +6,8 @@
 
 #include "bufferpool.hpp"
 #include "datatypes.hpp"
-#include "grid.hpp"
 #include "fieldquantity.hpp"
+#include "grid.hpp"
 
 class CuField;
 
@@ -25,7 +25,7 @@ class Field : public FieldQuantity {
 
   ~Field() {}
 
-  Field eval() const {return Field(*this);}
+  Field eval() const { return Field(*this); }
 
   Field& operator=(Field&& other);               // moves gpu field data
   Field& operator=(const Field& other);          // copies gpu field data
@@ -58,9 +58,18 @@ class Field : public FieldQuantity {
 };
 
 struct CuField {
+  friend Field;
+
+ public:
   const Grid grid;
   const int ncomp;
+
+ private:
   real** ptrs;
+
+ public:
+  CuField(Grid grid, int ncomp, real** ptrs)
+      : grid(grid), ncomp(ncomp), ptrs(ptrs) {}
 
   __device__ bool cellInGrid(int) const;
   __device__ bool cellInGrid(int3) const;

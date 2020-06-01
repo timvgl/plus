@@ -74,7 +74,7 @@ __global__ void k_average(real* result, CuField f, int comp) {
   // Reduce to a block
   real threadValue = 0.0;
   for (int i = tid; i < ncells; i += BLOCKDIM)
-    threadValue += f.ptrs[comp][i];
+    threadValue += f.valueAt(i, comp); 
   sdata[tid] = threadValue;
   __syncthreads();
 

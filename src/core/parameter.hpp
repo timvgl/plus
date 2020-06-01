@@ -29,10 +29,19 @@ class Parameter : public FieldQuantity {
   Field* field_;
 };
 
-struct CuParameter {
+class CuParameter {
+ public:
   const Grid grid;
   const real uniformValue;
+
+ private:
   real* valuesPtr;
+
+ public:
+  CuParameter(Grid grid, real uniformValue)
+      : grid(grid), uniformValue(uniformValue), valuesPtr(nullptr){};
+  CuParameter(Grid grid, real* valuesPtr)
+      : grid(grid), uniformValue(0), valuesPtr(valuesPtr){};
 
   __device__ bool isUniform() const;
   __device__ real valueAt(int idx) const;
@@ -78,16 +87,40 @@ class VectorParameter : public FieldQuantity {
 };
 
 struct CuVectorParameter {
+ public:
   const Grid grid;
   const real3 uniformValue;
+
+ private:
   real* xValuesPtr;
   real* yValuesPtr;
   real* zValuesPtr;
+
+ public:
+  CuVectorParameter(Grid grid, real3 uniformValue);
+  CuVectorParameter(Grid grid, real* xPtr, real* yPtr, real* zPtr);
 
   __device__ bool isUniform() const;
   __device__ real3 vectorAt(int idx) const;
   __device__ real3 vectorAt(int3 coo) const;
 };
+
+inline CuVectorParameter::CuVectorParameter(Grid grid, real3 uniformValue)
+    : grid(grid),
+      uniformValue(uniformValue),
+      xValuesPtr(nullptr),
+      yValuesPtr(nullptr),
+      zValuesPtr(nullptr) {}
+
+inline CuVectorParameter::CuVectorParameter(Grid grid,
+                                     real* xPtr,
+                                     real* yPtr,
+                                     real* zPtr)
+    : grid(grid),
+      uniformValue({0, 0, 0}),
+      xValuesPtr(xPtr),
+      yValuesPtr(yPtr),
+      zValuesPtr(zPtr) {}
 
 __device__ inline bool CuVectorParameter::isUniform() const {
   return !xValuesPtr;

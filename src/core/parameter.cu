@@ -51,9 +51,9 @@ Field Parameter::eval() const {
 }
 
 CuParameter Parameter::cu() const {
-  if (field_)
-    return CuParameter{grid_, 0.0, field_->devptr(0)};
-  return CuParameter{grid_, uniformValue_, nullptr};
+  if (isUniform())
+    return CuParameter(grid_, uniformValue_);
+  return CuParameter(grid_, field_->devptr(0));
 }
 
 VectorParameter::VectorParameter(Grid grid, real3 value)
@@ -103,11 +103,8 @@ Field VectorParameter::eval() const {
 }
 
 CuVectorParameter VectorParameter::cu() const {
-  if (field_)
-    return CuVectorParameter{grid_,
-                             {0.0, 0.0, 0.0},
-                             field_->devptr(0),
-                             field_->devptr(1),
-                             field_->devptr(2)};
-  return CuVectorParameter{grid_, uniformValue_, nullptr, nullptr, nullptr};
+  if (isUniform())
+    return CuVectorParameter(grid_, uniformValue_);
+  return CuVectorParameter{grid_, field_->devptr(0), field_->devptr(1),
+                           field_->devptr(2)};
 }
