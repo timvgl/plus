@@ -4,9 +4,9 @@
 #include <memory>
 #include <vector>
 
-#include "bufferpool.hpp"
 #include "datatypes.hpp"
 #include "fieldquantity.hpp"
+#include "gpubuffer.hpp"
 #include "grid.hpp"
 
 class CuField;

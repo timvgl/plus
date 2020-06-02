@@ -5,13 +5,13 @@
 #include "cudaerror.hpp"
 #include "cudastream.hpp"
 
-class BufferPool {
+class GpuBufferPool {
  public:
-  BufferPool() = default;
-  BufferPool(BufferPool const&) = delete;
-  void operator=(BufferPool const&) = delete;
+  GpuBufferPool() = default;
+  GpuBufferPool(GpuBufferPool const&) = delete;
+  void operator=(GpuBufferPool const&) = delete;
 
-  ~BufferPool();
+  ~GpuBufferPool();
 
   void* allocate(int size);
   void free(void**);
@@ -22,7 +22,7 @@ class BufferPool {
   std::map<void*, int> inUse_;
 };
 
-extern BufferPool bufferPool;
+extern GpuBufferPool bufferPool;
 
 template <typename T>
 class GpuBuffer {

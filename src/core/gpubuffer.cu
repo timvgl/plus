@@ -1,13 +1,15 @@
-#include "bufferpool.hpp"
 #include "cudaerror.hpp"
+#include "gpubuffer.hpp"
 
-BufferPool bufferPool;
+GpuBufferPool bufferPool;
 
-BufferPool::~BufferPool() {
-  // TODO: clean up buffers
+GpuBufferPool::~GpuBufferPool() {
+  for (const auto& poolEntry : pool_)
+    for (auto& ptr : poolEntry.second)
+      checkCudaError(cudaFree(ptr));
 }
 
-void* BufferPool::allocate(int size) {
+void* GpuBufferPool::allocate(int size) {
   void* ptr;
   if (pool_[size].size() == 0) {
     checkCudaError(cudaMalloc((void**)&ptr, size));
@@ -19,13 +21,13 @@ void* BufferPool::allocate(int size) {
   return ptr;
 }
 
-void BufferPool::free(void** ptr) {
+void GpuBufferPool::free(void** ptr) {
   inUse_.erase(*ptr);
   checkCudaError(cudaFree(*ptr));
   *ptr = nullptr;
 }
 
-void BufferPool::recycle(void** ptr) {
+void GpuBufferPool::recycle(void** ptr) {
   auto inUseIt = inUse_.find(*ptr);
   int size = inUseIt->second;
   inUse_.erase(inUseIt);

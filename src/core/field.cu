@@ -2,13 +2,13 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "bufferpool.hpp"
 #include "cudaerror.hpp"
 #include "cudalaunch.hpp"
 #include "cudastream.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
 #include "fieldquantity.hpp"
+#include "gpubuffer.hpp"
 
 Field::Field() : grid_({0, 0, 0}), ncomp_(0) {}
 

@@ -1,10 +1,10 @@
 #include <stdexcept>
 
-#include "bufferpool.hpp"
 #include "cudaerror.hpp"
 #include "cudastream.hpp"
 #include "datatypes.hpp"
 #include "field.hpp"
+#include "gpubuffer.hpp"
 #include "reduce.hpp"
 
 #define BLOCKDIM 512
@@ -74,7 +74,7 @@ __global__ void k_average(real* result, CuField f, int comp) {
   // Reduce to a block
   real threadValue = 0.0;
   for (int i = tid; i < ncells; i += BLOCKDIM)
-    threadValue += f.valueAt(i, comp); 
+    threadValue += f.valueAt(i, comp);
   sdata[tid] = threadValue;
   __syncthreads();
 
