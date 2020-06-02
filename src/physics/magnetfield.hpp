@@ -16,6 +16,7 @@ class Field;
 
 class MagnetFieldExecutor {
  public:
+  virtual ~MagnetFieldExecutor(){}
   virtual void exec(Field* h, const Field* m, const Parameter* msat) const = 0;
 };
 

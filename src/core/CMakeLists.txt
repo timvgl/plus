@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 project(mumax5core)
 
 add_library(core STATIC 
-    bufferpool.cu
-    bufferpool.hpp
     butchertableau.cpp
     butchertableau.hpp
     cudastream.cu
@@ -21,6 +19,8 @@ add_library(core STATIC
     fieldquantity.hpp 
     grid.cu 
     grid.hpp 
+    gpubuffer.cu
+    gpubuffer.hpp
     parameter.cu
     parameter.hpp
     rungekutta.cpp
