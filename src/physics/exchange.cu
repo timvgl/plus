@@ -2,7 +2,6 @@
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
-#include "handler.hpp"
 #include "parameter.hpp"
 #include "reduce.hpp"
 #include "world.hpp"

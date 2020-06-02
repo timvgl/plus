@@ -6,6 +6,7 @@
 #include "exchange.hpp"
 #include "demag.hpp"
 #include "zeeman.hpp"
+#include "interfacialdmi.hpp"
 
 #include"fieldops.hpp"
 
@@ -14,6 +15,7 @@ Field evalEffectiveField(const Ferromagnet *magnet){
   h += evalAnisotropyField(magnet);
   h += evalExchangeField(magnet);
   h += evalExternalField(magnet);
+  h += evalInterfacialDmiField(magnet);
   return h;
 }
 

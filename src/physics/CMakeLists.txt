@@ -17,6 +17,8 @@ add_library(physics STATIC
     ferromagnet.hpp 
     ferromagnetquantity.cpp 
     ferromagnetquantity.hpp 
+    interfacialdmi.cu
+    interfacialdmi.hpp
     minimizer.cu
     minimizer.hpp
     magnetfield.cpp

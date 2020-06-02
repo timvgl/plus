@@ -34,6 +34,7 @@ class Ferromagnet : public System {
   Parameter ku1;
   Parameter alpha;
   Parameter temperature;
+  Parameter idmi;
 
   const MagnetField* getMagnetField(const Ferromagnet*) const;
   std::vector<const MagnetField*> getMagnetFields() const;

@@ -8,6 +8,7 @@
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
+#include "interfacialdmi.hpp"
 #include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
 #include "thermalnoise.hpp"
@@ -57,6 +58,12 @@ void wrap_ferromagnet(py::module& m) {
           })
 
       .def_property(
+          "idmi", [](const Ferromagnet* fm) { return &fm->idmi; },
+          [](Ferromagnet* fm, py::object data) {
+            py::cast(&fm->idmi).attr("set")(data);
+          })
+
+      .def_property(
           "temperature", [](const Ferromagnet* fm) { return &fm->msat; },
           [](Ferromagnet* fm, py::object data) {
             py::cast(&fm->temperature).attr("set")(data);
@@ -103,6 +110,20 @@ void wrap_ferromagnet(py::module& m) {
           [](const Ferromagnet* fm) { return exchangeEnergyQuantity(fm); })
 
       .def_property_readonly(
+          "interfacialdmi_field",
+          [](const Ferromagnet* fm) { return interfacialDmiFieldQuantity(fm); })
+
+      .def_property_readonly("interfacialdmi_energy_density",
+                             [](const Ferromagnet* fm) {
+                               return interfacialDmiEnergyDensityQuantity(fm);
+                             })
+
+      .def_property_readonly("interfacialdmi_energy",
+                             [](const Ferromagnet* fm) {
+                               return interfacialDmiEnergyQuantity(fm);
+                             })
+
+      .def_property_readonly(
           "external_field",
           [](const Ferromagnet* fm) { return externalFieldQuantity(fm); })
 
@@ -136,8 +157,7 @@ void wrap_ferromagnet(py::module& m) {
       .def(
           "magnetic_field_from_magnet",
           [](const Ferromagnet* fm, Ferromagnet* magnet) {
-            const MagnetField* magnetField =
-                fm->getMagnetField(magnet);
+            const MagnetField* magnetField = fm->getMagnetField(magnet);
             if (!magnetField)
               throw std::runtime_error(
                   "Can not compute the magnetic field of the magnet");
