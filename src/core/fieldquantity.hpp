@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "datatypes.hpp"
+#include "grid.hpp"
 
-class Grid;
 class Field;
 
 /// FieldQuantity interface
@@ -36,7 +36,7 @@ class FieldQuantity {
   virtual std::string name() const { return ""; }
 
   /// Evaluates the quantity and add it to the given field
-  virtual void addToField(Field*) const;
+  virtual void addToField(Field&) const;
 
   /// Eval the quantity and return the average of each component
   virtual std::vector<real> average() const;
@@ -46,10 +46,9 @@ class FieldQuantity {
   /// classes for optimization. In this case, it is also recommended to check in
   /// evalIn(Field) if the quantity is zero, for an early exit.
   virtual bool assuredZero() const { return false; }
-
-  /***** NON-VIRTUAL HELPER FUNCTIONS *****/
-
- public:
-  /// Checks if the quantity can be evaluated in a given field object
-  bool fieldCompatibilityCheck(const Field*) const;
 };
+
+inline bool sameFieldDimensions(const FieldQuantity& q1,
+                                const FieldQuantity& q2) {
+  return q1.grid() == q2.grid() && q1.ncomp() == q2.ncomp();
+}

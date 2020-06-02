@@ -36,7 +36,7 @@ Field evalExternalField(const Ferromagnet* magnet) {
     if (magnetField->source() == magnet)
       continue;
 
-    magnetField->addToField(&h);
+    magnetField->addToField(h);
   }
   return h;
 }

@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <vector>
 
 #include "cudalaunch.hpp"
@@ -19,11 +20,19 @@ __global__ void k_addFields(CuField y,
   }
 }
 
-Field add(real a1, const Field& x1, real a2, const Field& x2) {
-  // TODO: check grid sizes and number of components
-  Field y(x1.grid(), x1.ncomp());
+inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
+  if (!sameFieldDimensions(y, x1) || !sameFieldDimensions(y, x2)) {
+    throw std::invalid_argument(
+        "Fields can not be added together because their dimensions do not "
+        "match");
+  }
   int ncells = y.grid().ncells();
   cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+}
+
+Field add(real a1, const Field& x1, real a2, const Field& x2) {
+  Field y(x1.grid(), x1.ncomp());
+  add(y, a1, x1, a2, x2);
   return y;
 }
 
@@ -32,9 +41,7 @@ Field add(const Field& x1, const Field& x2) {
 }
 
 void addTo(Field& y, real a, const Field& x) {
-  // TODO: check grid sizes and number of components
-  int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_addFields, y.cu(), real(1), y.cu(), a, x.cu());
+  add(y, 1, y, a, x);
 }
 
 // TODO: this can be done much more efficient
@@ -57,7 +64,10 @@ Field operator*(real a, const Field& x) {
   return add(0, x, a, x);
 }
 
-__global__ void k_addConstant(CuField y, const CuField x, real value, int comp) {
+__global__ void k_addConstant(CuField y,
+                              const CuField x,
+                              real value,
+                              int comp) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!y.cellInGrid(idx))
     return;
