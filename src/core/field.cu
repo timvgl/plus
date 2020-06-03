@@ -16,6 +16,11 @@ Field::Field(Grid grid, int nComponents) : grid_(grid), ncomp_(nComponents) {
   allocate();
 }
 
+Field::Field(Grid grid, int nComponents, real value) : Field(grid, nComponents) {
+  for (int comp = 0; comp < nComponents; comp++)
+    setUniformComponent(comp, value);
+}
+
 Field::Field(const Field& other) : grid_(other.grid_), ncomp_(other.ncomp_) {
   allocate();
 

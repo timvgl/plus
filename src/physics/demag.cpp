@@ -1,11 +1,11 @@
-#include "cudalaunch.hpp"
 #include "demag.hpp"
+#include "energy.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "world.hpp"
 
 bool demagFieldAssuredZero(const Ferromagnet* magnet) {
-  return !magnet->enableDemag;
+  return !magnet->enableDemag || magnet->msat.assuredZero();
 }
 
 Field evalDemagField(const Ferromagnet* magnet) {
@@ -18,42 +18,17 @@ Field evalDemagField(const Ferromagnet* magnet) {
   return h;
 }
 
-__global__ void k_demagEnergyDensity(CuField edens,
-                                     const CuField hfield,
-                                     const CuField mag,
-                                     const CuParameter msat) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (!edens.cellInGrid(idx))
-    return;
-
-  real Ms = msat.valueAt(idx);
-  real3 h = hfield.vectorAt(idx);
-  real3 m = mag.vectorAt(idx);
-
-  edens.setValueInCell(idx, 0, -0.5 * Ms * dot(m, h));
-}
-
 Field evalDemagEnergyDensity(const Ferromagnet* magnet) {
-  Field edens(magnet->grid(), 1);
-  if (demagFieldAssuredZero(magnet)) {
-    edens.makeZero();
-    return edens;
-  }
-  auto h = evalDemagField(magnet);
-  cudaLaunch(edens.grid().ncells(), k_demagEnergyDensity, edens.cu(),
-             magnet->magnetization()->field().cu(), h.cu(),
-             magnet->msat.cu());
-  return edens;
+  if (demagFieldAssuredZero(magnet))
+    return Field(magnet->grid(), 1, 0.0);
+  return evalEnergyDensity(magnet, evalDemagField(magnet), 0.5);
 }
 
 real evalDemagEnergy(const Ferromagnet* magnet) {
   if (demagFieldAssuredZero(magnet))
     return 0.0;
-
   int ncells = magnet->grid().ncells();
-  real edensAverage =
-      demagEnergyDensityQuantity(magnet).average()[0];
+  real edensAverage = demagEnergyDensityQuantity(magnet).average()[0];
   real cellVolume = magnet->world()->cellVolume();
   return ncells * edensAverage * cellVolume;
 }
@@ -64,7 +39,7 @@ FM_FieldQuantity demagFieldQuantity(const Ferromagnet* magnet) {
 
 FM_FieldQuantity demagEnergyDensityQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalDemagEnergyDensity, 1,
-                             "demag_energy_density", "J/m3");
+                          "demag_energy_density", "J/m3");
 }
 
 FM_ScalarQuantity demagEnergyQuantity(const Ferromagnet* magnet) {

@@ -6,7 +6,8 @@
 #include "world.hpp"
 
 bool anisotropyAssuredZero(const Ferromagnet* magnet) {
-  return magnet->ku1.assuredZero() || magnet->anisU.assuredZero();
+  return magnet->ku1.assuredZero() || magnet->anisU.assuredZero() ||
+         magnet->msat.assuredZero();
 }
 
 __global__ void k_anisotropyField(CuField hField,
@@ -18,6 +19,11 @@ __global__ void k_anisotropyField(CuField hField,
 
   if (!hField.cellInGrid(idx))
     return;
+
+  if (msat.valueAt(idx) == 0) {
+    hField.setVectorInCell(idx, {0, 0, 0});
+    return;
+  }
 
   real3 u = normalized(anisU.vectorAt(idx));
   real3 m = mField.vectorAt(idx);
@@ -95,15 +101,15 @@ real evalAnisotropyEnergy(const Ferromagnet* magnet) {
 
 FM_FieldQuantity anisotropyFieldQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalAnisotropyField, 3, "anisotropy_field",
-                             "T");
+                          "T");
 }
 
 FM_FieldQuantity anisotropyEnergyDensityQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalAnisotropyEnergyDensity, 1,
-                             "anisotropy_energy_density", "J/m3");
+                          "anisotropy_energy_density", "J/m3");
 }
 
 FM_ScalarQuantity anisotropyEnergyQuantity(const Ferromagnet* magnet) {
   return FM_ScalarQuantity(magnet, evalAnisotropyEnergy, "anisotropy_energy",
-                              "J");
+                           "J");
 }

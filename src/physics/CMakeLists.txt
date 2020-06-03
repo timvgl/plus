@@ -5,12 +5,12 @@ add_library(physics STATIC
     anisotropy.cu 
     anisotropy.hpp 
     constants.hpp
-    demag.cu
+    demag.cpp
     demag.hpp
     effectivefield.hpp 
     effectivefield.cpp
     energy.hpp 
-    energy.cpp
+    energy.cu
     exchange.hpp 
     exchange.cu 
     ferromagnet.cpp 

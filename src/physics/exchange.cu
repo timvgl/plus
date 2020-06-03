@@ -1,4 +1,5 @@
 #include "cudalaunch.hpp"
+#include "energy.hpp"
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
@@ -7,7 +8,7 @@
 #include "world.hpp"
 
 bool exchangeAssuredZero(const Ferromagnet* magnet) {
-  return magnet->aex.assuredZero();
+  return magnet->aex.assuredZero() || magnet->msat.assuredZero();
 }
 
 __device__ static inline real harmonicMean(real a, real b) {
@@ -20,37 +21,43 @@ __global__ void k_exchangeField(CuField hField,
                                 const CuField mField,
                                 const CuParameter aex,
                                 const CuParameter msat,
-                                real3 cellsize) {
+                                const real3 cellsize) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!hField.cellInGrid(idx))
     return;
 
-  int3 coo = hField.grid.index2coord(idx);
+  if (msat.valueAt(idx) == 0) {
+    hField.setVectorInCell(idx, {0, 0, 0});
+    return;
+  }
 
-  real3 m = mField.vectorAt(idx);
-  real a = aex.valueAt(idx) / msat.valueAt(idx);
+  const int3 coo = hField.grid.index2coord(idx);
+  const real3 m = mField.vectorAt(idx);
+  const real a = aex.valueAt(idx);
 
-  real3 h{0, 0, 0};  // accumulate exchange field in cell idx
+  // accumulate exchange field in h for cell at idx, divide by msat at the end
+  real3 h{0, 0, 0};
 
   int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
                                          int3{0, 0, -1}, int3{1, 0, 0},
                                          int3{0, 1, 0},  int3{0, 0, 1}};
 
   for (int3 relcoo : neighborRelativeCoordinates) {
-    int3 coo_ = coo + relcoo;
-    int idx_ = hField.grid.coord2index(coo_);
+    const int3 coo_ = coo + relcoo;
+    const int idx_ = hField.grid.coord2index(coo_);
 
-    if (hField.cellInGrid(coo_)) {
+    if (hField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
       real dr =
           cellsize.x * relcoo.x + cellsize.y * relcoo.y + cellsize.z * relcoo.z;
       real3 m_ = mField.vectorAt(idx_);
-      real a_ = aex.valueAt(idx_) / msat.valueAt(idx_);
+      real a_ = aex.valueAt(idx_);
 
       h += 2 * harmonicMean(a, a_) * (m_ - m) / (dr * dr);
     }
   }
 
+  h /= msat.valueAt(idx);
   hField.setVectorInCell(idx, h);
 }
 
@@ -66,32 +73,10 @@ Field evalExchangeField(const Ferromagnet* magnet) {
   return hField;
 }
 
-__global__ void k_exchangeEnergyDensity(CuField edens,
-                                        const CuField mag,
-                                        const CuField hfield,
-                                        const CuParameter msat) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (!edens.cellInGrid(idx))
-    return;
-
-  real Ms = msat.valueAt(idx);
-  real3 h = hfield.vectorAt(idx);
-  real3 m = mag.vectorAt(idx);
-
-  edens.setValueInCell(idx, 0, -0.5 * Ms * dot(m, h));
-}
-
 Field evalExchangeEnergyDensity(const Ferromagnet* magnet) {
-  Field edens(magnet->grid(), 1);
-  if (exchangeAssuredZero(magnet)) {
-    edens.makeZero();
-    return edens;
-  }
-  Field h = evalExchangeField(magnet);
-  cudaLaunch(edens.grid().ncells(), k_exchangeEnergyDensity, edens.cu(),
-             magnet->magnetization()->field().cu(), h.cu(), magnet->msat.cu());
-  return edens;
+  if (exchangeAssuredZero(magnet))
+    return Field(magnet->grid(), 1, 0.0);
+  return evalEnergyDensity(magnet, evalExchangeField(magnet), 0.5);
 }
 
 real evalExchangeEnergy(const Ferromagnet* magnet) {
@@ -104,16 +89,14 @@ real evalExchangeEnergy(const Ferromagnet* magnet) {
 }
 
 FM_FieldQuantity exchangeFieldQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalExchangeField, 3, "exchange_field",
-                             "T");
+  return FM_FieldQuantity(magnet, evalExchangeField, 3, "exchange_field", "T");
 }
 
 FM_FieldQuantity exchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalExchangeEnergyDensity, 1,
-                             "exchange_energy_density", "J/m3");
+                          "exchange_energy_density", "J/m3");
 }
 
 FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet* magnet) {
-  return FM_ScalarQuantity(magnet, evalExchangeEnergy, "exchange_energy",
-                              "J");
+  return FM_ScalarQuantity(magnet, evalExchangeEnergy, "exchange_energy", "J");
 }

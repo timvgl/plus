@@ -20,6 +20,7 @@ class Field : public FieldQuantity {
  public:
   Field();
   Field(Grid grid, int nComponents);
+  Field(Grid grid, int nComponents, real value);
   Field(const Field&);   // copies gpu field data
   Field(Field&& other);  // moves gpu field data
 

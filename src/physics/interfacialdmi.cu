@@ -1,4 +1,5 @@
 #include "cudalaunch.hpp"
+#include "energy.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "interfacialdmi.hpp"
@@ -6,10 +7,10 @@
 #include "world.hpp"
 
 // At the moment we only suport interfacially induced dmi in the xy plane
-const real3 interfaceNormal{0,0,1};
+const real3 interfaceNormal{0, 0, 1};
 
 bool interfacialDmiAssuredZero(const Ferromagnet* magnet) {
-  return magnet->idmi.assuredZero();
+  return magnet->idmi.assuredZero() || magnet->msat.assuredZero();
 }
 
 __device__ static inline real harmonicMean(real a, real b) {
@@ -22,42 +23,48 @@ __global__ void k_interfacialDmiField(CuField hField,
                                       const CuField mField,
                                       const CuParameter idmi,
                                       const CuParameter msat,
-                                      real3 interfaceNormal,
-                                      real3 cellsize) {
+                                      const real3 interfaceNormal,
+                                      const real3 cellsize) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!hField.cellInGrid(idx))
     return;
 
-  int3 coo = hField.grid.index2coord(idx);
+  if (msat.valueAt(idx) == 0) {
+    hField.setVectorInCell(idx, {0, 0, 0});
+    return;
+  }
 
-  real3 m = mField.vectorAt(idx);
-  real d = idmi.valueAt(idx) / msat.valueAt(idx);
+  const int3 coo = hField.grid.index2coord(idx);
+  const real d = idmi.valueAt(idx);
 
-  real3 h{0, 0, 0};  // accumulate exchange field in cell idx
+  real3 h{0, 0, 0};  // accumulate exchange field of cell at idx. Devide by msat
+                     // at the end
 
-  int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
-                                         int3{0, 0, -1}, int3{1, 0, 0},
-                                         int3{0, 1, 0},  int3{0, 0, 1}};
+  const int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
+                                               int3{0, 0, -1}, int3{1, 0, 0},
+                                               int3{0, 1, 0},  int3{0, 0, 1}};
 
   for (int3 relcoo : neighborRelativeCoordinates) {
-    int3 coo_ = coo + relcoo;
-    int idx_ = hField.grid.coord2index(coo_);
+    const int3 coo_ = coo + relcoo;
+    const int idx_ = hField.grid.coord2index(coo_);
 
-    if (hField.cellInGrid(coo_)) {
-      real cs =
-          abs(cellsize.x * relcoo.x + cellsize.y * relcoo.y +
-              cellsize.z * relcoo.z);  // cellsize in direction of the neighbor
+    if (hField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
+      // unit vector from cell to neighbor
+      real3 dr{(real)relcoo.x, (real)relcoo.y, (real)relcoo.z};
 
+      // cellsize in direction of the neighbor
+      real cs = abs(dot(dr, cellsize));
+
+      real d_ = idmi.valueAt(idx_);
       real3 m_ = mField.vectorAt(idx_);
-      real d_ = idmi.valueAt(idx_) / msat.valueAt(idx_);
-      real3 dr{(real)relcoo.x, (real)relcoo.y, (real)relcoo.z}; // unit vector from cell to neighbor
-
       real3 dmivec = harmonicMean(d, d_) * cross(dr, interfaceNormal);
+
       h += cross(dmivec, m_) / cs;
     }
   }
 
+  h /= msat.valueAt(idx);
   hField.setVectorInCell(idx, h);
 }
 
@@ -73,32 +80,10 @@ Field evalInterfacialDmiField(const Ferromagnet* magnet) {
   return hField;
 }
 
-__global__ void k_interfacialDmiEnergyDensity(CuField edens,
-                                              const CuField mag,
-                                              const CuField hfield,
-                                              const CuParameter msat) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (!edens.cellInGrid(idx))
-    return;
-
-  real Ms = msat.valueAt(idx);
-  real3 h = hfield.vectorAt(idx);
-  real3 m = mag.vectorAt(idx);
-
-  edens.setValueInCell(idx, 0, -0.5 * Ms * dot(m, h));
-}
-
 Field evalInterfacialDmiEnergyDensity(const Ferromagnet* magnet) {
-  Field edens(magnet->grid(), 1);
-  if (interfacialDmiAssuredZero(magnet)) {
-    edens.makeZero();
-    return edens;
-  }
-  Field h = evalInterfacialDmiField(magnet);
-  cudaLaunch(edens.grid().ncells(), k_interfacialDmiEnergyDensity, edens.cu(),
-             magnet->magnetization()->field().cu(), h.cu(), magnet->msat.cu());
-  return edens;
+  if (interfacialDmiAssuredZero(magnet))
+    return Field(magnet->grid(), 1, 0.0);
+  return evalEnergyDensity(magnet, evalInterfacialDmiField(magnet), 0.5);
 }
 
 real evalInterfacialDmiEnergy(const Ferromagnet* magnet) {

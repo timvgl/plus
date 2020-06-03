@@ -5,6 +5,7 @@
 #include "field.hpp"
 #include "world.hpp"
 #include "zeeman.hpp"
+#include "energy.hpp"
 
 bool externalFieldAssuredZero(const Ferromagnet* magnet) {
   auto magnetFields = magnet->getMagnetFields();
@@ -41,41 +42,15 @@ Field evalExternalField(const Ferromagnet* magnet) {
   return h;
 }
 
-
-__global__ void k_zeemanEnergyDensity(CuField edens,
-                                      const CuField mag,
-                                      const CuField hfield,
-                                      const CuParameter msat) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (!edens.cellInGrid(idx))
-    return;
-
-  real Ms = msat.valueAt(idx);
-  real3 h = hfield.vectorAt(idx);
-  real3 m = mag.vectorAt(idx);
-
-  edens.setValueInCell(idx, 0, -Ms * dot(m, h));
-}
-
 Field evalZeemanEnergyDensity(const Ferromagnet* magnet){
-  Field edens(magnet->grid(),1);
-  if (externalFieldAssuredZero(magnet)) {
-    edens.makeZero();
-    return edens;
-  }
-  Field h = evalExternalField(magnet);
-  cudaLaunch(edens.grid().ncells(), k_zeemanEnergyDensity, edens.cu(),
-             magnet->magnetization()->field().cu(), h.cu(),
-             magnet->msat.cu());
-  return edens;
+  if (externalFieldAssuredZero(magnet))
+    return Field(magnet->grid(),1, 0.0);
+  return evalEnergyDensity(magnet, evalExternalField(magnet), 1.0);
 }
 
 real zeemanEnergy(const Ferromagnet* magnet){
-  if (externalFieldAssuredZero(magnet)) {
+  if (externalFieldAssuredZero(magnet))
     return 0.0;
-  }
-
   real edens = zeemanEnergyDensityQuantity(magnet).average()[0];
   int ncells = magnet->grid().ncells();
   real cellVolume = magnet->world()->cellVolume();
