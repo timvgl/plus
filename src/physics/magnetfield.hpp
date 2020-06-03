@@ -38,7 +38,6 @@ class MagnetField : public FieldQuantity {
   int ncomp() const;
   Grid grid() const;
   std::string unit() const;
-  void evalIn(Field*) const;
   Field eval() const;
 
   bool assuredZero() const;

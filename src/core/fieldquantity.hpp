@@ -44,7 +44,7 @@ class FieldQuantity {
   /// If assuredZero() returns true, then addTo(field) doesn't add anything to
   /// the field. This function returns false, but can be overriden in derived
   /// classes for optimization. In this case, it is also recommended to check in
-  /// evalIn(Field) if the quantity is zero, for an early exit.
+  /// eval() if the quantity is zero, for an early exit.
   virtual bool assuredZero() const { return false; }
 };
 

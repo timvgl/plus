@@ -34,9 +34,6 @@ class FM_FieldQuantity : public FieldQuantity {
   Grid grid() const { return ferromagnet_->grid(); }
   std::string name() const { return name_; }
   std::string unit() const { return unit_; }
-  void evalIn(Field* result) const {
-    *result = std::move(evalfunc_(ferromagnet_));
-  }
 
   Field eval() const { return evalfunc_(ferromagnet_); }
   Field operator()() const { return evalfunc_(ferromagnet_); }

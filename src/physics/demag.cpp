@@ -9,13 +9,9 @@ bool demagFieldAssuredZero(const Ferromagnet* magnet) {
 }
 
 Field evalDemagField(const Ferromagnet* magnet) {
-  Field h(magnet->grid(), 3);
-  if (demagFieldAssuredZero(magnet)) {
-    h.makeZero();
-    return h;
-  }
-  magnet->getMagnetField(magnet)->evalIn(&h);
-  return h;
+  if (demagFieldAssuredZero(magnet))
+    return Field(magnet->grid(), 3, 0.0);
+  return magnet->getMagnetField(magnet)->eval();
 }
 
 Field evalDemagEnergyDensity(const Ferromagnet* magnet) {

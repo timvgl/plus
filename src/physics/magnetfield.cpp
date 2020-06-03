@@ -54,16 +54,6 @@ Grid MagnetField::grid() const {
   return grid_;
 }
 
-void MagnetField::evalIn(Field* h) const {
-  if (assuredZero()) {
-    h->makeZero();
-    return;
-  }
-  const Parameter* msat = &magnet_->msat;
-  const Field& m = magnet_->magnetization()->field();
-  executor_->exec(h, &m, msat);
-}
-
 Field MagnetField::eval() const {
   Field h(grid(), ncomp());
   if (assuredZero()) {
