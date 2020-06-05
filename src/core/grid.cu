@@ -20,9 +20,9 @@ void Grid::setOrigin(int3 origin) {
 }
 
 bool operator==(const Grid& lhs, const Grid& rhs) {
-  return lhs.origin_ == rhs.origin_ && lhs.origin_ == rhs.origin_;
+  return lhs.size_ == rhs.size_ && lhs.origin_ == rhs.origin_;
 }
 
 bool operator!=(const Grid& lhs, const Grid& rhs) {
-  return lhs.origin_ != rhs.origin_ || lhs.origin_ != rhs.origin_;
+  return lhs.size_ != rhs.size_ || lhs.origin_ != rhs.origin_;
 }
