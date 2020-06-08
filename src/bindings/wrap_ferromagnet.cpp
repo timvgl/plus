@@ -11,11 +11,19 @@
 #include "interfacialdmi.hpp"
 #include "magnetfieldkernel.hpp"
 #include "parameter.hpp"
+#include "stt.hpp"
 #include "thermalnoise.hpp"
 #include "torque.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
 #include "zeeman.hpp"
+
+#define GETPARAM(NAME) [](const Ferromagnet* fm) { return &fm->NAME; }
+
+#define SETPARAM(NAME)                     \
+  [](Ferromagnet* fm, py::object data) {   \
+    py::cast(&fm->NAME).attr("set")(data); \
+  }
 
 void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
@@ -27,47 +35,16 @@ void wrap_ferromagnet(py::module& m) {
                       py::cast(fm->magnetization()).attr("set")(data);
                     })
 
-      .def_property(
-          "msat", [](const Ferromagnet* fm) { return &fm->msat; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->msat).attr("set")(data);
-          })
-
-      .def_property(
-          "alpha", [](const Ferromagnet* fm) { return &fm->alpha; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->alpha).attr("set")(data);
-          })
-
-      .def_property(
-          "ku1", [](const Ferromagnet* fm) { return &fm->ku1; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->ku1).attr("set")(data);
-          })
-
-      .def_property(
-          "aex", [](const Ferromagnet* fm) { return &fm->aex; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->aex).attr("set")(data);
-          })
-
-      .def_property(
-          "anisU", [](const Ferromagnet* fm) { return &fm->anisU; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->anisU).attr("set")(data);
-          })
-
-      .def_property(
-          "idmi", [](const Ferromagnet* fm) { return &fm->idmi; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->idmi).attr("set")(data);
-          })
-
-      .def_property(
-          "temperature", [](const Ferromagnet* fm) { return &fm->msat; },
-          [](Ferromagnet* fm, py::object data) {
-            py::cast(&fm->temperature).attr("set")(data);
-          })
+      .def_property("msat", GETPARAM(msat), SETPARAM(msat))
+      .def_property("alpha", GETPARAM(alpha), SETPARAM(alpha))
+      .def_property("ku1", GETPARAM(ku1), SETPARAM(ku1))
+      .def_property("aex", GETPARAM(aex), SETPARAM(aex))
+      .def_property("anisU", GETPARAM(anisU), SETPARAM(anisU))
+      .def_property("idmi", GETPARAM(idmi), SETPARAM(idmi))
+      .def_property("xi", GETPARAM(xi), SETPARAM(xi))
+      .def_property("pol", GETPARAM(pol), SETPARAM(pol))
+      .def_property("jcur", GETPARAM(jcur), SETPARAM(jcur))
+      .def_property("temperature", GETPARAM(temperature), SETPARAM(temperature))
 
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
 
@@ -149,6 +126,12 @@ void wrap_ferromagnet(py::module& m) {
 
       .def_property_readonly(
           "torque", [](const Ferromagnet* fm) { return torqueQuantity(fm); })
+
+      .def_property_readonly(
+          "llg_torque", [](const Ferromagnet* fm) { return llgTorqueQuantity(fm); })
+
+      .def_property_readonly(
+          "spin_transfer_torque", [](const Ferromagnet* fm) { return spinTransferTorqueQuantity(fm); })
 
       .def_property_readonly(
           "thermal_noise",

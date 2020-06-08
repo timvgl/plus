@@ -31,6 +31,8 @@ add_library(physics STATIC
     magnetfieldkernel.hpp
     newell.cu
     newell.hpp
+    stt.cu
+    stt.hpp
     system.cpp 
     system.hpp 
     thermalnoise.cu

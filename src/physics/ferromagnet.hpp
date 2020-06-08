@@ -29,12 +29,15 @@ class Ferromagnet : public System {
   bool enableDemag;
 
   VectorParameter anisU;
+  VectorParameter jcur;
   Parameter msat;
   Parameter aex;
   Parameter ku1;
   Parameter alpha;
   Parameter temperature;
   Parameter idmi;
+  Parameter xi;
+  Parameter pol;
 
   const MagnetField* getMagnetField(const Ferromagnet*) const;
   std::vector<const MagnetField*> getMagnetFields() const;

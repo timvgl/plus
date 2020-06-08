@@ -19,7 +19,10 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       alpha(grid, 0.0),
       temperature(grid, 0.0),
       idmi(grid, 0.0),
+      xi(grid, 0.0),
+      pol(grid, 0.0),
       anisU(grid, {0, 0, 0}),
+      jcur(grid, {0, 0, 0}),
       enableDemag(true) {
   {
     // TODO: this can be done much more efficient somewhere else
