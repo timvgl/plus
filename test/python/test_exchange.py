@@ -3,8 +3,9 @@ import numpy as np
 from mumax5.engine import World, Grid
 
 
-def compute_exchange_numpy(magnet, cellsize):
+def compute_exchange_numpy(magnet):
     m = magnet.magnetization.get()
+    cellsize = magnet.cellsize
     h_exch = np.zeros(m.shape)
 
     m_ = np.roll(m, 1, axis=1)
@@ -37,7 +38,7 @@ class TestExchange:
         magnet.msat = 5.4
 
         result = magnet.exchange_field.eval()
-        wanted = compute_exchange_numpy(magnet, world.cellsize)
+        wanted = compute_exchange_numpy(magnet)
 
         relative_error = np.abs(result-wanted)/np.abs(wanted)
         max_relative_error = np.max(relative_error)

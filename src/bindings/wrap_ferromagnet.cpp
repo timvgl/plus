@@ -29,6 +29,10 @@ void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
       .def_property_readonly("name", &Ferromagnet::name)
       .def_property_readonly("grid", &Ferromagnet::grid)
+      .def_property_readonly("world", &Ferromagnet::world)
+      .def_property_readonly(
+          "cellsize",
+          [](const Ferromagnet* fm) { return fm->world()->cellsize(); })
 
       .def_property("magnetization", &Ferromagnet::magnetization,
                     [](Ferromagnet* fm, py::object data) {
@@ -128,10 +132,12 @@ void wrap_ferromagnet(py::module& m) {
           "torque", [](const Ferromagnet* fm) { return torqueQuantity(fm); })
 
       .def_property_readonly(
-          "llg_torque", [](const Ferromagnet* fm) { return llgTorqueQuantity(fm); })
+          "llg_torque",
+          [](const Ferromagnet* fm) { return llgTorqueQuantity(fm); })
 
       .def_property_readonly(
-          "spin_transfer_torque", [](const Ferromagnet* fm) { return spinTransferTorqueQuantity(fm); })
+          "spin_transfer_torque",
+          [](const Ferromagnet* fm) { return spinTransferTorqueQuantity(fm); })
 
       .def_property_readonly(
           "thermal_noise",
