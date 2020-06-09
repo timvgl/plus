@@ -58,7 +58,7 @@ __global__ void k_interfacialDmiField(CuField hField,
 
       real d_ = idmi.valueAt(idx_);
       real3 m_ = mField.vectorAt(idx_);
-      real3 dmivec = harmonicMean(d, d_) * cross(dr, interfaceNormal);
+      real3 dmivec = harmonicMean(d, d_) * cross(interfaceNormal, dr);
 
       h += cross(dmivec, m_) / cs;
     }
