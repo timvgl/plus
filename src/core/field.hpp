@@ -48,7 +48,7 @@ class Field : public FieldQuantity {
 
   void getData(real* buffer) const;
   void setData(real* buffer);
-  void setUniformComponent(real value, int comp);
+  void setUniformComponent(int comp, real value);
   void makeZero();
 
  private:

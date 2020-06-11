@@ -47,16 +47,16 @@ void Variable::set(real value) const {
   if (ncomp() != 1)
     throw std::runtime_error("Variable has " + std::to_string(ncomp()) +
                              "components instead of 1");
-  field_->setUniformComponent(value, 0);
+  field_->setUniformComponent(0, value);
 }
 
 void Variable::set(real3 value) const {
   if (ncomp() != 3)
     throw std::runtime_error("Variable has " + std::to_string(ncomp()) +
                              "components instead of 3");
-  field_->setUniformComponent(value.x, 0);
-  field_->setUniformComponent(value.y, 1);
-  field_->setUniformComponent(value.z, 2);
+  field_->setUniformComponent(0, value.x);
+  field_->setUniformComponent(1, value.y);
+  field_->setUniformComponent(2, value.z);
 }
 
 NormalizedVariable::NormalizedVariable(std::string name,

@@ -43,7 +43,7 @@ Field Parameter::eval() const {
   if (field_) {
     p = *field_;
   } else {
-    p.setUniformComponent(uniformValue_, 0);
+    p.setUniformComponent(0, uniformValue_);
   }
   return p;
 }
@@ -90,12 +90,12 @@ Grid VectorParameter::grid() const {
 
 Field VectorParameter::eval() const {
   Field p(grid(), ncomp());
-  if (field_){
+  if (field_) {
     p = *field_;
   } else {
-    p.setUniformComponent(uniformValue_.x, 0);
-    p.setUniformComponent(uniformValue_.y, 1);
-    p.setUniformComponent(uniformValue_.z, 2);
+    p.setUniformComponent(0, uniformValue_.x);
+    p.setUniformComponent(1, uniformValue_.y);
+    p.setUniformComponent(2, uniformValue_.z);
   }
   return p;
 }

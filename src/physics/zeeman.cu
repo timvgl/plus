@@ -27,9 +27,9 @@ Field evalExternalField(const Ferromagnet* magnet) {
   }
 
   real3 b_ext = magnet->world()->biasMagneticField;
-  h.setUniformComponent(b_ext.x, 0);
-  h.setUniformComponent(b_ext.y, 1);
-  h.setUniformComponent(b_ext.z, 2);
+  h.setUniformComponent(0, b_ext.x);
+  h.setUniformComponent(1, b_ext.y);
+  h.setUniformComponent(2, b_ext.z);
 
   auto magnetFields = magnet->getMagnetFields();
   for (auto magnetField : magnetFields) {

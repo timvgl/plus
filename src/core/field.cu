@@ -119,13 +119,13 @@ __global__ static void k_setComponent(CuField f, real value, int comp) {
   f.setValueInCell(idx, comp, value);
 }
 
-void Field::setUniformComponent(real value, int comp) {
+void Field::setUniformComponent(int comp, real value) {
   cudaLaunch(grid_.ncells(), k_setComponent, cu(), value, comp);
 }
 
 void Field::makeZero() {
   for (int comp = 0; comp < ncomp_; comp++)
-    setUniformComponent(0.0, comp);
+    setUniformComponent(comp, 0.0);
 }
 
 Field& Field::operator+=(const Field& other) {
