@@ -33,6 +33,7 @@ class Ferromagnet : public System {
   Parameter msat;
   Parameter aex;
   Parameter ku1;
+  Parameter ku2;
   Parameter alpha;
   Parameter temperature;
   Parameter idmi;

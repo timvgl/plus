@@ -16,6 +16,7 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       aex(grid, 0.0),
       msat(grid, 1.0),
       ku1(grid, 0.0),
+      ku2(grid, 0.0),
       alpha(grid, 0.0),
       temperature(grid, 0.0),
       idmi(grid, 0.0),

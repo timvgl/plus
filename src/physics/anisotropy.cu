@@ -6,14 +6,15 @@
 #include "world.hpp"
 
 bool anisotropyAssuredZero(const Ferromagnet* magnet) {
-  return magnet->ku1.assuredZero() || magnet->anisU.assuredZero() ||
-         magnet->msat.assuredZero();
+  return (magnet->ku1.assuredZero() && magnet->ku2.assuredZero()) ||
+         magnet->anisU.assuredZero() || magnet->msat.assuredZero();
 }
 
 __global__ void k_anisotropyField(CuField hField,
                                   const CuField mField,
                                   const CuVectorParameter anisU,
                                   const CuParameter Ku1,
+                                  const CuParameter Ku2,
                                   const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -27,10 +28,13 @@ __global__ void k_anisotropyField(CuField hField,
 
   real3 u = normalized(anisU.vectorAt(idx));
   real3 m = mField.vectorAt(idx);
-  real k = Ku1.valueAt(idx);
+  real k1 = Ku1.valueAt(idx);
+  real k2 = Ku2.valueAt(idx);
   real Ms = msat.valueAt(idx);
 
-  real3 h = 2 * k * dot(m, u) * u / Ms;
+  real mu = dot(m, u);
+
+  real3 h = (2 * k1 * mu + 4 * k2 * mu * mu * mu) * u / Ms;
 
   hField.setVectorInCell(idx, h);
 }
@@ -45,9 +49,10 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
   const CuField m = magnet->magnetization()->field().cu();
   auto anisU = magnet->anisU.cu();
   auto ku1 = magnet->ku1.cu();
+  auto ku2 = magnet->ku2.cu();
   auto msat = magnet->msat.cu();
   int ncells = magnet->grid().ncells();
-  cudaLaunch(ncells, k_anisotropyField, h, m, anisU, ku1, msat);
+  cudaLaunch(ncells, k_anisotropyField, h, m, anisU, ku1, ku2, msat);
   return result;
 }
 
@@ -55,6 +60,7 @@ __global__ void k_anisotropyEnergyDensity(CuField edens,
                                           const CuField mField,
                                           const CuVectorParameter anisU,
                                           const CuParameter Ku1,
+                                          const CuParameter Ku2,
                                           const CuParameter msat) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -68,8 +74,15 @@ __global__ void k_anisotropyEnergyDensity(CuField edens,
 
   real3 u = normalized(anisU.vectorAt(idx));
   real3 m = mField.vectorAt(idx);
-  real k = Ku1.valueAt(idx);
-  edens.setValueInCell(idx, 0, -k * dot(m, u) * dot(m, u));
+  real k1 = Ku1.valueAt(idx);
+  real k2 = Ku2.valueAt(idx);
+
+  real mu = dot(m, u);
+
+  real e = 0.0;
+  e -= k1 * mu * mu;
+  e -= k2 * mu * mu * mu * mu;
+  edens.setValueInCell(idx, 0, e);
 }
 
 Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
@@ -83,9 +96,10 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
   const CuField m = magnet->magnetization()->field().cu();
   auto anisU = magnet->anisU.cu();
   auto ku1 = magnet->ku1.cu();
+  auto ku2 = magnet->ku1.cu();
   auto msat = magnet->msat.cu();
   int ncells = magnet->grid().ncells();
-  cudaLaunch(ncells, k_anisotropyEnergyDensity, e, m, anisU, ku1, msat);
+  cudaLaunch(ncells, k_anisotropyEnergyDensity, e, m, anisU, ku1, ku2, msat);
   return edens;
 }
 

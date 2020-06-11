@@ -42,6 +42,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_property("msat", GETPARAM(msat), SETPARAM(msat))
       .def_property("alpha", GETPARAM(alpha), SETPARAM(alpha))
       .def_property("ku1", GETPARAM(ku1), SETPARAM(ku1))
+      .def_property("ku2", GETPARAM(ku2), SETPARAM(ku2))
       .def_property("aex", GETPARAM(aex), SETPARAM(aex))
       .def_property("anisU", GETPARAM(anisU), SETPARAM(anisU))
       .def_property("idmi", GETPARAM(idmi), SETPARAM(idmi))
