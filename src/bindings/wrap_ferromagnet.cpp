@@ -30,9 +30,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("name", &Ferromagnet::name)
       .def_property_readonly("grid", &Ferromagnet::grid)
       .def_property_readonly("world", &Ferromagnet::world)
-      .def_property_readonly(
-          "cellsize",
-          [](const Ferromagnet* fm) { return fm->world()->cellsize(); })
+      .def_property_readonly("cellsize", &Ferromagnet::cellsize)
 
       .def_property("magnetization", &Ferromagnet::magnetization,
                     [](Ferromagnet* fm, py::object data) {

@@ -1,4 +1,5 @@
 #include "system.hpp"
+#include "world.hpp"
 
 System::System(World* world, std::string name, Grid grid)
     : grid_(grid), name_(name), world_(world) {}
@@ -13,4 +14,8 @@ std::string System::name() const {
 
 Grid System::grid() const {
   return grid_;
+}
+
+real3 System::cellsize() const {
+  return world()->cellsize();
 }

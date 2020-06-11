@@ -13,6 +13,7 @@ class System {
   World* world() const;
   std::string name() const;
   Grid grid() const;
+  real3 cellsize() const;
 
  protected:
   World* world_;
