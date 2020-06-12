@@ -7,27 +7,33 @@
 #include "grid.hpp"
 #include "timer.hpp"
 #include "timesolver.hpp"
-#include "world.hpp"
-#include "variable.hpp"
 #include "torque.hpp"
-
+#include "variable.hpp"
+#include "world.hpp"
 
 int main() {
   World world({4e-9, 4e-9, 4e-9});
-  Ferromagnet* magnet = world.addFerromagnet(Grid({128, 32, 1}));
+
+  Ferromagnet* magnet = world.addFerromagnet(Grid({128, 128, 1}));
+
   magnet->msat.set(800e3);
   magnet->aex.set(13e-12);
   magnet->alpha.set(0.02);
-  magnet->magnetization()->set({1,0.1,0});
-  magnet->minimize();
+
+  magnet->magnetization()->set({1, 0.1, 0});
 
   std::shared_ptr<FieldQuantity> torque(torqueQuantity(magnet).clone());
-
   DynamicEquation llg(magnet->magnetization(), torque);
 
-
   TimeSolver solver(llg);
-  solver.step();
+  solver.disableAdaptiveTimeStep();
+  solver.setTimeStep(1e-15);
+
+  auto start = clock();
+  solver.steps(1000);
+  auto stop = clock();
+
+  std::cout << double(stop-start) / double(CLOCKS_PER_SEC) << std::endl;
 
   return 0;
 }

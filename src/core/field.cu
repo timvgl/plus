@@ -16,7 +16,8 @@ Field::Field(Grid grid, int nComponents) : grid_(grid), ncomp_(nComponents) {
   allocate();
 }
 
-Field::Field(Grid grid, int nComponents, real value) : Field(grid, nComponents) {
+Field::Field(Grid grid, int nComponents, real value)
+    : Field(grid, nComponents) {
   for (int comp = 0; comp < nComponents; comp++)
     setUniformComponent(comp, value);
 }
@@ -112,7 +113,7 @@ void Field::setData(real* buffer) {
   }
 }
 
-__global__ static void k_setComponent(CuField f, real value, int comp) {
+__global__ void k_setComponent(CuField f, real value, int comp) {
   int idx = blockDim.x * blockIdx.x + threadIdx.x;
   if (!f.cellInGrid(idx))
     return;

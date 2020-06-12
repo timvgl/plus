@@ -26,10 +26,10 @@ void Minimizer::exec() {
     step();
 }
 
-__global__ static void k_step(CuField mField,
-                              const CuField m0Field,
-                              const CuField torqueField,
-                              real dt) {
+__global__ void k_step(CuField mField,
+                       const CuField m0Field,
+                       const CuField torqueField,
+                       real dt) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!mField.cellInGrid(idx))

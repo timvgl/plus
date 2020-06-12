@@ -14,6 +14,8 @@ bool exchangeAssuredZero(const Ferromagnet* magnet) {
 __device__ static inline real harmonicMean(real a, real b) {
   if (a + b == 0.0)
     return 0.0;
+  if (a == b)
+    return a;
   return 2 * a * b / (a + b);
 }
 
@@ -21,10 +23,10 @@ __global__ void k_exchangeField(CuField hField,
                                 const CuField mField,
                                 const CuParameter aex,
                                 const CuParameter msat,
-                                const real3 cellsize) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+                                const real3 w) {  // w = 1/cellsize^2
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (!hField.cellInGrid(idx))
+  if (!mField.grid.cellInGrid(idx))
     return;
 
   if (msat.valueAt(idx) == 0) {
@@ -39,23 +41,70 @@ __global__ void k_exchangeField(CuField hField,
   // accumulate exchange field in h for cell at idx, divide by msat at the end
   real3 h{0, 0, 0};
 
-  int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
-                                         int3{0, 0, -1}, int3{1, 0, 0},
-                                         int3{0, 1, 0},  int3{0, 0, 1}};
-
-  for (int3 relcoo : neighborRelativeCoordinates) {
-    const int3 coo_ = coo + relcoo;
-    const int idx_ = hField.grid.coord2index(coo_);
-
-    if (hField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
-      real dr =
-          cellsize.x * relcoo.x + cellsize.y * relcoo.y + cellsize.z * relcoo.z;
-      real3 m_ = mField.vectorAt(idx_);
-      real a_ = aex.valueAt(idx_);
-
-      h += 2 * harmonicMean(a, a_) * (m_ - m) / (dr * dr);
+  // X direction
+#pragma unroll
+  for (int sgn : {-1, 1}) {
+    const int3 coo_ = coo + int3{sgn, 0, 0};
+    if (!mField.grid.cellInGrid(coo_))
+      continue;
+    const int idx_ = mField.grid.coord2index(coo_);
+    if (msat.valueAt(idx_) != 0) {
+      const real3 m_ = mField.vectorAt(idx_);
+      const real a_ = aex.valueAt(idx_);
+      h += 2 * w.x * harmonicMean(a, a_) * (m_ - m);
     }
   }
+
+  // Y direction
+#pragma unroll
+  for (int sgn : {-1, 1}) {
+    const int3 coo_ = coo + int3{0, sgn, 0};
+    if (!mField.grid.cellInGrid(coo_))
+      continue;
+    const int idx_ = mField.grid.coord2index(coo_);
+    if (msat.valueAt(idx_) != 0) {
+      const real3 m_ = mField.vectorAt(idx_);
+      const real a_ = aex.valueAt(idx_);
+      h += 2 * w.y * harmonicMean(a, a_) * (m_ - m);
+    }
+  }
+
+  // Z direction
+  if (mField.grid.size().z > 1) {
+#pragma unroll
+    for (int sgn : {-1, 1}) {
+      const int3 coo_ = coo + int3{0, 0, sgn};
+      if (!mField.grid.cellInGrid(coo_))
+        continue;
+      const int idx_ = mField.grid.coord2index(coo_);
+      if (msat.valueAt(idx_) != 0) {
+        const real3 m_ = mField.vectorAt(idx_);
+        const real a_ = aex.valueAt(idx_);
+        h += 2 * w.z * harmonicMean(a, a_) * (m_ - m);
+      }
+    }
+  }
+
+  //  int3 neighborRelativeCoordinat__restrict__ es[6] = {int3{-1, 0, 0},
+  //  int3{0, -1, 0},
+  //                                         int3{0, 0, -1}, int3{1, 0, 0},
+  //                                         int3{0, 1, 0},  int3{0, 0, 1}};
+  //
+  //#pragma unroll
+  //  for (int3 relcoo : neighborRelativeCoordinates) {
+  //    const int3 coo_ = coo + relcoo;
+  //    const int idx_ = hField.grid.coord2index(coo_);
+  //
+  //    if (hField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
+  //      real dr =
+  //          cellsize.x * relcoo.x + cellsize.y * relcoo.y + cellsize.z *
+  //          relcoo.z;
+  //      real3 m_ = mField.vectorAt(idx_);
+  //      real a_ = aex.valueAt(idx_);
+  //
+  //      h += 2 * harmonicMean(a, a_) * (m_ - m) / (dr * dr);
+  //    }
+  //  }
 
   h /= msat.valueAt(idx);
   hField.setVectorInCell(idx, h);
@@ -67,9 +116,12 @@ Field evalExchangeField(const Ferromagnet* magnet) {
     hField.makeZero();
     return hField;
   }
+
+  real3 c = magnet->cellsize();
+  real3 w = {1 / (c.x * c.x), 1 / (c.y * c.y), 1 / (c.z * c.z)};
   cudaLaunch(hField.grid().ncells(), k_exchangeField, hField.cu(),
              magnet->magnetization()->field().cu(), magnet->aex.cu(),
-             magnet->msat.cu(), magnet->world()->cellsize());
+             magnet->msat.cu(), w);
   return hField;
 }
 

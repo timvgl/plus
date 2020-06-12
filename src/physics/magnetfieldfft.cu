@@ -20,7 +20,7 @@ __CUDAOP__ complex operator*(complex a, complex b) {
   return cuCmulf(a, b);
 }
 
-__global__ static void k_pad(CuField out, CuField in, CuParameter msat) {
+__global__ void k_pad(CuField out, CuField in, CuParameter msat) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
   if (outIdx >= out.grid.ncells())
     return;
@@ -39,7 +39,7 @@ __global__ static void k_pad(CuField out, CuField in, CuParameter msat) {
   }
 }
 
-__global__ static void k_unpad(CuField out, CuField in) {
+__global__ void k_unpad(CuField out, CuField in) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (outIdx >= out.grid.ncells())
@@ -63,27 +63,46 @@ static void checkCufftResult(cufftResult result) {
     throw std::runtime_error("cufft error in demag convolution");
 }
 
-__global__ static void k_apply_kernel(complex* hx,
-                                      complex* hy,
-                                      complex* hz,
-                                      complex* mx,
-                                      complex* my,
-                                      complex* mz,
-                                      complex* kxx,
-                                      complex* kyy,
-                                      complex* kzz,
-                                      complex* kxy,
-                                      complex* kxz,
-                                      complex* kyz,
-                                      complex preFactor,
-                                      int n) {
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void k_apply_kernel_3d(complex* __restrict__ hx,
+                               complex* __restrict__ hy,
+                               complex* __restrict__ hz,
+                               complex* __restrict__ mx,
+                               complex* __restrict__ my,
+                               complex* __restrict__ mz,
+                               complex* __restrict__ kxx,
+                               complex* __restrict__ kyy,
+                               complex* __restrict__ kzz,
+                               complex* __restrict__ kxy,
+                               complex* __restrict__ kxz,
+                               complex* __restrict__ kyz,
+                               complex preFactor,
+                               int n) {
+  const int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= n)
     return;
-
   hx[i] = preFactor * (kxx[i] * mx[i] + kxy[i] * my[i] + kxz[i] * mz[i]);
   hy[i] = preFactor * (kxy[i] * mx[i] + kyy[i] * my[i] + kyz[i] * mz[i]);
   hz[i] = preFactor * (kxz[i] * mx[i] + kyz[i] * my[i] + kzz[i] * mz[i]);
+}
+
+__global__ void k_apply_kernel_2d(complex* __restrict__ hx,
+                                     complex* __restrict__ hy,
+                                     complex* __restrict__ hz,
+                                     complex* __restrict__ mx,
+                                     complex* __restrict__ my,
+                                     complex* __restrict__ mz,
+                                     complex* __restrict__ kxx,
+                                     complex* __restrict__ kyy,
+                                     complex* __restrict__ kzz,
+                                     complex* __restrict__ kxy,
+                                     complex preFactor,
+                                     int n) {
+  const int i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i >= n)
+    return;
+  hx[i] = preFactor * (kxx[i] * mx[i] + kxy[i] * my[i]);
+  hy[i] = preFactor * (kxy[i] * mx[i] + kyy[i] * my[i]);
+  hz[i] = preFactor * (kzz[i] * mz[i]);
 }
 
 MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid gridOut,
@@ -141,9 +160,17 @@ void MagnetFieldFFTExecutor::exec(Field* h,
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
   complex preFactor{-MU0 / kernel_.grid().ncells(), 0};
-  cudaLaunch(ncells, k_apply_kernel, hfft.at(0), hfft.at(1), hfft.at(2),
-             mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
-             kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor, ncells);
+  if (h->grid().size().z > 1) {
+    cudaLaunch(ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
+               mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
+               kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor,
+               ncells);
+  } else {
+    cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
+               mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
+               kfft.at(2), kfft.at(3), preFactor,
+               ncells);
+  }
 
   // backward fourier transfrom
   for (int comp = 0; comp < 3; comp++)
