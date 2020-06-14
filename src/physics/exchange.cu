@@ -152,3 +152,56 @@ FM_FieldQuantity exchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
 FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet* magnet) {
   return FM_ScalarQuantity(magnet, evalExchangeEnergy, "exchange_energy", "J");
 }
+
+__global__ void k_maxangle(CuField maxAngleField,
+                           const CuField mField,
+                           const CuParameter aex,
+                           const CuParameter msat) {
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (!maxAngleField.grid.cellInGrid(idx))
+    return;
+
+  if (msat.valueAt(idx) == 0) {
+    maxAngleField.setValueInCell(idx, 0, 0);
+    return;
+  }
+
+  const int3 coo = maxAngleField.grid.index2coord(idx);
+  const real3 m = mField.vectorAt(idx);
+  const real a = aex.valueAt(idx);
+
+  real maxAngle{0};  // maximum angle in this cell
+
+  int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
+                                         int3{0, 0, -1}, int3{1, 0, 0},
+                                         int3{0, 1, 0},  int3{0, 0, 1}};
+
+#pragma unroll
+  for (int3 relcoo : neighborRelativeCoordinates) {
+    const int3 coo_ = coo + relcoo;
+    const int idx_ = maxAngleField.grid.coord2index(coo_);
+    if (maxAngleField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
+      real3 m_ = mField.vectorAt(idx_);
+      real a_ = aex.valueAt(idx_);
+      real angle = m==m_? 0: acos(dot(m,m_));
+      if (harmonicMean(a,a_)!=0 && angle > maxAngle){
+        maxAngle = angle;
+      }
+    }
+  }
+
+  maxAngleField.setValueInCell(idx, 0, maxAngle);
+}
+
+real evalMaxAngle(const Ferromagnet* magnet) {
+  Field maxAngleField(magnet->grid(),1);
+  cudaLaunch(maxAngleField.grid().ncells(), k_maxangle, maxAngleField.cu(),
+             magnet->magnetization()->field().cu(), magnet->aex.cu(),
+             magnet->msat.cu());
+  return maxAbsValue(maxAngleField);
+}
+
+FM_ScalarQuantity maxAngle(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalMaxAngle, "max_angle", "");
+}

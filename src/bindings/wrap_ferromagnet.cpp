@@ -90,6 +90,10 @@ void wrap_ferromagnet(py::module& m) {
           [](const Ferromagnet* fm) { return exchangeEnergyQuantity(fm); })
 
       .def_property_readonly(
+          "max_angle",
+          [](const Ferromagnet* fm) { return maxAngle(fm); })
+
+      .def_property_readonly(
           "interfacialdmi_field",
           [](const Ferromagnet* fm) { return interfacialDmiFieldQuantity(fm); })
 

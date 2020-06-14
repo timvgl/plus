@@ -6,6 +6,7 @@
 
 class Field;
 
+real maxAbsValue(const Field&);
 real maxVecNorm(const Field&);
 real dotSum(const Field&, const Field&);
 real fieldComponentAverage(const Field&, int comp);

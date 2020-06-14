@@ -19,6 +19,47 @@ void cudaLaunchReductionKernel(void (*kernelfunction)(Arguments...),
   checkCudaError(cudaDeviceSynchronize());
 }
 
+__global__ void k_maxAbsValue(real* result, CuField f) {
+  // Reduce to a block
+  __shared__ real sdata[BLOCKDIM];
+  int ncells = f.grid.ncells();
+  int tid = threadIdx.x;
+  real threadValue = 0.0;
+  for (int i = tid; i < ncells; i += BLOCKDIM) {
+    for (int c = 0; c < f.ncomp; c++) {
+      real value = abs(f.valueAt(i, c));
+      threadValue = value > threadValue? value : threadValue;
+    }
+  }
+  sdata[tid] = threadValue;
+  __syncthreads();
+
+  // Reduce the block
+  for (unsigned int s = BLOCKDIM / 2; s > 0; s >>= 1) {
+    if (tid < s)
+      if (sdata[tid + s] > sdata[tid])
+        sdata[tid] = sdata[tid + s];
+    __syncthreads();
+  }
+  // TODO: check if loop unrolling makes sense here
+
+  // Set the result
+  if (tid == 0)
+    *result = sdata[0];
+}
+
+real maxAbsValue(const Field& f) {
+  real* d_result = (real*)bufferPool.allocate(sizeof(real));
+  cudaLaunchReductionKernel(k_maxAbsValue, d_result, f.cu());
+
+  // copy the result to the host and return
+  real result;
+  checkCudaError(cudaMemcpyAsync(&result, d_result, 1 * sizeof(real),
+                                 cudaMemcpyDeviceToHost, getCudaStream()));
+  bufferPool.recycle((void**)&d_result);
+  return result;
+}
+
 __global__ void k_maxVecNorm(real* result, CuField f) {
   // Reduce to a block
   __shared__ real sdata[BLOCKDIM];

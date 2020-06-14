@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ferromagnetquantity.hpp"
-#include "handler.hpp"
 
 class Ferromagnet;
 class Field;
@@ -14,3 +13,7 @@ real evalExchangeEnergy(const Ferromagnet*);
 FM_FieldQuantity exchangeFieldQuantity(const Ferromagnet *);
 FM_FieldQuantity exchangeEnergyDensityQuantity(const Ferromagnet*);
 FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet *);
+
+// returns the maximal angle between exchange coupled cells
+real evalMaxAngle(const Ferromagnet *);
+FM_ScalarQuantity maxAngle(const Ferromagnet *);
