@@ -64,19 +64,19 @@ static void checkCufftResult(cufftResult result) {
 }
 
 __global__ void k_apply_kernel_3d(complex* __restrict__ hx,
-                               complex* __restrict__ hy,
-                               complex* __restrict__ hz,
-                               complex* __restrict__ mx,
-                               complex* __restrict__ my,
-                               complex* __restrict__ mz,
-                               complex* __restrict__ kxx,
-                               complex* __restrict__ kyy,
-                               complex* __restrict__ kzz,
-                               complex* __restrict__ kxy,
-                               complex* __restrict__ kxz,
-                               complex* __restrict__ kyz,
-                               complex preFactor,
-                               int n) {
+                                  complex* __restrict__ hy,
+                                  complex* __restrict__ hz,
+                                  complex* __restrict__ mx,
+                                  complex* __restrict__ my,
+                                  complex* __restrict__ mz,
+                                  complex* __restrict__ kxx,
+                                  complex* __restrict__ kyy,
+                                  complex* __restrict__ kzz,
+                                  complex* __restrict__ kxy,
+                                  complex* __restrict__ kxz,
+                                  complex* __restrict__ kyz,
+                                  complex preFactor,
+                                  int n) {
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= n)
     return;
@@ -86,17 +86,17 @@ __global__ void k_apply_kernel_3d(complex* __restrict__ hx,
 }
 
 __global__ void k_apply_kernel_2d(complex* __restrict__ hx,
-                                     complex* __restrict__ hy,
-                                     complex* __restrict__ hz,
-                                     complex* __restrict__ mx,
-                                     complex* __restrict__ my,
-                                     complex* __restrict__ mz,
-                                     complex* __restrict__ kxx,
-                                     complex* __restrict__ kyy,
-                                     complex* __restrict__ kzz,
-                                     complex* __restrict__ kxy,
-                                     complex preFactor,
-                                     int n) {
+                                  complex* __restrict__ hy,
+                                  complex* __restrict__ hz,
+                                  complex* __restrict__ mx,
+                                  complex* __restrict__ my,
+                                  complex* __restrict__ mz,
+                                  complex* __restrict__ kxx,
+                                  complex* __restrict__ kyy,
+                                  complex* __restrict__ kzz,
+                                  complex* __restrict__ kxy,
+                                  complex preFactor,
+                                  int n) {
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= n)
     return;
@@ -160,15 +160,17 @@ void MagnetFieldFFTExecutor::exec(Field* h,
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
   complex preFactor{-MU0 / kernel_.grid().ncells(), 0};
-  if (h->grid().size().z > 1) {
+  if (kernel_.grid().size().z == 1 && kernel_.grid().origin().z == 0) {
+    // if the h field and m field are tow dimensional AND are in the same plane
+    // (kernel grid origin at z=0) then the kernel matrix has only 4 relevant
+    // components and a more efficient cuda kernel can be used:
+    cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
+               mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
+               kfft.at(2), kfft.at(3), preFactor, ncells);
+  } else {
     cudaLaunch(ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor,
-               ncells);
-  } else {
-    cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
-               mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
-               kfft.at(2), kfft.at(3), preFactor,
                ncells);
   }
 
