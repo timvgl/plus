@@ -1,6 +1,6 @@
 import pytest
 
-from mumax5.engine import World
+from mumax5 import World
 
 
 class TestWorld:

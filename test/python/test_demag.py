@@ -1,4 +1,4 @@
-from mumax5.engine import World, Grid
+from mumax5 import World, Grid
 
 import numpy as np
 

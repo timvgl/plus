@@ -69,8 +69,8 @@ setup(
     author_email='jeroen.mulkers@gmail.com',
     description='Finite difference micromagnetic solver',
     long_description='',
-    ext_package='mumax5',
-    ext_modules=[CMakeExtension('engine')],
+    packages=['mumax5'],
+    ext_modules=[CMakeExtension('_mumax5cpp')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 )

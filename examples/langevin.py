@@ -1,4 +1,4 @@
-from mumax5.engine import *
+from mumax5 import *
 import numpy as np
 import matplotlib.pyplot as plt
 

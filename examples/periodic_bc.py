@@ -1,4 +1,4 @@
-from mumax5.engine import *
+from mumax5 import *
 from mumax5.util import show_field
 
 # infinite grid in z direction, periodic in x and y

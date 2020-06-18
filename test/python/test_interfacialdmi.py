@@ -1,5 +1,5 @@
 import numpy as np
-from mumax5.engine import World, Grid
+from mumax5 import World, Grid
 
 X, Y, Z = 0, 1, 2
 

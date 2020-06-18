@@ -1,6 +1,6 @@
 add_subdirectory(pybind11)
 
-pybind11_add_module(engine
+pybind11_add_module(_mumax5cpp
     cast.hpp
     main.cpp
     wrappers.hpp
@@ -18,5 +18,5 @@ pybind11_add_module(engine
     wrap_table.cpp
 )
 
-target_include_directories(engine PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-target_link_libraries(engine PRIVATE physics)
+target_include_directories(_mumax5cpp PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+target_link_libraries(_mumax5cpp PRIVATE physics)

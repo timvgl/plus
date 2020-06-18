@@ -1,6 +1,6 @@
 import numpy as np
 
-from mumax5.engine import World, Grid
+from mumax5 import World, Grid
 
 
 def compute_exchange_numpy(magnet):

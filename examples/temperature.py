@@ -3,7 +3,7 @@
 # This script solves micromagnetic standard problem 4. The Problem specification
 # can be found on https://www.ctcms.nist.gov/~rdm/mumag.org.html
 
-from mumax5.engine import World, Grid, TimeSolver, Table
+from mumax5 import World, Grid, TimeSolver, Table
 from mumax5.util import show_field
 
 import matplotlib.pyplot as plt

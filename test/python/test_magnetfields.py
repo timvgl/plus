@@ -1,4 +1,4 @@
-from mumax5.engine import World, Grid, MagnetField
+from mumax5 import World, Grid, MagnetField
 
 import numpy as np
 import pytest

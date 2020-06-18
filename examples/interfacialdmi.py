@@ -1,4 +1,4 @@
-from mumax5.engine import *
+from mumax5 import *
 from mumax5.util import *
 
 world = World(cellsize=(0.2, 0.2, 0.2))

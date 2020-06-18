@@ -1,4 +1,4 @@
-from mumax5.engine import *
+from mumax5 import *
 import time
 
 world = World((4e-9, 4e-9, 4e-9))

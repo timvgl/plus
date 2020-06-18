@@ -1,5 +1,5 @@
 import pytest
-from mumax5.engine import Grid
+from mumax5 import Grid
 
 
 class TestGrid:
@@ -7,8 +7,8 @@ class TestGrid:
     def test_valid_args(self):
 
         valid_gridsizes = [(1, 1, 1), [10, 3, 1], [10, 3, 100], (1, 3, 100)]
-        invalid_gridsizes = [(0, 1, 1), [10, 0, 1], [
-            1, 1, 0], (-1, 3, 100), (4.1, 3.1, 1.2), (1, -1, 1), (2, 1), 5, (9, 2, 1, 1), 'a']
+        invalid_gridsizes = [(0, -1, 1), [10, 0, -1], (-1, 3, 100),
+                             (4.1, 3.1, 1.2), (1, -1, 1), (2, 1), 5, (9, 2, 1, 1), 'a']
 
         valid_origins = [(-4, 3, 1), (0, 0, 0)]
         invalid_origins = [(-4, 3.2, 1), (1, 1), 0]
