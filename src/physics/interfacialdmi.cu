@@ -24,7 +24,8 @@ __global__ void k_interfacialDmiField(CuField hField,
                                       const CuParameter idmi,
                                       const CuParameter msat,
                                       const real3 interfaceNormal,
-                                      const real3 cellsize) {
+                                      const real3 cellsize,
+                                      Grid mastergrid) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!hField.cellInGrid(idx))
@@ -46,7 +47,7 @@ __global__ void k_interfacialDmiField(CuField hField,
                                                int3{0, 1, 0},  int3{0, 0, 1}};
 
   for (int3 relcoo : neighborRelativeCoordinates) {
-    const int3 coo_ = coo + relcoo;
+    const int3 coo_ = mastergrid.wrap(coo + relcoo);
     const int idx_ = hField.grid.coord2index(coo_);
 
     if (hField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
@@ -76,7 +77,7 @@ Field evalInterfacialDmiField(const Ferromagnet* magnet) {
   }
   cudaLaunch(hField.grid().ncells(), k_interfacialDmiField, hField.cu(),
              magnet->magnetization()->field().cu(), magnet->idmi.cu(),
-             magnet->msat.cu(), interfaceNormal, magnet->world()->cellsize());
+             magnet->msat.cu(), interfaceNormal, magnet->world()->cellsize(), magnet->world()->mastergrid());
   return hField;
 }
 

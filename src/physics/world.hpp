@@ -2,19 +2,23 @@
 
 #include <map>
 #include <memory>
+#include <stdexcept>
 
 #include "datatypes.hpp"
-#include "handler.hpp"
+#include "grid.hpp"
 
 class Ferromagnet;
-class Grid;
 
 class World {
  public:
-  World(real3 cellsize);
+  World(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
   ~World();
   real3 cellsize() const;
   real cellVolume() const;
+  Grid mastergrid() const;
+
+  /// Returns true if grid is completely inside the mastergrid
+  bool inMastergrid(Grid) const;
 
   real3 biasMagneticField;
 
@@ -26,4 +30,5 @@ class World {
  private:
   std::map<std::string, Ferromagnet*> Ferromagnets;
   real3 cellsize_;
+  Grid mastergrid_;
 };

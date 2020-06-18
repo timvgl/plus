@@ -23,7 +23,8 @@ __global__ void k_exchangeField(CuField hField,
                                 const CuField mField,
                                 const CuParameter aex,
                                 const CuParameter msat,
-                                const real3 w) {  // w = 1/cellsize^2
+                                const real3 w,  // w = 1/cellsize^2
+                                Grid mastergrid) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!mField.grid.cellInGrid(idx))
@@ -44,7 +45,7 @@ __global__ void k_exchangeField(CuField hField,
   // X direction
 #pragma unroll
   for (int sgn : {-1, 1}) {
-    const int3 coo_ = coo + int3{sgn, 0, 0};
+    const int3 coo_ = mastergrid.wrap(coo + int3{sgn, 0, 0});
     if (!mField.grid.cellInGrid(coo_))
       continue;
     const int idx_ = mField.grid.coord2index(coo_);
@@ -58,7 +59,7 @@ __global__ void k_exchangeField(CuField hField,
   // Y direction
 #pragma unroll
   for (int sgn : {-1, 1}) {
-    const int3 coo_ = coo + int3{0, sgn, 0};
+    const int3 coo_ = mastergrid.wrap(coo + int3{0, sgn, 0});
     if (!mField.grid.cellInGrid(coo_))
       continue;
     const int idx_ = mField.grid.coord2index(coo_);
@@ -73,7 +74,7 @@ __global__ void k_exchangeField(CuField hField,
   if (mField.grid.size().z > 1) {
 #pragma unroll
     for (int sgn : {-1, 1}) {
-      const int3 coo_ = coo + int3{0, 0, sgn};
+      const int3 coo_ = mastergrid.wrap(coo + int3{0, 0, sgn});
       if (!mField.grid.cellInGrid(coo_))
         continue;
       const int idx_ = mField.grid.coord2index(coo_);
@@ -121,7 +122,7 @@ Field evalExchangeField(const Ferromagnet* magnet) {
   real3 w = {1 / (c.x * c.x), 1 / (c.y * c.y), 1 / (c.z * c.z)};
   cudaLaunch(hField.grid().ncells(), k_exchangeField, hField.cu(),
              magnet->magnetization()->field().cu(), magnet->aex.cu(),
-             magnet->msat.cu(), w);
+             magnet->msat.cu(), w, magnet->world()->mastergrid());
   return hField;
 }
 
@@ -184,8 +185,8 @@ __global__ void k_maxangle(CuField maxAngleField,
     if (maxAngleField.cellInGrid(coo_) && msat.valueAt(idx_) != 0) {
       real3 m_ = mField.vectorAt(idx_);
       real a_ = aex.valueAt(idx_);
-      real angle = m==m_? 0: acos(dot(m,m_));
-      if (harmonicMean(a,a_)!=0 && angle > maxAngle){
+      real angle = m == m_ ? 0 : acos(dot(m, m_));
+      if (harmonicMean(a, a_) != 0 && angle > maxAngle) {
         maxAngle = angle;
       }
     }
@@ -195,7 +196,7 @@ __global__ void k_maxangle(CuField maxAngleField,
 }
 
 real evalMaxAngle(const Ferromagnet* magnet) {
-  Field maxAngleField(magnet->grid(),1);
+  Field maxAngleField(magnet->grid(), 1);
   cudaLaunch(maxAngleField.grid().ncells(), k_maxangle, maxAngleField.cu(),
              magnet->magnetization()->field().cu(), magnet->aex.cu(),
              magnet->msat.cu());

@@ -19,6 +19,11 @@ class Grid {
   __device__ __host__ bool cellInGrid(int idx) const;
   __device__ __host__ bool cellInGrid(int3 coo) const;
 
+  /// Returns the image coordinate of 'coo' inside the grid as if the grid is
+  /// repeated in every direction. This function is especially usefull when grid
+  /// defines a periodic simulation box.
+  __device__ __host__ int3 wrap(int3 coo) const;
+
   __device__ __host__ bool overlaps(Grid) const;
 
   __host__ friend bool operator==(const Grid& lhs, const Grid& rhs);
@@ -56,6 +61,22 @@ __device__ __host__ inline int Grid::coord2index(int3 coo) const {
 
 __device__ __host__ inline bool Grid::cellInGrid(int idx) const {
   return idx >= 0 && idx < ncells();
+}
+
+// true modulo operation
+__device__ __host__ inline int modulo(int i, int d) {
+  i %= d;
+  return i >= 0 ? i : i + d;
+}
+
+__device__ __host__ inline int3 Grid::wrap(int3 idx) const {
+  if (size_.x > 0)
+    idx.x = origin_.x + modulo(idx.x - origin_.x, size_.x);
+  if (size_.y > 0)
+    idx.y = origin_.y + modulo(idx.y - origin_.y, size_.y);
+  if (size_.z > 0)
+    idx.z = origin_.z + modulo(idx.z - origin_.z, size_.z);
+  return idx;
 }
 
 __device__ __host__ inline bool Grid::cellInGrid(int3 coo) const {
