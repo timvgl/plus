@@ -13,7 +13,7 @@ nx, ny, nz = 128, 32, 1
 
 world = World(cellsize=(length/nx, width/ny, thickness/nz))
 
-magnet = world.add_ferromagnet(Grid((nx, ny, nz)))
+magnet = world.add_ferromagnet(Grid((nx, ny, nz)), "my_magnet")
 magnet.msat = 800e3
 magnet.aex = 13e-12
 magnet.alpha = 0.02
