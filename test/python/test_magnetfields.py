@@ -1,4 +1,4 @@
-from mumax5 import World, Grid, MagnetField
+from mumax5 import World, Grid, MagnetField, Ferromagnet
 
 import numpy as np
 import pytest
@@ -58,7 +58,7 @@ class TestMagnetFields:
         mgrid, hgrid = test_case["mgrid"], test_case["hgrid"]
 
         world = World((1e-9, 2e-9, 3.1e-9))
-        magnet = world.add_ferromagnet(mgrid)
+        magnet = Ferromagnet(world, mgrid)
         magnet.msat = 800e3
         magnet.magnetization = (1, 0, 0)
 
@@ -84,7 +84,7 @@ class TestMagnetFields:
         mgrid, hgrid = test_case["mgrid"], test_case["hgrid"]
 
         world = World((1e-9, 2e-9, 3.1e-9))
-        magnet = world.add_ferromagnet(mgrid)
+        magnet = Ferromagnet(world, mgrid)
         magnet.msat = 800e3
         magnet.magnetization = (1, -1, 2)
 
@@ -96,7 +96,7 @@ class TestMagnetFields:
         # Construct an equivalent system against we will check the result.
         world2 = World(world.cellsize)
         box = extended_grid(mgrid, hgrid)
-        magnet2 = world2.add_ferromagnet(box)
+        magnet2 = Ferromagnet(world2, box)
 
         mxi, myi, mzi = [mgrid.origin[c] - box.origin[c] for c in [0, 1, 2]]
         mxf, myf, mzf = [mgrid.origin[c] + mgrid.size[c] - box.origin[c]

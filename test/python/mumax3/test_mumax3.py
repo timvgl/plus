@@ -1,5 +1,5 @@
 from mumax3 import Mumax3Simulation
-from mumax5 import World, Grid
+from mumax5 import World, Grid, Ferromagnet
 
 import numpy as np
 
@@ -23,7 +23,7 @@ class TestMumax3:
         """
 
         self.world = World((1e-9, 2e-9, 3.2e-9))
-        self.magnet = self.world.add_ferromagnet(Grid((29, 16, 4), (6, -3, 0)))
+        self.magnet = Ferromagnet(self.world, Grid((29, 16, 4), (6, -3, 0)))
         ku1 = 4.1e6
         ku2 = 2.1e5
         anisU = (-0.3, 0, 1.5)

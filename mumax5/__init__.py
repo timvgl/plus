@@ -5,5 +5,7 @@ from _mumax5cpp import Table
 from _mumax5cpp import Ferromagnet
 from _mumax5cpp import Variable
 
-#from _mumax5cpp import World
+import _mumax5cpp as _cpp
+
 from .world import World
+from .ferromagnet import Ferromagnet

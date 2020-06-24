@@ -32,115 +32,21 @@ void wrap_ferromagnet(py::module& m) {
       .def_property_readonly("world", &Ferromagnet::world)
       .def_property_readonly("cellsize", &Ferromagnet::cellsize)
 
-      .def_property("magnetization", &Ferromagnet::magnetization,
-                    [](Ferromagnet* fm, py::object data) {
-                      py::cast(fm->magnetization()).attr("set")(data);
-                    })
-
-      .def_property("msat", GETPARAM(msat), SETPARAM(msat))
-      .def_property("alpha", GETPARAM(alpha), SETPARAM(alpha))
-      .def_property("ku1", GETPARAM(ku1), SETPARAM(ku1))
-      .def_property("ku2", GETPARAM(ku2), SETPARAM(ku2))
-      .def_property("aex", GETPARAM(aex), SETPARAM(aex))
-      .def_property("anisU", GETPARAM(anisU), SETPARAM(anisU))
-      .def_property("idmi", GETPARAM(idmi), SETPARAM(idmi))
-      .def_property("xi", GETPARAM(xi), SETPARAM(xi))
-      .def_property("pol", GETPARAM(pol), SETPARAM(pol))
-      .def_property("jcur", GETPARAM(jcur), SETPARAM(jcur))
-      .def_property("temperature", GETPARAM(temperature), SETPARAM(temperature))
+      .def_property_readonly("magnetization", &Ferromagnet::magnetization)
 
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
 
-      .def_property_readonly(
-          "demag_field",
-          [](const Ferromagnet* fm) { return demagFieldQuantity(fm); })
-
-      .def_property_readonly(
-          "demag_energy_density",
-          [](const Ferromagnet* fm) { return demagEnergyDensityQuantity(fm); })
-
-      .def_property_readonly(
-          "demag_energy",
-          [](const Ferromagnet* fm) { return demagEnergyQuantity(fm); })
-
-      .def_property_readonly(
-          "anisotropy_field",
-          [](const Ferromagnet* fm) { return anisotropyFieldQuantity(fm); })
-
-      .def_property_readonly("anisotropy_energy_density",
-                             [](const Ferromagnet* fm) {
-                               return anisotropyEnergyDensityQuantity(fm);
-                             })
-
-      .def_property_readonly(
-          "anisotropy_energy",
-          [](const Ferromagnet* fm) { return anisotropyEnergyQuantity(fm); })
-
-      .def_property_readonly(
-          "exchange_field",
-          [](const Ferromagnet* fm) { return exchangeFieldQuantity(fm); })
-
-      .def_property_readonly("exchange_energy_density",
-                             [](const Ferromagnet* fm) {
-                               return exchangeEnergyDensityQuantity(fm);
-                             })
-
-      .def_property_readonly(
-          "exchange_energy",
-          [](const Ferromagnet* fm) { return exchangeEnergyQuantity(fm); })
-
-      .def_property_readonly(
-          "max_angle",
-          [](const Ferromagnet* fm) { return maxAngle(fm); })
-
-      .def_property_readonly(
-          "interfacialdmi_field",
-          [](const Ferromagnet* fm) { return interfacialDmiFieldQuantity(fm); })
-
-      .def_property_readonly("interfacialdmi_energy_density",
-                             [](const Ferromagnet* fm) {
-                               return interfacialDmiEnergyDensityQuantity(fm);
-                             })
-
-      .def_property_readonly("interfacialdmi_energy",
-                             [](const Ferromagnet* fm) {
-                               return interfacialDmiEnergyQuantity(fm);
-                             })
-
-      .def_property_readonly(
-          "external_field",
-          [](const Ferromagnet* fm) { return externalFieldQuantity(fm); })
-
-      .def_property_readonly(
-          "zeeman_energy_density",
-          [](const Ferromagnet* fm) { return zeemanEnergyDensityQuantity(fm); })
-
-      .def_property_readonly(
-          "zeeman_energy",
-          [](const Ferromagnet* fm) { return zeemanEnergyQuantity(fm); })
-
-      .def_property_readonly(
-          "effective_field",
-          [](const Ferromagnet* fm) { return effectiveFieldQuantity(fm); })
-
-      .def_property_readonly(
-          "total_energy_density",
-          [](const Ferromagnet* fm) { return totalEnergyDensityQuantity(fm); })
-
-      .def_property_readonly(
-          "total_energy",
-          [](const Ferromagnet* fm) { return totalEnergyQuantity(fm); })
-
-      .def_property_readonly(
-          "torque", [](const Ferromagnet* fm) { return torqueQuantity(fm); })
-
-      .def_property_readonly(
-          "llg_torque",
-          [](const Ferromagnet* fm) { return llgTorqueQuantity(fm); })
-
-      .def_property_readonly(
-          "spin_transfer_torque",
-          [](const Ferromagnet* fm) { return spinTransferTorqueQuantity(fm); })
+      .def_readonly("msat", &Ferromagnet::msat)
+      .def_readonly("alpha", &Ferromagnet::alpha)
+      .def_readonly("ku1", &Ferromagnet::ku1)
+      .def_readonly("ku2", &Ferromagnet::ku2)
+      .def_readonly("aex", &Ferromagnet::aex)
+      .def_readonly("anisU", &Ferromagnet::anisU)
+      .def_readonly("idmi", &Ferromagnet::idmi)
+      .def_readonly("xi", &Ferromagnet::xi)
+      .def_readonly("pol", &Ferromagnet::pol)
+      .def_readonly("jcur", &Ferromagnet::jcur)
+      .def_readonly("temperature", &Ferromagnet::temperature)
 
       .def_property_readonly(
           "thermal_noise",
@@ -158,19 +64,41 @@ void wrap_ferromagnet(py::module& m) {
           py::return_value_policy::reference)
 
       .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
-           py::arg("nsamples") = 10)
+           py::arg("nsamples") = 10);
 
-      // TODO: remove demagkernel function
-      .def("_demagkernel",
-           [](const Ferromagnet* fm) {
-             Grid grid = fm->grid();
-             real3 cellsize = fm->world()->cellsize();
-             MagnetFieldKernel demagKernel(grid, grid, cellsize);
-             return fieldToArray(demagKernel.field());
-           })
+  m.def("torque", &torqueQuantity);
+  m.def("llg_torque", &llgTorqueQuantity);
+  m.def("spin_transfer_torque", &spinTransferTorqueQuantity);
 
-      //.def("__repr__", [](const Ferromagnet &f) {
-      //  return "Ferromagnet named '" + f.name() + "'";
-      //})
-      ;
+  m.def("demag_field", &demagFieldQuantity);
+  m.def("demag_energy_density", &demagEnergyDensityQuantity);
+  m.def("demag_energy", &demagEnergyQuantity);
+
+  m.def("anisotropy_field", &anisotropyFieldQuantity);
+  m.def("anisotropy_energy_density", &anisotropyEnergyDensityQuantity);
+  m.def("anisotropy_energy", &anisotropyEnergyQuantity);
+
+  m.def("exchange_field", &exchangeFieldQuantity);
+  m.def("exchange_energy_density", &exchangeEnergyDensityQuantity);
+  m.def("exchange_energy", &exchangeEnergyQuantity);
+  m.def("max_angle", &maxAngle);
+
+  m.def("interfacialdmi_field", &interfacialDmiFieldQuantity);
+  m.def("interfacialdmi_energy_density", &interfacialDmiEnergyDensityQuantity);
+  m.def("interfacialdmi_energy", &interfacialDmiEnergyQuantity);
+
+  m.def("external_field", &externalFieldQuantity);
+  m.def("zeeman_energy_density", &zeemanEnergyDensityQuantity);
+  m.def("zeeman_energy", &zeemanEnergyQuantity);
+
+  m.def("effective_field", &effectiveFieldQuantity);
+  m.def("total_energy_density", &totalEnergyDensityQuantity);
+  m.def("total_energy", &totalEnergyQuantity);
+
+  m.def("_demag_kernel", [](const Ferromagnet* fm) {
+    Grid grid = fm->grid();
+    real3 cellsize = fm->world()->cellsize();
+    MagnetFieldKernel demagKernel(grid, grid, cellsize);
+    return fieldToArray(demagKernel.field());
+  });
 }

@@ -3,7 +3,7 @@
 # This script solves micromagnetic standard problem 4. The Problem specification
 # can be found on https://www.ctcms.nist.gov/~rdm/mumag.org.html
 
-from mumax5 import World, Grid, TimeSolver, Table
+from mumax5 import World, Grid, TimeSolver, Table, Ferromagnet
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +13,7 @@ nx, ny, nz = 128, 32, 1
 
 world = World(cellsize=(length/nx, width/ny, thickness/nz))
 
-magnet = world.add_ferromagnet(Grid((nx, ny, nz)), "my_magnet")
+magnet = Ferromagnet(world, Grid((nx, ny, nz)))
 magnet.msat = 800e3
 magnet.aex = 13e-12
 magnet.alpha = 0.02

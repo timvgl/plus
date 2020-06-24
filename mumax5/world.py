@@ -9,19 +9,19 @@ class World:
         """ Construct a world with a given cell size """
         self._impl = _cpp.World(cellsize)
 
-    def add_ferromagnet(self, grid, name=""):
-        """ Add a ferromagnet to this world
+    #def add_ferromagnet(self, grid, name=""):
+    #    """ Add a ferromagnet to this world
 
-        Parameters
-        ----------
-        grid : Grid
-            The grid on which the magnet lives
-        name : string, optional
-            The name of the magnet. If the string is empty, a name will be
-            given by the engine.
-        """
+    #    Parameters
+    #    ----------
+    #    grid : Grid
+    #        The grid on which the magnet lives
+    #    name : string, optional
+    #        The name of the magnet. If the string is empty, a name will be
+    #        given by the engine.
+    #    """
 
-        return self._impl.add_ferromagnet(grid, name)
+    #    return self._impl.add_ferromagnet(grid, name)
 
     def get_ferromagnet(self, name):
         """ Get a ferromagnet by its name """

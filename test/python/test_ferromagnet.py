@@ -1,4 +1,4 @@
-from mumax5 import World, Grid
+from mumax5 import World, Grid, Ferromagnet
 import numpy as np
 
 
@@ -8,7 +8,7 @@ class TestFerromagnet:
         nx, ny, nz = 4,7,3
 
         w = World(cellsize=(1e-9, 1e-9, 1e-9))
-        magnet = w.add_ferromagnet(Grid((nx, ny, nz)))
+        magnet = Ferromagnet(w, Grid((nx, ny, nz)))
 
         m_not_normalized = 10*np.random.rand(3,nz,ny,nx)-5
         magnet.magnetization.set(m_not_normalized)

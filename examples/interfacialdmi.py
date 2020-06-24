@@ -2,7 +2,7 @@ from mumax5 import *
 from mumax5.util import *
 
 world = World(cellsize=(0.2, 0.2, 0.2))
-magnet = world.add_ferromagnet(Grid((128, 128, 1)))
+magnet = Ferromagnet(world, Grid((128, 128, 1)))
 magnet.enable_demag = False
 magnet.aex = 1
 magnet.ku1 = 1

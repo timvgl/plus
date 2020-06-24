@@ -20,7 +20,7 @@ nsamples = 200
 
 world = World(cellsize=3*[np.power(cellvolume, 1./3.)])
 world.bias_magnetic_field = (0, 0, bext)
-magnet = world.add_ferromagnet(Grid((N, 1, 1)))
+magnet = Ferromagnet(world, Grid((N, 1, 1)))
 magnet.enable_demag = False
 magnet.aex = 0.0
 magnet.alpha = 0.1

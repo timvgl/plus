@@ -7,7 +7,7 @@ cellsize = (0.1, 0.1, 0.1)
 
 world = World(cellsize, mastergrid)
 
-magnet = world.add_ferromagnet(grid=Grid((128, 128, 1)))
+magnet = Ferromagnet(world, grid=Grid((128, 128, 1)))
 magnet.enable_demag = False
 magnet.idmi = 1.5
 magnet.msat = 1.0

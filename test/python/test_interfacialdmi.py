@@ -1,5 +1,5 @@
 import numpy as np
-from mumax5 import World, Grid
+from mumax5 import World, Grid, Ferromagnet
 
 X, Y, Z = 0, 1, 2
 
@@ -39,7 +39,7 @@ class TestInterfacialDmi:
     def test_interfacialdmi(self):
         cellsize = (1.1, 2.0, 3.2)
         world = World(cellsize)
-        magnet = world.add_ferromagnet(Grid((4, 5, 3)))
+        magnet = Ferromagnet(world, Grid((4, 5, 3)))
         magnet.msat = 3.1
         magnet.idmi = 7.1
 

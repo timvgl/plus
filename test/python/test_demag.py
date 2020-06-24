@@ -1,10 +1,11 @@
-from mumax5 import World, Grid
+from mumax5 import World, Grid, Ferromagnet
+from mumax5 import _cpp
 
 import numpy as np
 
 
 def demag_field_py(magnet):
-    kernel = magnet._demagkernel()
+    kernel = _cpp._demag_kernel(magnet._impl)
     mag = magnet.msat.average() * magnet.magnetization.get()
     # add padding to the magnetization so that the size of magnetization
     # matches the size of the kernel
@@ -34,7 +35,7 @@ def demag_field_py(magnet):
 class TestDemag:
     def test_demagfield(self):
         world = World((1e-9, 1e-9, 1e-9))
-        magnet = world.add_ferromagnet(Grid((16, 4, 3)))
+        magnet = Ferromagnet(world, Grid((16, 4, 3)))
         wanted = demag_field_py(magnet)
         result = magnet.demag_field.eval()
         err = np.max(np.abs((wanted-result)/result))

@@ -3,7 +3,8 @@ import time
 
 world = World((4e-9, 4e-9, 4e-9))
 
-magnet = world.add_ferromagnet(Grid((128, 64, 1)))
+magnet = Ferromagnet(world, Grid((128, 64, 1)))
+
 
 magnet.msat = 800e3
 magnet.aex = 13e-12

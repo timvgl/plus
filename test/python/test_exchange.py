@@ -1,6 +1,6 @@
 import numpy as np
 
-from mumax5 import World, Grid
+from mumax5 import World, Grid, Ferromagnet
 
 
 def compute_exchange_numpy(magnet):
@@ -33,7 +33,7 @@ class TestExchange:
     def test_exchange(self):
 
         world = World((1e3, 2e3, 3e3))
-        magnet = world.add_ferromagnet(Grid((16, 16, 4)))
+        magnet = Ferromagnet(world, Grid((16, 16, 4)))
         magnet.aex = 3.2e7
         magnet.msat = 5.4
 
