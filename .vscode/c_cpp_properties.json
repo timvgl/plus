@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "intelliSenseMode": "${default}",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/bindings/pybind11/include",
+                "/home/jmulkers/.miniconda3/envs/mumax5/include/python3.7m",
+                "/usr/local/cuda/include",
+                "/usr/local/llvm/include/c++/v1"
+            ],
+            "forcedInclude": [
+                "/usr/local/cuda/include/builtin_types.h",
+                "/usr/local/cuda/include/cuda_runtime.h"
+            ],
+            "compilerPath": "/usr/local/llvm/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}
