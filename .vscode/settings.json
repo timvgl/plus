@@ -69,7 +69,7 @@
     "C_Cpp.clang_format_style": "Chromium",
     "C_Cpp.clang_format_fallbackstyle": "Chromium",
     "editor.formatOnSave": true,
-    "python.pythonPath": "/home/jmulkers/.miniconda3/envs/mumax5/bin/python",
+    "python.pythonPath": "/home/jmulkers/.conda/envs/mumax5/bin/python",
     "python.testing.pytestArgs": [
         "${workspaceFolder}/test/python"
     ],
