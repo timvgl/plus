@@ -39,7 +39,7 @@ class Field : public FieldQuantity {
 
   void clear();
 
-  bool empty() { return grid_.ncells() == 0 || ncomp_ == 0; }
+  bool empty() const { return grid_.ncells() == 0 || ncomp_ == 0; }
   Grid grid() const { return grid_; }
   int ncomp() const { return ncomp_; }
   real* devptr(int comp) const { return buffers_[comp].get(); };
