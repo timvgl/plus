@@ -2,13 +2,14 @@
 
 #include <curand.h>
 
+#include <cmath>
 #include <random>
 
 #include "fieldquantity.hpp"
 #include "magnetfield.hpp"
 #include "minimizer.hpp"
-#include "world.hpp"
 #include "ref.hpp"
+#include "world.hpp"
 
 Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
     : System(world, name, grid),
@@ -24,6 +25,7 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       pol(grid, 0.0),
       anisU(grid, {0, 0, 0}),
       jcur(grid, {0, 0, 0}),
+      appliedPotential(grid, std::nanf("0")),
       enableDemag(true) {
   {
     // TODO: this can be done much more efficient somewhere else
@@ -61,7 +63,7 @@ void Ferromagnet::minimize(real tol, int nSamples) {
 }
 
 const MagnetField* Ferromagnet::getMagnetField(
-   const Ferromagnet * magnet) const {
+    const Ferromagnet* magnet) const {
   auto it = magnetFields_.find(magnet);
   if (it == magnetFields_.end())
     return nullptr;
@@ -95,7 +97,7 @@ void Ferromagnet::addMagnetField(const Ferromagnet* magnet,
   magnetFields_[magnet] = new MagnetField(magnet, grid_, method);
 }
 
-void Ferromagnet::removeMagnetField(const Ferromagnet * magnet) {
+void Ferromagnet::removeMagnetField(const Ferromagnet* magnet) {
   auto it = magnetFields_.find(magnet);
   if (it != magnetFields_.end()) {
     delete it->second;

@@ -9,6 +9,8 @@ add_library(physics STATIC
     demag.hpp
     effectivefield.hpp 
     effectivefield.cpp
+    electricalpotential.hpp
+    electricalpotential.cu
     energy.hpp 
     energy.cu
     exchange.hpp 
@@ -31,6 +33,8 @@ add_library(physics STATIC
     magnetfieldkernel.hpp
     newell.cu
     newell.hpp
+    poissonsystem.hpp
+    poissonsystem.cu
     stt.cu
     stt.hpp
     system.cpp 

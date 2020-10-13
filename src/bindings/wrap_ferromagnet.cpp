@@ -4,6 +4,7 @@
 #include "anisotropy.hpp"
 #include "demag.hpp"
 #include "effectivefield.hpp"
+#include "electricalpotential.hpp"
 #include "energy.hpp"
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
@@ -47,6 +48,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_readonly("pol", &Ferromagnet::pol)
       .def_readonly("jcur", &Ferromagnet::jcur)
       .def_readonly("temperature", &Ferromagnet::temperature)
+      .def_readonly("applied_potential", &Ferromagnet::appliedPotential)
 
       .def_property_readonly(
           "thermal_noise",
@@ -94,6 +96,8 @@ void wrap_ferromagnet(py::module& m) {
   m.def("effective_field", &effectiveFieldQuantity);
   m.def("total_energy_density", &totalEnergyDensityQuantity);
   m.def("total_energy", &totalEnergyQuantity);
+
+  m.def("electrical_potential", &electricalPotentialQuantity);
 
   m.def("_demag_kernel", [](const Ferromagnet* fm) {
     Grid grid = fm->grid();

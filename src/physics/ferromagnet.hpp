@@ -39,6 +39,7 @@ class Ferromagnet : public System {
   Parameter idmi;
   Parameter xi;
   Parameter pol;
+  Parameter appliedPotential;
 
   const MagnetField* getMagnetField(const Ferromagnet*) const;
   std::vector<const MagnetField*> getMagnetFields() const;

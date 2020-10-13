@@ -167,6 +167,15 @@ class Ferromagnet:
     def temperature(self, value):
         self._impl.temperature.set(value)
 
+    @property
+    def applied_potential(self):
+        """ Applied electrical potential """
+        return self._impl.applied_potential
+
+    @applied_potential.setter
+    def applied_potential(self, value):
+        self._impl.applied_potential.set(value)
+
     # ----- QUANTITIES ----------------------
 
     @property
@@ -280,3 +289,8 @@ class Ferromagnet:
     def total_energy(self):
         """Energy related to the total effective field."""
         return ScalarQuantity(_cpp.total_energy(self._impl))
+
+    @property
+    def electrical_potential(self):
+        """ Electrical potential """
+        return FieldQuantity(_cpp.electrical_potential(self._impl))
