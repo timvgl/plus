@@ -13,6 +13,8 @@ void wrap_fieldquantity(py::module& m) {
       .def_property_readonly("grid", &FieldQuantity::grid)
       .def("eval",
            [](const FieldQuantity* q) { return fieldToArray((*q).eval()); })
+      .def("__call__",
+           [](const FieldQuantity* q) { return fieldToArray((*q).eval()); })
       .def("average", &FieldQuantity::average);
 }
 
