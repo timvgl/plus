@@ -52,7 +52,7 @@ class TestMagnetFields:
     def test_fft_against_brute(self, test_case):
         """ Computes the H-field in hgrid of a magnet on mgrid using both the
         fft method and the brute method. Asserts that both methods yield the
-        same results  
+        same results.
         """
 
         mgrid, hgrid = test_case["mgrid"], test_case["hgrid"]
@@ -63,9 +63,9 @@ class TestMagnetFields:
         magnet.magnetization = (1, 0, 0)
 
         mf = MagnetField(magnet, hgrid)
-        mf.setMethod("fft")
+        mf.set_method("fft")
         result = mf.eval()
-        mf.setMethod("brute")
+        mf.set_method("brute")
         wanted = mf.eval()
 
         assert max_relative_error(result, wanted) < 1e-4
@@ -74,13 +74,13 @@ class TestMagnetFields:
     def test_magnetfields(self, test_case):
         """ Asserts that the H-field in hgrid of a magnet on mgrid is computed
         correctly.
-        
+
         This is done by comparing the result with the demag field of a magnet on 
         a grid which containds both the mgrid and the hgrid. The magnetization
         is set to zero, except inside the mgrid in order to create an equivalent
         system as the system which is being checked.
         """
-  
+
         mgrid, hgrid = test_case["mgrid"], test_case["hgrid"]
 
         world = World((1e-9, 2e-9, 3.1e-9))
@@ -91,7 +91,6 @@ class TestMagnetFields:
         # Compute the hfield in hgrid of the magnet in mgrid.
         # This is the field which which need to be checked.
         hfield = MagnetField(magnet, hgrid).eval()
-
 
         # Construct an equivalent system against we will check the result.
         world2 = World(world.cellsize)

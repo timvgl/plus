@@ -13,7 +13,7 @@ void wrap_magnetfield(py::module& m) {
              return std::unique_ptr<MagnetField>(new MagnetField(magnet, grid));
            }),
            py::arg("ferromagnet"), py::arg("grid"))
-      .def("setMethod", [](MagnetField* magnetField, std::string method) {
+      .def("set_method", [](MagnetField* magnetField, std::string method) {
         if (method == "fft") {
           magnetField->setMethod(MAGNETFIELDMETHOD_FFT);
         } else if (method == "brute") {
