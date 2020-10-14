@@ -20,7 +20,7 @@ class TimeSolverOutput:
 class TimeSolver:
 
     def __init__(self, variable, rhs):
-        self._impl = _cpp.TimeSolver(variable, rhs._impl)
+        self._impl = _cpp.TimeSolver(variable._impl, rhs._impl)
 
     def step(self):
         self._impl.step()

@@ -1,6 +1,7 @@
 import _mumax5cpp as _cpp
 from .fieldquantity import FieldQuantity
 from .scalarquantity import ScalarQuantity
+from .variable import Variable
 from .grid import Grid
 
 
@@ -33,7 +34,7 @@ class Ferromagnet:
     @property
     def magnetization(self):
         """ Direction of the magnetization (normalized) """
-        return self._impl.magnetization
+        return Variable(self._impl.magnetization)
 
     @magnetization.setter
     def magnetization(self, value):
