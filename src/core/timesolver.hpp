@@ -33,7 +33,6 @@ class TimeSolver {
   void steps(unsigned int nsteps);
   void runwhile(std::function<bool(void)>);
   void run(real duration);
-  void solve(std::vector<real> timepoints, Table& table);
 
  private:
   real maxerror_;

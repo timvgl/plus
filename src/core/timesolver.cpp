@@ -9,11 +9,9 @@
 #include "reduce.hpp"
 #include "rungekutta.hpp"
 #include "stepper.hpp"
-#include "table.hpp"
 
 TimeSolver::TimeSolver(DynamicEquation eq)
     : time_(0), maxerror_(1e-5), fixedTimeStep_(false) {
-
   eqs_.push_back(eq);
   stepper_ = new RungeKuttaStepper(this, FEHLBERG);
 
@@ -27,7 +25,7 @@ TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
 
   real globalMaxNorm = 0;
   for (auto eq : eqs_)
-    if( real maxNorm = maxVecNorm(eq.rhs->eval()); maxNorm > globalMaxNorm)
+    if (real maxNorm = maxVecNorm(eq.rhs->eval()); maxNorm > globalMaxNorm)
       globalMaxNorm = maxNorm;
 
   // initial guess for the timestep
@@ -125,27 +123,4 @@ void TimeSolver::run(real duration) {
   // make final time step to end exactly at stoptime
   setTimeStep(stoptime - time_);
   step();
-}
-
-static bool solvableTimePoints(real currentTime, std::vector<real> timepoints) {
-  if (timepoints[0] < currentTime)
-    return false;
-
-  for (int i = 1; i < timepoints.size(); i++)
-    if (timepoints[i] <= timepoints[i - 1])
-      return false;
-
-  return true;
-}
-
-void TimeSolver::solve(std::vector<real> timepoints, Table& table) {
-  if (!solvableTimePoints(time(), timepoints))
-    throw std::runtime_error(
-        "Timepoints should be chronological timepoints in the future");
-
-  for (real tp : timepoints) {
-    real duration = tp - time();
-    run(duration);
-    table.writeLine();
-  }
 }

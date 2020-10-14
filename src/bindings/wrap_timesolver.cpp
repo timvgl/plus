@@ -2,22 +2,22 @@
 #include <vector>
 
 #include "dynamicequation.hpp"
+#include "ferromagnetquantity.hpp"
 #include "field.hpp"
 #include "fieldquantity.hpp"
-#include "table.hpp"
 #include "timesolver.hpp"
 #include "variable.hpp"
 #include "wrappers.hpp"
-#include "ferromagnetquantity.hpp"
 
 void wrap_timesolver(py::module& m) {
   py::class_<TimeSolver>(m, "TimeSolver")
       .def(py::init([](Variable* x, FM_FieldQuantity rhs) {
-             return std::unique_ptr<TimeSolver>(
-                 new TimeSolver(DynamicEquation(x, std::unique_ptr<FieldQuantity>(rhs.clone()))));
+             return std::unique_ptr<TimeSolver>(new TimeSolver(DynamicEquation(
+                 x, std::unique_ptr<FieldQuantity>(rhs.clone()))));
            }),
            py::arg("variable"), py::arg("rhs"))
-      //.def(py::init([](Variable* x, FieldQuantity* rhs, FieldQuantity * noise) {
+      //.def(py::init([](Variable* x, FieldQuantity* rhs, FieldQuantity * noise)
+      //{
       //       return std::unique_ptr<TimeSolver>(
       //           new TimeSolver(DynamicEquation(x, rhs, noise)));
       //     }),
@@ -41,6 +41,5 @@ void wrap_timesolver(py::module& m) {
                         solver.disableAdaptiveTimeStep();
                       }
                     })
-      .def("run", &TimeSolver::run)
-      .def("solve", &TimeSolver::solve);
+      .def("run", &TimeSolver::run);
 }
