@@ -1,13 +1,14 @@
 import _mumax5cpp as _cpp
 from .fieldquantity import FieldQuantity
 from .scalarquantity import ScalarQuantity
+from .grid import Grid
 
 
 class Ferromagnet:
     """Ferromagnet"""
 
     def __init__(self, world, grid, name=""):
-        self._impl = world._impl.add_ferromagnet(grid, name)
+        self._impl = world._impl.add_ferromagnet(grid._impl, name)
 
     @property
     def name(self):
@@ -17,7 +18,7 @@ class Ferromagnet:
     @property
     def grid(self):
         """ The underlying grid of the ferromagnet """
-        return self._impl.grid
+        return Grid._from_impl(self._impl.grid)
 
     @property
     def world(self):
