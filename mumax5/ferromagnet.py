@@ -1,4 +1,6 @@
 import _mumax5cpp as _cpp
+from .fieldquantity import FieldQuantity
+from .scalarquantity import ScalarQuantity
 
 
 class Ferromagnet:
@@ -49,7 +51,7 @@ class Ferromagnet:
         """ Minimize the total energy """
         self._impl.minimize()
 
-    #----- MATERIAL PARAMETERS -----------
+    # ----- MATERIAL PARAMETERS -----------
 
     @property
     def msat(self):
@@ -150,114 +152,114 @@ class Ferromagnet:
     def temperature(self, value):
         self._impl.temperature.set(value)
 
-    #----- QUANTITIES ----------------------
+    # ----- QUANTITIES ----------------------
 
     @property
     def torque(self):
         """ Total torque on the magnetization """
-        return _cpp.torque(self._impl)
+        return FieldQuantity(_cpp.torque(self._impl))
 
     @property
     def llg_torque(self):
         """ Torque on the magnetization exerted by the total effective field """
-        return _cpp.llg_torque(self._impl)
+        return FieldQuantity(_cpp.llg_torque(self._impl))
 
     @property
     def spin_transfer_torque(self):
         """ Spin transfer torque exerted on the magnetization """
-        return _cpp.spin_transfer_torque(self._impl)
+        return FieldQuantity(_cpp.spin_transfer_torque(self._impl))
 
     @property
     def demag_field(self):
-        """ Demagnetization field """ 
-        return _cpp.demag_field(self._impl)
+        """ Demagnetization field """
+        return FieldQuantity(_cpp.demag_field(self._impl))
 
     @property
     def demag_energy_density(self):
         """ Energy density related to the demag field """
-        return _cpp.demag_energy_density(self._impl)
+        return FieldQuantity(_cpp.demag_energy_density(self._impl))
 
     @property
     def demag_energy(self):
         """ The energy related to the demag field """
-        return _cpp.demag_energy(self._impl)
+        return ScalarQuantity(_cpp.demag_energy(self._impl))
 
     @property
     def anisotropy_field(self):
         """ Anisotropic effective field term """
-        return _cpp.anisotropy_field(self._impl)
+        return FieldQuantity(_cpp.anisotropy_field(self._impl))
 
     @property
     def anisotropy_energy_density(self):
         """ Energy density related to the magnetic anisotropy """
-        return _cpp.anisotropy_energy_density(self._impl)
+        return FieldQuantity(_cpp.anisotropy_energy_density(self._impl))
 
     @property
     def anisotropy_energy(self):
         """ Energy related to the magnetic anisotropy """
-        return _cpp.anisotropy_energy(self._impl)
-  
+        return ScalarQuantity(_cpp.anisotropy_energy(self._impl))
+
     @property
     def exchange_field(self):
         """ Effective field of the exchange interaction """
-        return _cpp.exchange_field(self._impl)
+        return FieldQuantity(_cpp.exchange_field(self._impl))
 
     @property
     def exchange_energy_density(self):
         """ Energy density related to the exchange interaction """
-        return _cpp.exchange_energy_density(self._impl)
+        return FieldQuantity(_cpp.exchange_energy_density(self._impl))
 
     @property
     def exchange_energy(self):
         """ Energy related to the exchange interaction """
-        return _cpp.exchange_energy(self._impl)
+        return ScalarQuantity(_cpp.exchange_energy(self._impl))
 
     @property
     def max_angle(self):
         """ Maximal angle difference of the magnetization between exchange coupled cells """
-        return _cpp.max_angle(self._impl) 
-  
+        return ScalarQuantity(_cpp.max_angle(self._impl))
+
     @property
     def interfacialdmi_field(self):
         """ Effective field of the Dzyaloshinskii-Moriya interaction """
-        return _cpp.interfacialdmi_field(self._impl)
+        return FieldQuantity(_cpp.interfacialdmi_field(self._impl))
 
     @property
     def interfacialdmi_energy_density(self):
         """ Energy density related to the interfacial Dzyaloshinskii-Moriya interaction """
-        return _cpp.interfacialdmi_energy_density(self._impl)
+        return FieldQuantity(_cpp.interfacialdmi_energy_density(self._impl))
 
     @property
     def interfacialdmi_energy(self):
         """ Energy related to the interfacial Dzyaloshinskii-Moriya interaction"""
-        return _cpp.interfacialdmi_energy(self._impl)
+        return ScalarQuantity(_cpp.interfacialdmi_energy(self._impl))
 
     @property
     def external_field(self):
         """ Sum of external field """
-        return _cpp.external_field(self._impl)
+        return FieldQuantity(_cpp.external_field(self._impl))
 
     @property
     def zeeman_energy_density(self):
         """ Energy density related to external fields """
-        return _cpp.zeeman_energy_density(self._impl)
+        return FieldQuantity(_cpp.zeeman_energy_density(self._impl))
 
     @property
     def zeeman_energy(self):
         """ Energy related to external fields """
-        return _cpp.zeeman_energy(self._impl)
+        return ScalarQuantity(_cpp.zeeman_energy(self._impl))
 
     @property
     def effective_field(self):
         """ Sum of all effective field terms """
-        return _cpp.effective_field(self._impl)
+        return FieldQuantity(_cpp.effective_field(self._impl))
 
     @property
     def total_energy_density(self):
         """ Energy density related to the total effective field """
-        return _cpp.total_energy_density(self._impl)
+        return FieldQuantity(_cpp.total_energy_density(self._impl))
 
     @property
     def total_energy(self):
         """ Energy related to the total effective field """
-        return _cpp.total_energy(self._impl)
+        return ScalarQuantity(_cpp.total_energy(self._impl))

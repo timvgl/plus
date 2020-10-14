@@ -1,9 +1,10 @@
 import _mumax5cpp as _cpp
 
+
 class TimeSolverOutput:
     def __init__(self, quantity_dict):
         self._quantities = quantity_dict
-        self._data = {"time":[]}
+        self._data = {"time": []}
         for key in self._quantities.keys():
             self._data[key] = []
 
@@ -15,10 +16,11 @@ class TimeSolverOutput:
     def __getitem__(self, key):
         return self._data[key]
 
+
 class TimeSolver:
 
     def __init__(self, variable, rhs):
-        self._impl = _cpp.TimeSolver(variable, rhs)
+        self._impl = _cpp.TimeSolver(variable, rhs._impl)
 
     def step(self):
         self._impl.step()
@@ -55,6 +57,6 @@ class TimeSolver:
     def adaptive_timestep(self, adaptive):
         self._impl.timestep = adaptive
 
-    @property 
+    @property
     def time(self):
         return self._impl.time
