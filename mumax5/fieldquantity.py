@@ -23,3 +23,11 @@ class FieldQuantity:
 
     def average(self):
         return self._impl.average()
+
+    def _bench(self, ntimes=100):
+        import time
+        start = time.time()
+        for i in range(ntimes):
+            self._impl.exec()
+        stop = time.time()
+        return stop-start
