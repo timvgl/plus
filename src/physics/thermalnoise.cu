@@ -8,6 +8,12 @@
 #include "thermalnoise.hpp"
 #include "world.hpp"
 
+#if FP_PRECISION == SINGLE
+const auto& generateRandNormal = curandGenerateNormal;
+#elif FP_PRECISION == DOUBLE
+const auto& generateRandNormal = curandGenerateNormalDouble;
+#endif
+
 bool thermalNoiseAssuredZero(const Ferromagnet *magnet) {
   return magnet->temperature.assuredZero();
 }
@@ -43,9 +49,7 @@ Field evalThermalNoise(const Ferromagnet * magnet) {
   real mean = 0.0;
   real stddev = 1.0;
   for (int c = 0; c < 3; c++) {
-    curandGenerateNormal(magnet->randomGenerator, noise.devptr(c), N, mean, stddev);
-    // TODO: make this also work for real = double   (using
-    // curandGenerateNormalDouble)
+    generateRandNormal(magnet->randomGenerator, noise.devptr(c), N, mean, stddev);
   }
 
   auto msat = magnet->msat.cu();

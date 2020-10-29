@@ -3,6 +3,8 @@ project(mumax5 LANGUAGES CUDA CXX)
 
 set (CMAKE_CXX_FLAGS -std=c++17)
 
+add_definitions(-DFP_PRECISION=SINGLE) # FP_PRECISION should be SINGLE or DOUBLE
+
 add_subdirectory(src/core)
 add_subdirectory(src/bindings)
 add_subdirectory(src/physics)

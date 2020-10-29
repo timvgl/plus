@@ -6,9 +6,24 @@
 
 #include <iostream>
 
-typedef float real;
-typedef float3 real3;
-typedef cuComplex complex;
+#define SINGLE 1
+#define DOUBLE 2
+
+#ifndef FP_PRECISION
+#define FP_PRECISION SINGLE
+#endif
+
+#if FP_PRECISION == SINGLE
+using real = float;
+using real3 = float3;
+using complex = cuComplex;
+#elif FP_PRECISION == DOUBLE
+using real = double;
+using real3 = double3;
+using complex = cuDoubleComplex;
+#else
+#error FP_PRECISION should be SINGLE or DOUBLE
+#endif
 
 #define __CUDAOP__ inline __device__ __host__
 
