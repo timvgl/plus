@@ -23,3 +23,8 @@ class Grid:
     def shape(self):
         Nx, Ny, Nz = self.size
         return (Nz, Ny, Nx)
+
+    @property
+    def ncells(self):
+        Nx, Ny, Nz = self.size
+        return Nx*Ny*Nz
