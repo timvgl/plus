@@ -8,5 +8,3 @@ add_definitions(-DFP_PRECISION=SINGLE) # FP_PRECISION should be SINGLE or DOUBLE
 add_subdirectory(src/core)
 add_subdirectory(src/bindings)
 add_subdirectory(src/physics)
-
-add_subdirectory(test/cpp)
