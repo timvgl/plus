@@ -72,5 +72,6 @@ setup(
     packages=['mumax5'],
     ext_modules=[CMakeExtension('_mumax5cpp')],
     cmdclass=dict(build_ext=CMakeBuild),
+    install_requires=['numpy', 'matplotlib'],
     zip_safe=False,
 )
