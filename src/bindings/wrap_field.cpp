@@ -1,6 +1,7 @@
 #include <pybind11/numpy.h>
 
 #include <stdexcept>
+#include <vector>
 
 #include "field.hpp"
 #include "wrappers.hpp"
@@ -44,7 +45,7 @@ py::array_t<real> fieldToArray(const Field& f) {
 }
 
 void setArrayInField(Field& f, py::array_t<real> data) {
-  int ndim = data.ndim();
+  ssize_t ndim = data.ndim();
 
   if (ndim == 1) {
     if (data.shape(0) != f.ncomp()) {
@@ -54,25 +55,25 @@ void setArrayInField(Field& f, py::array_t<real> data) {
     py::buffer_info buf = data.request();
     real* cValues = (real*)buf.ptr;
 
-    int N = f.grid().ncells()*f.ncomp();
+    int N = f.grid().ncells() * f.ncomp();
     int nCells = N / f.ncomp();
-    real* buffer = new real[N];
+
+    std::vector<real> buffer(N);
+
     for (int i = 0; i < N; i++) {
       int c = i / nCells;
       buffer[i] = cValues[c];
     }
 
-    f.setData(buffer);
-    delete[] buffer;
-
+    f.setData(buffer.data());
   } else if (ndim == 4) {
-    int shape[ndim];
+    std::vector<int> shape(ndim);
     shape[0] = f.ncomp();
     shape[1] = f.grid().size().z;
     shape[2] = f.grid().size().y;
     shape[3] = f.grid().size().x;
 
-    for (int i = 0; i < ndim; i++) {
+    for (ssize_t i = 0; i < ndim; i++) {
       if (shape[i] != data.shape(i)) {
         throw std::runtime_error(
             "The shape of the data does not match the shape of the field");

@@ -1,11 +1,9 @@
+#include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "field.hpp"
 #include "magnetfieldbrute.hpp"
 #include "parameter.hpp"
 
-// TODO: figure out why including constants.hpp leads to errors
-__device__ static const real PI = 3.14159265358979323846;
-__device__ static const real MU0 = 4 * PI * 1e-7;
 
 __global__ void k_demagfield(CuField hField,
                              const CuField mField,

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0) 
+cmake_minimum_required(VERSION 3.18) 
 project(mumax5physics)
 
 add_library(physics STATIC 
@@ -51,7 +51,6 @@ target_link_libraries(physics PUBLIC core)
 
 link_directories(${CUDA_LIBRARY_DIR})
 target_link_libraries(physics PRIVATE cufft curand)
-
 
 set_target_properties(physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(physics PROPERTIES POSITION_INDEPENDENT_CODE ON)

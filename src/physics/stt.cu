@@ -1,3 +1,4 @@
+#include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
@@ -5,8 +6,6 @@
 #include "stt.hpp"
 #include "world.hpp"
 
-const real QE = 1.60217646e-19;     // Electron charge in C
-const real MUB = 9.2740091523e-24;  // Bohr magneton
 
 bool spinTransferTorqueAssuredZero(const Ferromagnet* magnet) {
   return magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
