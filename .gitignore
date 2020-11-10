@@ -1,4 +1,5 @@
 build/
+.vscode
 _mumax5cpp*
 __pycache__
 .pytest_cache
