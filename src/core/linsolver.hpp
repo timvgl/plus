@@ -6,21 +6,18 @@
 
 class LinearSystemSolverStepper {
  public:
-  LinearSystemSolverStepper(const LinearSystem* sys)
-      : sys_(sys), x_(sys->grid(), 1) {}
+  LinearSystemSolverStepper(const LinearSystem* sys, Field* x)
+      : sys_(sys), x_(x) {}
   virtual void step() = 0;
-  Field x() const { return x_; }
-  void setx(const Field& x) { x_ = x; }
 
  protected:
   const LinearSystem* sys_;
-  Field x_;
+  Field* x_;
 };
 
 class JacobiStepper : public LinearSystemSolverStepper {
  public:
-  JacobiStepper(const LinearSystem* sys) : LinearSystemSolverStepper(sys) {}
+  JacobiStepper(const LinearSystem* sys, Field* x)
+      : LinearSystemSolverStepper(sys, x) {}
   void step();
 };
-
-Field solveLinearSystem(const LinearSystem& sys);

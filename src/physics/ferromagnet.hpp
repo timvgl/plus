@@ -3,6 +3,7 @@
 #include <curand.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -11,6 +12,7 @@
 #include "handler.hpp"
 #include "magnetfield.hpp"
 #include "parameter.hpp"
+#include "poissonsolver.hpp"
 #include "ref.hpp"
 #include "system.hpp"
 #include "variable.hpp"
@@ -40,6 +42,8 @@ class Ferromagnet : public System {
   Parameter xi;
   Parameter pol;
   Parameter appliedPotential;
+
+  mutable PoissonSolver poissonsolver;
 
   const MagnetField* getMagnetField(const Ferromagnet*) const;
   std::vector<const MagnetField*> getMagnetFields() const;

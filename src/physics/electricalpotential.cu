@@ -13,8 +13,7 @@ Field evalElectricalPotential(const Ferromagnet* magnet) {
     return pot;
   }
 
-  PoissonSolver poisson = PoissonSolver(magnet);
-  pot = poisson.solve();
+  pot = magnet->poissonsolver.solve();
 
   return pot;
 }

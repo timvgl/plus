@@ -6,6 +6,13 @@
 #include "linsystem.hpp"
 #include "poissonsolver.hpp"
 
+PoissonSolver::PoissonSolver(const Ferromagnet* magnet)
+    : magnet_(magnet),
+      sys_(magnet->grid(), NNEAREST),
+      pot_(magnet_->grid(), 1) {
+  stepper_ = std::make_unique<JacobiStepper>(&sys_, &pot_);
+}
+
 __global__ static void k_construct(CuLinearSystem sys,
                                    const CuParameter pot,
                                    real3 cellsize) {
@@ -55,5 +62,8 @@ void PoissonSolver::construct() {
 
 Field PoissonSolver::solve() {
   construct();
-  return solveLinearSystem(sys_);
+  for (int i = 0; i < 1000; i++) {
+    stepper_->step();
+  }
+  return pot_;
 }

@@ -3,11 +3,13 @@
 #include <curand.h>
 
 #include <cmath>
+#include <memory>
 #include <random>
 
 #include "fieldquantity.hpp"
 #include "magnetfield.hpp"
 #include "minimizer.hpp"
+#include "poissonsolver.hpp"
 #include "ref.hpp"
 #include "world.hpp"
 
@@ -26,7 +28,8 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       anisU(grid, {0, 0, 0}),
       jcur(grid, {0, 0, 0}),
       appliedPotential(grid, std::nanf("0")),
-      enableDemag(true) {
+      enableDemag(true),
+      poissonsolver(this) {
   {
     // TODO: this can be done much more efficient somewhere else
     int ncomp = 3;
