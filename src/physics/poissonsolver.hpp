@@ -10,9 +10,9 @@
 
 const int NNEAREST = 5;  // number of relevant nearest neighbors
 
-class PoissonSystem {
+class PoissonSolver {
  public:
-  PoissonSystem(const Ferromagnet* magnet)
+  PoissonSolver(const Ferromagnet* magnet)
       : magnet_(magnet), sys_(magnet->grid(), NNEAREST) {}
 
   Grid grid() const { return magnet_->grid(); }

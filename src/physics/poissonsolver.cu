@@ -4,7 +4,7 @@
 #include "fieldops.hpp"
 #include "linsolver.hpp"
 #include "linsystem.hpp"
-#include "poissonsystem.hpp"
+#include "poissonsolver.hpp"
 
 __global__ static void k_construct(CuLinearSystem sys,
                                    const CuParameter pot,
@@ -48,12 +48,12 @@ __global__ static void k_construct(CuLinearSystem sys,
   }
 }
 
-void PoissonSystem::construct() {
+void PoissonSolver::construct() {
   cudaLaunch(sys_.grid().ncells(), k_construct, sys_.cu(),
              magnet_->appliedPotential.cu(), magnet_->cellsize());
 }
 
-Field PoissonSystem::solve() {
+Field PoissonSolver::solve() {
   construct();
   return solveLinearSystem(sys_);
 }

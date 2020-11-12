@@ -1,6 +1,6 @@
 #include "electricalpotential.hpp"
 #include "ferromagnet.hpp"
-#include "poissonsystem.hpp"
+#include "poissonsolver.hpp"
 
 bool electricalPotentialAssuredZero(const Ferromagnet* magnet) {
   return false;  // TODO: return true if no potential difference applied
@@ -13,7 +13,7 @@ Field evalElectricalPotential(const Ferromagnet* magnet) {
     return pot;
   }
 
-  PoissonSystem poisson = PoissonSystem(magnet);
+  PoissonSolver poisson = PoissonSolver(magnet);
   pot = poisson.solve();
 
   return pot;

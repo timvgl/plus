@@ -33,8 +33,8 @@ add_library(physics STATIC
     magnetfieldkernel.hpp
     newell.cu
     newell.hpp
-    poissonsystem.hpp
-    poissonsystem.cu
+    poissonsolver.hpp
+    poissonsolver.cu
     stt.cu
     stt.hpp
     system.cpp 
