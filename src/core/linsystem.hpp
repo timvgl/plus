@@ -19,6 +19,7 @@ class LinearSystem {
  public:
   LinearSystem(Grid grid, int nonZerosInRow);
 
+  Grid grid() const { return grid_; }
   Field matrixmul(const Field& x) const;
   Field residual(const Field& x) const;
 

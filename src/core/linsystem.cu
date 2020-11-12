@@ -47,38 +47,50 @@ void LinearSystem::free() {
   b_.recycle();
 }
 
-__global__ static void k_matrixmul(CuField y,
-                                   CuLinearSystem linsys,
-                                   CuField x) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ static void k_apply(CuField y,
+                               CuLinearSystem linsys,
+                               CuField x,
+                               real k) {
+  int rowidx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (!y.cellInGrid(idx))
+  if (!y.cellInGrid(rowidx))
     return;
 
   real ycell = 0.0;
 
   for (int i = 0; i < linsys.nnz; i++) {
-    ycell += linsys.a[i][idx] * x.valueAt(idx);
+    int colidx = linsys.idx[i][rowidx];
+    if (colidx >= 0) {
+      ycell += linsys.a[i][rowidx] * x.valueAt(colidx) - k * linsys.b[rowidx];
+    }
   }
 
-  y.setValueInCell(idx, 0, ycell);
+  y.setValueInCell(rowidx, 0, ycell);
 }
 
-Field LinearSystem::matrixmul(const Field& x) const {
+// For a linear system Ax=b, this function returns y= A*x + k*b
+static Field apply(const LinearSystem& sys, const Field& x, real k) {
   if (x.ncomp() != 1) {
     throw std::invalid_argument(
         "Applying a linear system matrix multiplication is only possible on a "
         "field argument with 1 component");
   }
-  if (x.grid() != grid_) {
+  if (x.grid() != sys.grid()) {
     throw std::invalid_argument(
         "The grid of the linear system does not match the grid of the field "
         "argument");
   }
-
-  Field y = Field(grid_,1);
-  cudaLaunch(grid_.ncells(), k_matrixmul, y.cu(), cu(), x.cu());
+  Field y(sys.grid(), 1);
+  cudaLaunch(sys.grid().ncells(), k_apply, y.cu(), sys.cu(), x.cu(), k);
   return y;
+}
+
+Field LinearSystem::matrixmul(const Field& x) const {
+  return apply(*this, x, 0.0);
+}
+
+Field LinearSystem::residual(const Field& x) const {
+  return apply(*this, x, -1.0);
 }
 
 CuLinearSystem LinearSystem::cu() const {
