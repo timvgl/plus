@@ -4,7 +4,7 @@ import sys
 import platform
 import subprocess
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
 
@@ -69,7 +69,7 @@ setup(
     author_email='jeroen.mulkers@gmail.com',
     description='Finite difference micromagnetic solver',
     long_description='',
-    packages=['mumax5'],
+    packages=find_packages(include=['mumax5', 'mumax5.*']),
     ext_modules=[CMakeExtension('_mumax5cpp')],
     cmdclass=dict(build_ext=CMakeBuild),
     install_requires=['numpy', 'matplotlib'],
