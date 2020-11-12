@@ -2,9 +2,9 @@
 #include "ferromagnetquantity.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
+#include "linsolver.hpp"
 #include "linsystem.hpp"
 #include "poissonsystem.hpp"
-#include "stdint.h"
 
 __global__ static void k_construct(CuLinearSystem sys,
                                    const CuParameter pot,
@@ -55,11 +55,5 @@ void PoissonSystem::construct() {
 
 Field PoissonSystem::solve() {
   construct();
-  Field x = Field(grid(), 1, 0.0);
-  int nstep = 1000;
-  for (int i = 0; i < nstep; i++) {
-    Field r = sys_.residual(x);  // r = Ax-b
-    x = add(1.0, x, -1.0, r);    // x = x-r
-  }
-  return x;
+  return solveLinearSystem(sys_);
 }

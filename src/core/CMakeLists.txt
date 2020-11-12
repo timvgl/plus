@@ -23,6 +23,9 @@ add_library(core STATIC
     gpubuffer.hpp
     linsystem.cu
     linsystem.hpp
+    linsolver.cpp
+    linsolver.hpp
+    linsystem.hpp
     parameter.cu
     parameter.hpp
     rungekutta.cpp
