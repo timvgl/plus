@@ -83,18 +83,18 @@ static void checkCufftResult(cufftResult result) {
     throw std::runtime_error("cufft error in demag convolution");
 }
 
-__global__ void k_apply_kernel_3d(complex* __restrict__ hx,
-                                  complex* __restrict__ hy,
-                                  complex* __restrict__ hz,
-                                  complex* __restrict__ mx,
-                                  complex* __restrict__ my,
-                                  complex* __restrict__ mz,
-                                  complex* __restrict__ kxx,
-                                  complex* __restrict__ kyy,
-                                  complex* __restrict__ kzz,
-                                  complex* __restrict__ kxy,
-                                  complex* __restrict__ kxz,
-                                  complex* __restrict__ kyz,
+__global__ void k_apply_kernel_3d(complex* hx,
+                                  complex* hy,
+                                  complex* hz,
+                                  complex* mx,
+                                  complex* my,
+                                  complex* mz,
+                                  complex* kxx,
+                                  complex* kyy,
+                                  complex* kzz,
+                                  complex* kxy,
+                                  complex* kxz,
+                                  complex* kyz,
                                   complex preFactor,
                                   int n) {
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -105,16 +105,16 @@ __global__ void k_apply_kernel_3d(complex* __restrict__ hx,
   hz[i] = preFactor * (kxz[i] * mx[i] + kyz[i] * my[i] + kzz[i] * mz[i]);
 }
 
-__global__ void k_apply_kernel_2d(complex* __restrict__ hx,
-                                  complex* __restrict__ hy,
-                                  complex* __restrict__ hz,
-                                  complex* __restrict__ mx,
-                                  complex* __restrict__ my,
-                                  complex* __restrict__ mz,
-                                  complex* __restrict__ kxx,
-                                  complex* __restrict__ kyy,
-                                  complex* __restrict__ kzz,
-                                  complex* __restrict__ kxy,
+__global__ void k_apply_kernel_2d(complex* hx,
+                                  complex* hy,
+                                  complex* hz,
+                                  complex* mx,
+                                  complex* my,
+                                  complex* mz,
+                                  complex* kxx,
+                                  complex* kyy,
+                                  complex* kzz,
+                                  complex* kxy,
                                   complex preFactor,
                                   int n) {
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -182,7 +182,7 @@ void MagnetFieldFFTExecutor::exec(Field* h,
   int ncells = fftSize.x * fftSize.y * fftSize.z;
   complex preFactor{-MU0 / kernel_.grid().ncells(), 0};
   if (kernel_.grid().size().z == 1 && kernel_.grid().origin().z == 0) {
-    // if the h field and m field are tow dimensional AND are in the same plane
+    // if the h field and m field are two dimensional AND are in the same plane
     // (kernel grid origin at z=0) then the kernel matrix has only 4 relevant
     // components and a more efficient cuda kernel can be used:
     cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),

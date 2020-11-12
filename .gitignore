@@ -2,6 +2,7 @@ build/
 dist/
 *.egg-info
 *.cpython*.so
+_mumax5cpp*
 __pycache__
 .pytest_cache
 .ipynb_checkpoints
