@@ -16,6 +16,7 @@ magnet.applied_potential = p
 # show_layer(magnet.electrical_potential)
 
 magnet.poisson_solver._init()
+
 for i in range(1000):
     magnet.poisson_solver._step()
 

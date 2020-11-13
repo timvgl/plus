@@ -22,9 +22,12 @@ class PoissonSolver {
 
   Field state() const { return pot_; }
 
+  int maxIterations;
+
  private:
   const Ferromagnet* magnet_;
   LinearSystem sys_;
   Field pot_;
   std::unique_ptr<LinearSystemSolverStepper> stepper_;
+  int nstep_;
 };

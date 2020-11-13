@@ -7,6 +7,15 @@ class PoissonSolver:
         """ Solve the Poisson equation """
         return self._impl.solve()
 
+    @property
+    def max_iter(self):
+        """ Maximum of iterations for the solver (no maximum if <0)"""
+        return self._impl.max_iter
+
+    @max_iter.setter
+    def max_iter(self, max_iter):
+        self._impl.max_iter = max_iter
+
     # ----------------------------------------------------------------------------------
     # The hidden methods below should only be used to test and debug the Poisson solver
 
