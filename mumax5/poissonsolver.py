@@ -16,6 +16,10 @@ class PoissonSolver:
     def max_iter(self, max_iter):
         self._impl.max_iter = max_iter
 
+    def max_norm_residual(self):
+        """ Returns the maximum norm of the residual """
+        return self._impl.max_norm_residual()
+
     # ----------------------------------------------------------------------------------
     # The hidden methods below should only be used to test and debug the Poisson solver
 

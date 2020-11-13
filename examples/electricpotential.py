@@ -15,11 +15,19 @@ magnet.applied_potential = p
 
 # show_layer(magnet.electrical_potential)
 
+
 magnet.poisson_solver._init()
 
-for i in range(1000):
+residual = []
+for i in range(10000):
     magnet.poisson_solver._step()
+    residual.append(magnet.poisson_solver.max_norm_residual())
 
 pot = magnet.poisson_solver._state()
-plt.imshow(pot[0, 0])
+
+fig, (ax1, ax2) = plt.subplots(2, 1)
+ax1.loglog(residual)
+
+ax2.imshow(pot[0, 0])
+
 plt.show()

@@ -5,6 +5,7 @@
 #include "linsolver.hpp"
 #include "linsystem.hpp"
 #include "poissonsolver.hpp"
+#include "reduce.hpp"
 
 PoissonSolver::PoissonSolver(const Ferromagnet* magnet)
     : magnet_(magnet),
@@ -73,4 +74,16 @@ Field PoissonSolver::solve() {
 
 void PoissonSolver::step() {
   stepper_->step();
+}
+
+Field PoissonSolver::state() const {
+  return pot_;
+}
+
+Field PoissonSolver::residual() const {
+  return sys_.residual(pot_);
+}
+
+real PoissonSolver::residualMaxNorm() const {
+  return maxAbsValue(sys_.residual(pot_));
 }

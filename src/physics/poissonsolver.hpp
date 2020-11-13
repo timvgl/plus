@@ -20,7 +20,9 @@ class PoissonSolver {
   Field solve();
   void step();
 
-  Field state() const { return pot_; }
+  Field state() const;
+  Field residual() const;
+  real residualMaxNorm() const;
 
   int maxIterations;
 
