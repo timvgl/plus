@@ -15,8 +15,12 @@ class Ferromagnet;
 class PoissonSolver {
  public:
   PoissonSolver(const Ferromagnet* magnet);
-  void construct();
+
+  void init();
   Field solve();
+  void step();
+
+  Field state() const { return pot_; }
 
  private:
   const Ferromagnet* magnet_;

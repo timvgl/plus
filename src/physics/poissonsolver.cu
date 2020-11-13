@@ -55,15 +55,19 @@ __global__ static void k_construct(CuLinearSystem sys,
   }
 }
 
-void PoissonSolver::construct() {
+void PoissonSolver::init() {
   cudaLaunch(sys_.grid().ncells(), k_construct, sys_.cu(),
              magnet_->appliedPotential.cu(), magnet_->cellsize());
 }
 
 Field PoissonSolver::solve() {
-  construct();
+  init();
   for (int i = 0; i < 1000; i++) {
-    stepper_->step();
+    step();
   }
   return pot_;
+}
+
+void PoissonSolver::step() {
+  stepper_->step();
 }
