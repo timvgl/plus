@@ -50,7 +50,8 @@ void LinearSystem::free() {
 __global__ static void k_apply(CuField y,
                                CuLinearSystem linsys,
                                CuField x,
-                               real k) {
+                               real ka,
+                               real kb) {
   int rowidx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!y.cellInGrid(rowidx))
@@ -61,15 +62,16 @@ __global__ static void k_apply(CuField y,
   for (int i = 0; i < linsys.nnz; i++) {
     int colidx = linsys.idx[i][rowidx];
     if (colidx >= 0) {
-      ycell += linsys.a[i][rowidx] * x.valueAt(colidx) - k * linsys.b[rowidx];
+      ycell +=
+          ka * linsys.a[i][rowidx] * x.valueAt(colidx) - kb * linsys.b[rowidx];
     }
   }
 
   y.setValueInCell(rowidx, 0, ycell);
 }
 
-// For a linear system Ax=b, this function returns y= A*x + k*b
-static Field apply(const LinearSystem& sys, const Field& x, real k) {
+// For a linear system Ax=b, this function returns y= ka * A*x + kb * b
+static Field apply(const LinearSystem& sys, const Field& x, real ka, real kb) {
   if (x.ncomp() != 1) {
     throw std::invalid_argument(
         "Applying a linear system matrix multiplication is only possible on a "
@@ -81,16 +83,16 @@ static Field apply(const LinearSystem& sys, const Field& x, real k) {
         "argument");
   }
   Field y(sys.grid(), 1);
-  cudaLaunch(sys.grid().ncells(), k_apply, y.cu(), sys.cu(), x.cu(), k);
+  cudaLaunch(sys.grid().ncells(), k_apply, y.cu(), sys.cu(), x.cu(), ka, kb);
   return y;
 }
 
 Field LinearSystem::matrixmul(const Field& x) const {
-  return apply(*this, x, 0.0);
+  return apply(*this, x, 1.0, 0.0);  // A*x
 }
 
 Field LinearSystem::residual(const Field& x) const {
-  return apply(*this, x, -1.0);
+  return apply(*this, x, -1.0, 1.0);  // b - A*x
 }
 
 CuLinearSystem LinearSystem::cu() const {

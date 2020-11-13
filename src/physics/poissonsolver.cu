@@ -16,7 +16,7 @@ PoissonSolver::PoissonSolver(const Ferromagnet* magnet)
       pot_(magnet_->grid(), 1),
       maxIterations(POISSONSOLVER_DEFAULTMAXITER),
       tol(POISSONSOLVER_DEFAULTTOL) {
-  stepper_ = std::make_unique<JacobiStepper>(&sys_, &pot_);
+  stepper_ = std::make_unique<ConjugateGradientStepper>(&sys_, &pot_);
 }
 
 __global__ static void k_construct(CuLinearSystem sys,
@@ -65,6 +65,7 @@ void PoissonSolver::init() {
   nstep_ = 0;
   cudaLaunch(sys_.grid().ncells(), k_construct, sys_.cu(),
              magnet_->appliedPotential.cu(), magnet_->cellsize());
+  stepper_->restart();
 }
 
 Field PoissonSolver::solve() {
