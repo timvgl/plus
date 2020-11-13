@@ -16,6 +16,15 @@ class PoissonSolver:
     def max_iter(self, max_iter):
         self._impl.max_iter = max_iter
 
+    @property
+    def tol(self):
+        """ Error tollerance on the max norm of the residual """
+        return self._impl.tol
+
+    @tol.setter
+    def tol(self, tol):
+        self._impl.tol = tol
+
     def max_norm_residual(self):
         """ Returns the maximum norm of the residual """
         return self._impl.max_norm_residual()

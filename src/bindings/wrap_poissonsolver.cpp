@@ -8,6 +8,7 @@ void wrap_poissonsolver(py::module& m) {
       .def("max_norm_residual", &PoissonSolver::residualMaxNorm)
       .def("solve", [](PoissonSolver* p) { return fieldToArray(p->solve()); })
       .def_readwrite("max_iter", &PoissonSolver::maxIterations)
+      .def_readwrite("tol", &PoissonSolver::tol)
       .def("state",
            [](const PoissonSolver* p) { return fieldToArray(p->state()); });
 }

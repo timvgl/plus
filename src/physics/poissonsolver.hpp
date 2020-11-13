@@ -25,6 +25,7 @@ class PoissonSolver {
   real residualMaxNorm() const;
 
   int maxIterations;
+  double tol;
 
  private:
   const Ferromagnet* magnet_;

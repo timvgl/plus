@@ -7,12 +7,16 @@
 #include "poissonsolver.hpp"
 #include "reduce.hpp"
 
+const real POISSONSOLVER_DEFAULTTOL = 1e-5;
+const int POISSONSOLVER_DEFAULTMAXITER = -1;
+
 PoissonSolver::PoissonSolver(const Ferromagnet* magnet)
     : magnet_(magnet),
       sys_(magnet->grid(), NNEAREST),
-      pot_(magnet_->grid(), 1) {
+      pot_(magnet_->grid(), 1),
+      maxIterations(POISSONSOLVER_DEFAULTMAXITER),
+      tol(POISSONSOLVER_DEFAULTTOL) {
   stepper_ = std::make_unique<JacobiStepper>(&sys_, &pot_);
-  maxIterations = 1000;  // TODO: set to -1 if errtol is implemented
 }
 
 __global__ static void k_construct(CuLinearSystem sys,
@@ -65,10 +69,16 @@ void PoissonSolver::init() {
 
 Field PoissonSolver::solve() {
   init();
-  while (nstep_ < maxIterations || maxIterations < 0) {
+
+  while ((double)residualMaxNorm() > tol) {
+    if (nstep_ > maxIterations && maxIterations >= 0) {
+      break;
+    }
+
     step();
     nstep_++;
   }
+
   return pot_;
 }
 

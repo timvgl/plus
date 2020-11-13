@@ -19,7 +19,7 @@ magnet.applied_potential = p
 magnet.poisson_solver._init()
 
 residual = []
-for i in range(10000):
+for i in range(1000):
     magnet.poisson_solver._step()
     residual.append(magnet.poisson_solver.max_norm_residual())
 
