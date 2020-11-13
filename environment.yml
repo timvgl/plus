@@ -1,13 +1,13 @@
-name: mumax
+name: mumax5
 channels:
   - defaults
 dependencies:
   # required
-  - python=3.7
+  - python=3
   - conda-build
   - pytest
-
-  # optional
   - matplotlib
   - numpy
+  
+  # optional
   - ipython
