@@ -1,9 +1,32 @@
 #include "linsolver.hpp"
 
+#include <memory>
+#include <stdexcept>
+
 #include "field.hpp"
 #include "fieldops.hpp"
 #include "linsystem.hpp"
 #include "reduce.hpp"
+
+LinearSystemSolverStepper::Method LinearSystemSolverStepper::getMethodByName(
+    std::string methodName) {
+  if (methodName == "jacobi")
+    return Method::JACOBI;
+  if (methodName == "conjugategradient")
+    return Method::CONJUGATEGRADIENT;
+  throw std::invalid_argument("Linear system solver method '" + methodName +
+                              "' is not implemented");
+}
+
+std::unique_ptr<LinearSystemSolverStepper>
+LinearSystemSolverStepper::create(LinearSystem* sys, Field* x, Method method) {
+  switch (method) {
+    case JACOBI:
+      return std::make_unique<JacobiStepper>(sys, x);
+    case CONJUGATEGRADIENT:
+      return std::make_unique<ConjugateGradientStepper>(sys, x);
+  }
+}
 
 void JacobiStepper::step() {
   Field r = sys_->residual(x_);  // r = b-Ax

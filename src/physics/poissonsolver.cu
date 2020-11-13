@@ -7,16 +7,11 @@
 #include "poissonsolver.hpp"
 #include "reduce.hpp"
 
-const real POISSONSOLVER_DEFAULTTOL = 1e-5;
-const int POISSONSOLVER_DEFAULTMAXITER = -1;
-
 PoissonSolver::PoissonSolver(const Ferromagnet* magnet)
     : magnet_(magnet),
       sys_(magnet->grid(), NNEAREST),
-      pot_(magnet_->grid(), 1),
-      maxIterations(POISSONSOLVER_DEFAULTMAXITER),
-      tol(POISSONSOLVER_DEFAULTTOL) {
-  stepper_ = std::make_unique<ConjugateGradientStepper>(&sys_, &pot_);
+      pot_(magnet_->grid(), 1) {
+  setMethod(Method::CONJUGATEGRADIENT);
 }
 
 __global__ static void k_construct(CuLinearSystem sys,
@@ -85,6 +80,15 @@ Field PoissonSolver::solve() {
 
 void PoissonSolver::step() {
   stepper_->step();
+}
+
+void PoissonSolver::setMethod(Method method) {
+  stepper_ = LinearSystemSolverStepper::create(&sys_, &pot_, method);
+}
+
+void PoissonSolver::setMethodByName(std::string methodName) {
+  Method method = LinearSystemSolverStepper::getMethodByName(methodName);
+  stepper_ = LinearSystemSolverStepper::create(&sys_, &pot_, method);
 }
 
 Field PoissonSolver::state() const {

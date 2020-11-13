@@ -7,6 +7,15 @@ class PoissonSolver:
         """ Solve the Poisson equation """
         return self._impl.solve()
 
+    def set_method(self, method_name):
+        """ Set the solver method
+
+        The implemented methods are:
+            - jacobi
+            - conjugategradient
+        """
+        return self._impl.set_method(method_name)
+
     @property
     def max_iter(self):
         """ Maximum of iterations for the solver (no maximum if <0)"""

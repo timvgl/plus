@@ -14,18 +14,23 @@ class Ferromagnet;
 
 class PoissonSolver {
  public:
+  using Method = LinearSystemSolverStepper::Method;
+
+ public:
   PoissonSolver(const Ferromagnet* magnet);
 
   void init();
   Field solve();
   void step();
+  void setMethod(Method);
+  void setMethodByName(std::string);
 
   Field state() const;
   Field residual() const;
   real residualMaxNorm() const;
 
-  int maxIterations;
-  double tol;
+  int maxIterations = -1;
+  double tol = 1e-5;
 
  private:
   const Ferromagnet* magnet_;

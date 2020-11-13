@@ -4,7 +4,7 @@ from mumax5.util import *
 import numpy as np
 
 world = World(cellsize=(1, 1, 1))
-magnet = Ferromagnet(world, Grid((128, 128, 1)))
+magnet = Ferromagnet(world, Grid((256, 128, 1)))
 
 p = np.zeros(magnet.applied_potential.eval().shape)
 p[:] = np.nan
@@ -13,9 +13,7 @@ p[0, 0, -1, :] = -1
 
 magnet.applied_potential = p
 
-# show_layer(magnet.electrical_potential)
-
-
+magnet.poisson_solver.set_method("conjugategradient")
 magnet.poisson_solver._init()
 
 residual = []

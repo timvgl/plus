@@ -6,10 +6,20 @@ class LinearSystem;
 
 class LinearSystemSolverStepper {
  public:
+  enum Method { JACOBI, CONJUGATEGRADIENT };
+  static Method getMethodByName(std::string);
+
+ public:
   LinearSystemSolverStepper(const LinearSystem* sys, Field* x)
       : sys_(sys), x_(*x) {}
   virtual void step() = 0;
   virtual void restart() {}
+
+ public:
+  // factory method to create a stepper for the given method
+  static std::unique_ptr<LinearSystemSolverStepper> create(LinearSystem*,
+                                                           Field*,
+                                                           Method);
 
  protected:
   const LinearSystem* sys_;
