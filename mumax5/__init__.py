@@ -8,6 +8,7 @@ from .magnetfield import MagnetField
 from .timesolver import TimeSolver
 from .variable import Variable
 from .world import World
+from .poissonsolver import PoissonSolver
 
 __all__ = [
     "_cpp",
@@ -17,4 +18,5 @@ __all__ = [
     "TimeSolver",
     "Variable",
     "World",
+    "PoissonSolver",
 ]
