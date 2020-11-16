@@ -82,6 +82,10 @@ void PoissonSolver::step() {
   stepper_->step();
 }
 
+void PoissonSolver::restart() {
+  stepper_->restart();
+}
+
 void PoissonSolver::setMethod(Method method) {
   stepper_ = LinearSystemSolverStepper::create(&sys_, &pot_, method);
 }

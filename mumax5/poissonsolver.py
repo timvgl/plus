@@ -52,3 +52,7 @@ class PoissonSolver:
     def _state(self):
         """ Return the current state of the Poisson solver """
         return self._impl.state()
+
+    def _restart(self):
+        """ Restart the stepper """
+        return self._impl.restart()

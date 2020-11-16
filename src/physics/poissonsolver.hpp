@@ -22,6 +22,7 @@ class PoissonSolver {
   void init();
   Field solve();
   void step();
+  void restart();
   void setMethod(Method);
   void setMethodByName(std::string);
 
