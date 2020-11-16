@@ -14,6 +14,7 @@ class PoissonSolver:
             - jacobi
             - conjugategradient
             - minimalresidual
+            - steepestdescent 
         """
         return self._impl.set_method(method_name)
 

@@ -6,7 +6,7 @@ class LinearSystem;
 
 class LinearSystemSolverStepper {
  public:
-  enum Method { JACOBI, CONJUGATEGRADIENT, MINIMALRESIDUAL };
+  enum Method { JACOBI, CONJUGATEGRADIENT, MINIMALRESIDUAL, STEEPESTDESCENT };
   static Method getMethodByName(std::string);
 
  public:
@@ -49,6 +49,19 @@ class ConjugateGradientStepper : public LinearSystemSolverStepper {
 class MinimalResidualStepper : public LinearSystemSolverStepper {
  public:
   MinimalResidualStepper(const LinearSystem* sys, Field* x)
+      : LinearSystemSolverStepper(sys, x) {}
+  void step();
+  void restart();
+
+ private:
+  real rr;
+  Field p;
+  Field r;
+};
+
+class SteepestDescentStepper : public LinearSystemSolverStepper {
+ public:
+  SteepestDescentStepper(const LinearSystem* sys, Field* x)
       : LinearSystemSolverStepper(sys, x) {}
   void step();
   void restart();
