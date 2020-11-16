@@ -14,6 +14,8 @@ LinearSystemSolverStepper::Method LinearSystemSolverStepper::getMethodByName(
     return Method::JACOBI;
   if (methodName == "conjugategradient")
     return Method::CONJUGATEGRADIENT;
+  if (methodName == "minimalresidual")
+    return Method::MINIMALRESIDUAL;
   throw std::invalid_argument("Linear system solver method '" + methodName +
                               "' is not implemented");
 }
@@ -25,6 +27,8 @@ LinearSystemSolverStepper::create(LinearSystem* sys, Field* x, Method method) {
       return std::make_unique<JacobiStepper>(sys, x);
     case CONJUGATEGRADIENT:
       return std::make_unique<ConjugateGradientStepper>(sys, x);
+    case MINIMALRESIDUAL:
+      return std::make_unique<MinimalResidualStepper>(sys, x);
   }
 }
 
@@ -47,5 +51,20 @@ void ConjugateGradientStepper::step() {
 void ConjugateGradientStepper::restart() {
   r = sys_->residual(x_);  // r = b-A*x
   p = r;                   // p = r
+  rr = dotSum(r, r);       // rr = (r,r)
+}
+
+void MinimalResidualStepper::step() {
+  real pp = dotSum(p, p);       // pp = (p,p)
+  real alpha = rr / pp;         // α  = rr/pp
+  x_ = add(1.0, x_, alpha, r);  // x  = x + α*r
+  r = add(1.0, r, -alpha, p);   // r  = r - α*p
+  p = sys_->matrixmul(r);       // p  = A*r
+  rr = dotSum(r, r);            // rr = (r,r)
+}
+
+void MinimalResidualStepper::restart() {
+  r = sys_->residual(x_);  // r  = b-A*x
+  p = sys_->matrixmul(r);  // p  = A*r
   rr = dotSum(r, r);       // rr = (r,r)
 }

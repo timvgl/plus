@@ -13,6 +13,7 @@ class PoissonSolver:
         The implemented methods are:
             - jacobi
             - conjugategradient
+            - minimalresidual
         """
         return self._impl.set_method(method_name)
 

@@ -13,7 +13,7 @@ p[0, 0, -1, :] = -1
 
 magnet.applied_potential = p
 
-magnet.poisson_solver.set_method("conjugategradient")
+magnet.poisson_solver.set_method("minimalresidual")
 magnet.poisson_solver._init()
 
 residual = []
