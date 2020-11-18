@@ -21,11 +21,6 @@ add_library(core STATIC
     grid.hpp 
     gpubuffer.cu
     gpubuffer.hpp
-    linsystem.cu
-    linsystem.hpp
-    linsolver.cpp
-    linsolver.hpp
-    linsystem.hpp
     parameter.cu
     parameter.hpp
     rungekutta.cpp

@@ -25,3 +25,4 @@ add_definitions(-D_USE_MATH_DEFINES) # Needed for cmath constants on Windows
 add_subdirectory(src/core)
 add_subdirectory(src/bindings)
 add_subdirectory(src/physics)
+add_subdirectory(src/linsolver)

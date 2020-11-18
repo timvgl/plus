@@ -51,7 +51,7 @@ add_library(physics STATIC
 
 target_include_directories(physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_include_directories(physics PUBLIC ${PROJECT_SOURCE_DIR})
-target_link_libraries(physics PUBLIC core)
+target_link_libraries(physics PUBLIC core linsolver)
 
 link_directories(${CUDA_LIBRARY_DIR})
 target_link_libraries(physics PRIVATE cufft curand)
