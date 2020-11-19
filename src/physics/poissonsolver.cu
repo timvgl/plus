@@ -2,7 +2,7 @@
 #include "ferromagnetquantity.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
-#include "linsolver.hpp"
+#include "linstepper.hpp"
 #include "linsystem.hpp"
 #include "poissonsolver.hpp"
 #include "reduce.hpp"

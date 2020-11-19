@@ -5,7 +5,7 @@
 #include "datatypes.hpp"
 #include "field.hpp"
 #include "grid.hpp"
-#include "linsolver.hpp"
+#include "linstepper.hpp"
 #include "linsystem.hpp"
 
 const int NNEAREST = 5;  // number of relevant nearest neighbors

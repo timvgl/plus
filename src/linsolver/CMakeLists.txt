@@ -4,8 +4,8 @@ project(mumax5linsolver)
 add_library(linsolver STATIC 
     linsystem.cu
     linsystem.hpp
-    linsolver.cpp
-    linsolver.hpp
+    linstepper.cpp
+    linstepper.hpp
 )
 
 target_include_directories(linsolver PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
