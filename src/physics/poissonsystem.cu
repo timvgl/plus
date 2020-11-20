@@ -10,7 +10,7 @@
 PoissonSystem::PoissonSystem(const Ferromagnet* magnet) : magnet_(magnet) {}
 
 __global__ static void k_construct(CuLinearSystem sys,
-                                   const CuField conductivity,
+                                   const CuParameter conductivity,
                                    const CuParameter pot,
                                    real3 cellsize) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -77,9 +77,9 @@ std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
   int nNeighbors = threeDimenstional ? 6 : 4;  // nearest neighbors
   int nnz = 1 + nNeighbors;                    // central cell + neighbors
   auto system = std::make_unique<LinearSystem>(grid, nnz);
-  Field conductivity = magnet_->conductivity.eval();
-  cudaLaunch(grid.ncells(), k_construct, system->cu(), conductivity.cu(),
-             magnet_->appliedPotential.cu(), magnet_->cellsize());
+  cudaLaunch(grid.ncells(), k_construct, system->cu(),
+             magnet_->conductivity.cu(), magnet_->appliedPotential.cu(),
+             magnet_->cellsize());
   return system;
 }
 
