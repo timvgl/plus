@@ -1,6 +1,6 @@
 name: mumax5
 channels:
-  - defaults
+  - conda-forge
 dependencies:
   # required
   - python=3
@@ -8,6 +8,13 @@ dependencies:
   - pytest
   - matplotlib
   - numpy
-  
+
+  # code checks
+  - black
+  - cpplint
+  - flake8
+  - isort # check that imports are in the right order
+  - pre-commit
+
   # optional
   - ipython
