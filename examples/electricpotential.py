@@ -13,15 +13,16 @@ p[0, 0, -1, :] = -1
 
 magnet.applied_potential = p
 
-magnet.poisson_solver.set_method("steepestdescent")
-magnet.poisson_solver._init()
+magnet.poisson_system._init()
+solver = magnet.poisson_system._solver
+solver.set_method("conjugategradient")
 
 residual = []
 for i in range(2000):
-    magnet.poisson_solver._step()
-    residual.append(magnet.poisson_solver.max_norm_residual())
+    solver.step()
+    residual.append(solver.max_norm_residual())
 
-pot = magnet.poisson_solver._state()
+pot = solver.state()
 
 fig, (ax1, ax2) = plt.subplots(2, 1)
 ax1.loglog(residual)

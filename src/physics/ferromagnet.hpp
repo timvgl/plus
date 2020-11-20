@@ -12,7 +12,7 @@
 #include "handler.hpp"
 #include "magnetfield.hpp"
 #include "parameter.hpp"
-#include "poissonsolver.hpp"
+#include "poissonsystem.hpp"
 #include "ref.hpp"
 #include "system.hpp"
 #include "variable.hpp"
@@ -43,7 +43,7 @@ class Ferromagnet : public System {
   Parameter pol;
   Parameter appliedPotential;
 
-  mutable PoissonSolver poissonsolver;
+  mutable PoissonSystem poissonSystem;
 
   const MagnetField* getMagnetField(const Ferromagnet*) const;
   std::vector<const MagnetField*> getMagnetFields() const;

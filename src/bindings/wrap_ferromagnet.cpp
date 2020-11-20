@@ -49,7 +49,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_readonly("jcur", &Ferromagnet::jcur)
       .def_readonly("temperature", &Ferromagnet::temperature)
       .def_readonly("applied_potential", &Ferromagnet::appliedPotential)
-      .def_readonly("poisson_solver", &Ferromagnet::poissonsolver)
+      .def_readonly("poisson_system", &Ferromagnet::poissonSystem)
 
       .def_property_readonly(
           "thermal_noise",

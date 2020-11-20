@@ -6,7 +6,7 @@ from .fieldquantity import FieldQuantity
 from .grid import Grid
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
-from .poissonsolver import PoissonSolver
+from .poissonsystem import PoissonSystem
 
 
 class Ferromagnet:
@@ -177,12 +177,12 @@ class Ferromagnet:
     def applied_potential(self, value):
         self._impl.applied_potential.set(value)
 
-    # ----- POISSON SOLVER ----------------------
+    # ----- POISSON SYSTEM ----------------------
 
     @property
-    def poisson_solver(self):
+    def poisson_system(self):
         """ The poisson solver which computes the electric potential """
-        return PoissonSolver(self._impl.poisson_solver)
+        return PoissonSystem(self._impl.poisson_system)
 
     # ----- QUANTITIES ----------------------
 

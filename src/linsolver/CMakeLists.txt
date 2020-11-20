@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.18)
 project(mumax5linsolver)
 
 add_library(linsolver STATIC 
+    linsolver.cpp
+    linsolver.hpp
     linsystem.cu
     linsystem.hpp
-    linstepper.cpp
-    linstepper.hpp
 )
 
 target_include_directories(linsolver PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})

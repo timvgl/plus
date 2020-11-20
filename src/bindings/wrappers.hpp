@@ -25,3 +25,4 @@ void wrap_magnetfield(py::module& m);
 void wrap_ferromagnetfieldquantity(py::module& m);
 void wrap_ferromagnetscalarquantity(py::module& m);
 void wrap_poissonsolver(py::module& m);
+void wrap_linsolver(py::module& m);

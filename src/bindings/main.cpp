@@ -15,4 +15,5 @@ PYBIND11_MODULE(_mumax5cpp, m) {
   wrap_world(m);
   wrap_magnetfield(m);
   wrap_poissonsolver(m);
+  wrap_linsolver(m);
 }
