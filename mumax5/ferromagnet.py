@@ -177,6 +177,15 @@ class Ferromagnet:
     def applied_potential(self, value):
         self._impl.applied_potential.set(value)
 
+    @property
+    def conductivity(self):
+        """ Conductivity """
+        return self._impl.conductivity
+
+    @conductivity.setter
+    def conductivity(self, value):
+        self._impl.conductivity.set(value)
+
     # ----- POISSON SYSTEM ----------------------
 
     @property

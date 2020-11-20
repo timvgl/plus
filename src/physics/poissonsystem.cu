@@ -10,6 +10,7 @@
 PoissonSystem::PoissonSystem(const Ferromagnet* magnet) : magnet_(magnet) {}
 
 __global__ static void k_construct(CuLinearSystem sys,
+                                   const CuField conductivity,
                                    const CuParameter pot,
                                    real3 cellsize) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -31,14 +32,26 @@ __global__ static void k_construct(CuLinearSystem sys,
   neighbor[3] = coo + int3{0, -1, 0};
   neighbor[4] = coo + int3{0, 1, 0};
 
+  // conductivity at the center cell
+  real c0 = conductivity.valueAt(coo);
+
+  // if potential applied, set potential directly
   if (!isnan(pot.valueAt(idx))) {
     vals[0] = 1.0;
     sys.b[idx] = pot.valueAt(idx);
+
+    // set potential to 0 if conductivity is zero
+  } else if (c0 == real(0.0)) {
+    vals[0] = 1.0;
+    sys.b[idx] = 0.0;
+
   } else {
     for (int i = 1; i < 5; i++) {
       if (grid.cellInGrid(neighbor[i])) {
-        vals[0] += 1.0;
-        vals[i] -= 1.0;
+        real c_ = conductivity.valueAt(neighbor[i]);
+        real c = sqrt(c_ * c0);  // geometric mean
+        vals[0] += c;
+        vals[i] -= c;
         colidx[i] = grid.coord2index(neighbor[i]);
       }
     }
@@ -59,7 +72,8 @@ void PoissonSystem::init() {
 std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
   Grid grid = magnet_->grid();
   auto system = std::make_unique<LinearSystem>(grid, NNEAREST);
-  cudaLaunch(grid.ncells(), k_construct, system->cu(),
+  Field conductivity = magnet_->conductivity.eval();
+  cudaLaunch(grid.ncells(), k_construct, system->cu(), conductivity.cu(),
              magnet_->appliedPotential.cu(), magnet_->cellsize());
   return system;
 }

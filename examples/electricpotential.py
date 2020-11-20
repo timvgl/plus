@@ -13,6 +13,11 @@ p[0, 0, -1, :] = -1
 
 magnet.applied_potential = p
 
+magnet.conductivity = 1.0
+cond = magnet.conductivity.eval()
+cond[:, :, 50:60, 0:120] = 0.0
+magnet.conductivity = cond
+
 magnet.poisson_system._init()
 solver = magnet.poisson_system._solver
 solver.set_method("conjugategradient")

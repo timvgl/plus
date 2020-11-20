@@ -28,6 +28,7 @@ Ferromagnet::Ferromagnet(World* world, std::string name, Grid grid)
       anisU(grid, {0, 0, 0}),
       jcur(grid, {0, 0, 0}),
       appliedPotential(grid, std::nanf("0")),
+      conductivity(grid, 0.0),
       enableDemag(true),
       poissonSystem(this) {
   {
