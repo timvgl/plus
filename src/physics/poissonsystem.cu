@@ -15,7 +15,7 @@ __global__ static void k_construct(CuLinearSystem sys,
                                    real3 cellsize) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  Grid grid = sys.grid;
+  Grid grid = pot.grid;
 
   if (!grid.cellInGrid(idx))
     return;
@@ -76,7 +76,7 @@ std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
   bool threeDimenstional = grid.size().z > 1;
   int nNeighbors = threeDimenstional ? 6 : 4;  // nearest neighbors
   int nnz = 1 + nNeighbors;                    // central cell + neighbors
-  auto system = std::make_unique<LinearSystem>(grid, nnz);
+  auto system = std::make_unique<LinearSystem>(grid.ncells(), nnz);
   cudaLaunch(grid.ncells(), k_construct, system->cu(),
              magnet_->conductivity.cu(), magnet_->appliedPotential.cu(),
              magnet_->cellsize());
@@ -85,7 +85,13 @@ std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
 
 Field PoissonSystem::solve() {
   init();
-  return solver_->solve();
+  GVec y = solver_->solve();
+  Field pot(magnet_->grid(), 1);
+  // TODO: this could be done without copy
+  checkCudaError(cudaMemcpyAsync(pot.devptr(0), y.get(),
+                                 y.size() * sizeof(real),
+                                 cudaMemcpyHostToDevice, getCudaStream()));
+  return pot;
 }
 
 LinSolver* PoissonSystem::solver() {

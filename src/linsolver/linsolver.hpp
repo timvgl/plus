@@ -3,8 +3,9 @@
 #include <memory>
 #include <string>
 
-#include "field.hpp"
+#include "gpubuffer.hpp"
 #include "linsystem.hpp"
+#include "vec.hpp"
 
 class LinSolverStepper;
 
@@ -19,10 +20,10 @@ class LinSolver {
   void setMethod(Method);
   void setMethodByName(std::string);
   void resetState();
-  Field getState() const;
-  void setState(const Field& newx);
-  Field solve();
-  Field residual() const;
+  GVec getState() const;
+  void setState(const GVec& newx);
+  GVec solve();
+  GVec residual() const;
   real residualMaxNorm() const;
 
   void step();
@@ -35,7 +36,7 @@ class LinSolver {
  private:
   std::unique_ptr<LinSolverStepper> stepper_;
   std::unique_ptr<LinearSystem> system_;
-  Field x_;
+  GVec x_;
 
   friend LinSolverStepper;
 };
@@ -53,7 +54,7 @@ class LinSolverStepper {
 
  protected:
   LinearSystem* system() const { return parent_->system_.get(); }
-  Field& xRef() const { return parent_->x_; }
+  GVec& xRef() const { return parent_->x_; }
 
  private:
   LinSolver* parent_;

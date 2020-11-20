@@ -6,6 +6,8 @@ add_library(linsolver STATIC
     linsolver.hpp
     linsystem.cu
     linsystem.hpp
+    vec.cu
+    vec.hpp
 )
 
 target_include_directories(linsolver PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})

@@ -27,12 +27,7 @@ for i in range(2000):
     solver.step()
     residual.append(solver.max_norm_residual())
 
-pot = solver.state()
-
-fig, (ax1, ax2) = plt.subplots(2, 1)
-# ax1.loglog(residual)
-
-ax1.imshow(pot[0, 0], vmin=-1, vmax=1)
-ax2.imshow(pot[0, -1], vmin=-1, vmax=1)
+fig, (ax1) = plt.subplots(1, 1)
+ax1.loglog(residual)
 
 plt.show()

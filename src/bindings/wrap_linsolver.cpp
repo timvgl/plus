@@ -7,9 +7,7 @@ void wrap_linsolver(py::module& m) {
       .def("restart", &LinSolver::restartStepper)
       .def("max_norm_residual", &LinSolver::residualMaxNorm)
       .def("set_method", &LinSolver::setMethodByName)
-      .def("solve", [](LinSolver* p) { return fieldToArray(p->solve()); })
+      .def("solve", [](LinSolver* p) { p->solve(); })
       .def_readwrite("max_iter", &LinSolver::maxIterations)
-      .def_readwrite("tol", &LinSolver::tol)
-      .def("state",
-           [](const LinSolver* p) { return fieldToArray(p->getState()); });
+      .def_readwrite("tol", &LinSolver::tol);
 }

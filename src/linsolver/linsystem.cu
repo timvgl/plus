@@ -5,8 +5,8 @@
 #include "field.hpp"
 #include "linsystem.hpp"
 
-LinearSystem::LinearSystem(Grid grid, int maxNonZerosInRow)
-    : grid_(grid),
+LinearSystem::LinearSystem(int nrows, int maxNonZerosInRow)
+    : nrows_(nrows),
       nnz_(maxNonZerosInRow),
       matrixval_(maxNonZerosInRow),
       matrixidx_(maxNonZerosInRow) {
@@ -16,11 +16,11 @@ LinearSystem::LinearSystem(Grid grid, int maxNonZerosInRow)
 void LinearSystem::allocate() {
   free();
 
-  b_.allocate(grid_.ncells());
+  b_.allocate(nrows_);
 
   for (int i = 0; i < nnz_; i++) {
-    matrixval_[i].allocate(grid_.ncells());
-    matrixidx_[i].allocate(grid_.ncells());
+    matrixval_[i].allocate(nrows_);
+    matrixidx_[i].allocate(nrows_);
   }
 
   matrixvalPtrs_.allocate(nnz_);
@@ -47,14 +47,14 @@ void LinearSystem::free() {
   b_.recycle();
 }
 
-__global__ static void k_apply(CuField y,
+__global__ static void k_apply(real* y,
                                CuLinearSystem linsys,
-                               CuField x,
+                               real* x,
                                real ka,
                                real kb) {
   int rowidx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (!y.cellInGrid(rowidx))
+  if (rowidx >= linsys.nrows)
     return;
 
   real ycell = 0.0;
@@ -62,40 +62,34 @@ __global__ static void k_apply(CuField y,
   for (int i = 0; i < linsys.nnz; i++) {
     int colidx = linsys.idx[i][rowidx];
     if (colidx >= 0) {
-      ycell +=
-          ka * linsys.a[i][rowidx] * x.valueAt(colidx) - kb * linsys.b[rowidx];
+      ycell += ka * linsys.a[i][rowidx] * x[colidx] - kb * linsys.b[rowidx];
     }
   }
 
-  y.setValueInCell(rowidx, 0, ycell);
+  y[rowidx] = ycell;
 }
 
 // For a linear system Ax=b, this function returns y= ka * A*x + kb * b
-static Field apply(const LinearSystem& sys, const Field& x, real ka, real kb) {
-  if (x.ncomp() != 1) {
+static GVec apply(const LinearSystem& sys, const GVec& x, real ka, real kb) {
+  if (x.size() != sys.nrows()) {
     throw std::invalid_argument(
-        "Applying a linear system matrix multiplication is only possible on a "
-        "field argument with 1 component");
+        "The numbers of rows in the linear system does not match the number of "
+        "cells of the field");
   }
-  if (x.grid() != sys.grid()) {
-    throw std::invalid_argument(
-        "The grid of the linear system does not match the grid of the field "
-        "argument");
-  }
-  Field y(sys.grid(), 1);
-  cudaLaunch(sys.grid().ncells(), k_apply, y.cu(), sys.cu(), x.cu(), ka, kb);
+  GVec y(x.size());
+  cudaLaunch(x.size(), k_apply, y.get(), sys.cu(), x.get(), ka, kb);
   return y;
 }
 
-Field LinearSystem::matrixmul(const Field& x) const {
+GVec LinearSystem::matrixmul(const GVec& x) const {
   return apply(*this, x, 1.0, 0.0);  // A*x
 }
 
-Field LinearSystem::residual(const Field& x) const {
+GVec LinearSystem::residual(const GVec& x) const {
   return apply(*this, x, -1.0, 1.0);  // b - A*x
 }
 
 CuLinearSystem LinearSystem::cu() const {
-  return CuLinearSystem(grid_, nnz_, matrixidxPtrs_.get(), matrixvalPtrs_.get(),
-                        b_.get());
+  return CuLinearSystem(nrows_, nnz_, matrixidxPtrs_.get(),
+                        matrixvalPtrs_.get(), b_.get());
 }

@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "fieldops.hpp"
-#include "reduce.hpp"
+#include "linsystem.hpp"
+#include "vec.hpp"
 
 LinSolver::LinSolver(std::unique_ptr<LinearSystem> system) {
   stepper_ = LinSolverStepper::create(this, JACOBI);
@@ -12,7 +12,7 @@ LinSolver::LinSolver(std::unique_ptr<LinearSystem> system) {
 
 void LinSolver::setSystem(std::unique_ptr<LinearSystem> newSystem) {
   system_ = std::move(newSystem);
-  if (system_->grid() != x_.grid()) {
+  if (system_->nrows() != x_.size()) {
     resetState();
   }
 }
@@ -27,20 +27,20 @@ void LinSolver::setMethodByName(std::string methodname) {
 }
 
 void LinSolver::resetState() {
-  x_ = Field(system_->grid(), 1);
+  x_ = GVec(system_->nrows());
   restartStepper();
 }
 
-Field LinSolver::getState() const {
+GVec LinSolver::getState() const {
   return x_;
 }
 
-void LinSolver::setState(const Field& newx) {
+void LinSolver::setState(const GVec& newx) {
   // todo check grid and ncomp
   x_ = newx;
 }
 
-Field LinSolver::solve() {
+GVec LinSolver::solve() {
   int nstep = 0;
   while ((double)residualMaxNorm() > tol) {
     if (nstep > maxIterations && maxIterations >= 0) {
@@ -61,7 +61,7 @@ void LinSolver::restartStepper() {
   stepper_->restart();
 }
 
-Field LinSolver::residual() const {
+GVec LinSolver::residual() const {
   return system_->residual(x_);
 }
 
@@ -87,9 +87,9 @@ class Jacobi : public LinSolverStepper {
   Method method() const { return Method::JACOBI; }
 
   void step() {
-    Field& x = xRef();
-    Field r = system()->residual(x);  // r = b-Ax
-    x = add(x, r);                    // x = x+r
+    GVec& x = xRef();
+    GVec r = system()->residual(x);  // r = b-Ax
+    x = add(x, r);                   // x = x+r
   }
 };
 
@@ -103,19 +103,19 @@ class ConjugateGradient : public LinSolverStepper {
   Method method() const { return Method::CONJUGATEGRADIENT; }
 
   void step() {
-    Field& x = xRef();
-    Field Ap = system()->matrixmul(p);  // Ap  = A*p
-    real alpha = rr / dotSum(p, Ap);    // α   = rr/(p,Ap)
-    x = add(1.0, x, alpha, p);          // x   = x + α*p
-    r = add(1.0, r, -alpha, Ap);        // r   = r - α*Ap
-    real rrPrime = rr;                  // rr' = rr
-    rr = dotSum(r, r);                  // rr  = (r,r)
-    real beta = rr / rrPrime;           // β   = rr/rr'
-    p = add(1.0, r, beta, p);           // p   = r + β*p
+    GVec& x = xRef();
+    GVec Ap = system()->matrixmul(p);  // Ap  = A*p
+    real alpha = rr / dotSum(p, Ap);   // α   = rr/(p,Ap)
+    x = add(1.0, x, alpha, p);         // x   = x + α*p
+    r = add(1.0, r, -alpha, Ap);       // r   = r - α*Ap
+    real rrPrime = rr;                 // rr' = rr
+    rr = dotSum(r, r);                 // rr  = (r,r)
+    real beta = rr / rrPrime;          // β   = rr/rr'
+    p = add(1.0, r, beta, p);          // p   = r + β*p
   }
 
   void restart() {
-    Field& x = xRef();
+    GVec& x = xRef();
     r = system()->residual(x);  // r = b-A*x
     p = r;                      // p = r
     rr = dotSum(r, r);          // rr = (r,r)
@@ -123,8 +123,8 @@ class ConjugateGradient : public LinSolverStepper {
 
  private:
   real rr;
-  Field p;
-  Field r;
+  GVec p;
+  GVec r;
 };
 
 /**
@@ -136,7 +136,7 @@ class MinimalResidual : public LinSolverStepper {
   Method method() const { return Method::MINIMALRESIDUAL; }
 
   void step() {
-    Field& x = xRef();
+    GVec& x = xRef();
     real pp = dotSum(p, p);      // pp = (p,p)
     real alpha = rr / pp;        // α  = rr/pp
     x = add(1.0, x, alpha, r);   // x  = x + α*r
@@ -146,7 +146,7 @@ class MinimalResidual : public LinSolverStepper {
   }
 
   void restart() {
-    Field& x = xRef();
+    GVec& x = xRef();
     r = system()->residual(x);   // r  = b-A*x
     p = system()->matrixmul(r);  // p  = A*r
     rr = dotSum(r, r);           // rr = (r,r)
@@ -154,8 +154,8 @@ class MinimalResidual : public LinSolverStepper {
 
  private:
   real rr;
-  Field p;
-  Field r;
+  GVec p;
+  GVec r;
 };
 
 /**
@@ -169,7 +169,7 @@ class SteepestDescent : public LinSolverStepper {
   Method method() const { return Method::STEEPESTDESCENT; }
 
   void step() {
-    Field& x = xRef();
+    GVec& x = xRef();
     real pr = dotSum(p, r);      // pr = (p,r)
     real alpha = rr / pr;        // α  = rr/pr
     x = add(1.0, x, alpha, r);   // x  = x + α*r
@@ -179,7 +179,7 @@ class SteepestDescent : public LinSolverStepper {
   }
 
   void restart() {
-    Field& x = xRef();
+    GVec& x = xRef();
     r = system()->residual(x);   // r  = b-A*x
     p = system()->matrixmul(r);  // p  = A*r
     rr = dotSum(r, r);           // rr = (r,r)
@@ -187,8 +187,8 @@ class SteepestDescent : public LinSolverStepper {
 
  private:
   real rr;
-  Field p;
-  Field r;
+  GVec p;
+  GVec r;
 };
 
 }  // namespace
