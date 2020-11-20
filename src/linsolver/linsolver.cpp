@@ -69,11 +69,18 @@ real LinSolver::residualMaxNorm() const {
   return maxAbsValue(system_->residual(x_));
 }
 
-//--- IMPLEMENTATION OF STEPPERS -----------------------------------
-// These implementations should only be used in this compilation unit,
-// hence the anonymous namespace
+//--- IMPLEMENTATION OF STEPPERS -----------------------------------------------
+// These implementations should only be used in this compilation unit, hence the
+// anonymous namespace. If you implement a stepper, make sure to add the method
+// to LinSolver::Method, in LinSolverStepper::create and in
+// LinSolver::getMethodByName.
+//------------------------------------------------------------------------------
 namespace {
 
+/**
+ * Jacobi stepper to solve systems of linear equations
+ * @see https://en.wikipedia.org/wiki/Jacobi_method
+ */
 class Jacobi : public LinSolverStepper {
  public:
   Jacobi(LinSolver* parent) : LinSolverStepper(parent) {}
@@ -86,6 +93,10 @@ class Jacobi : public LinSolverStepper {
   }
 };
 
+/**
+ * Conjugate gradient stepper to solve systems of linear equations.
+ * @see https://en.wikipedia.org/wiki/Conjugate_gradient_method
+ */
 class ConjugateGradient : public LinSolverStepper {
  public:
   ConjugateGradient(LinSolver* parent) : LinSolverStepper(parent) {}
@@ -116,6 +127,9 @@ class ConjugateGradient : public LinSolverStepper {
   Field r;
 };
 
+/**
+ * Minimal residual stepper to solve systems of linear equations.
+ */
 class MinimalResidual : public LinSolverStepper {
  public:
   MinimalResidual(LinSolver* parent) : LinSolverStepper(parent) {}
@@ -144,6 +158,11 @@ class MinimalResidual : public LinSolverStepper {
   Field r;
 };
 
+/**
+ * Steepest descent stepper to solve systems of linear equations.
+ * @see
+ * https://www-m2.ma.tum.de/foswiki/pub/M2/Allgemeines/CSENumerikWS12/15_handout_iterative_III.pdf
+ */
 class SteepestDescent : public LinSolverStepper {
  public:
   SteepestDescent(LinSolver* parent) : LinSolverStepper(parent) {}
