@@ -8,8 +8,6 @@
 #include "linsolver.hpp"
 #include "linsystem.hpp"
 
-const int NNEAREST = 5;  // number of relevant nearest neighbors
-
 class Ferromagnet;
 
 class PoissonSystem {

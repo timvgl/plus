@@ -4,7 +4,7 @@ from mumax5.util import *
 import numpy as np
 
 world = World(cellsize=(1, 1, 1))
-magnet = Ferromagnet(world, Grid((256, 128, 1)))
+magnet = Ferromagnet(world, Grid((128, 128, 16)))
 
 p = np.zeros(magnet.applied_potential.eval().shape)
 p[:] = np.nan
@@ -30,8 +30,9 @@ for i in range(2000):
 pot = solver.state()
 
 fig, (ax1, ax2) = plt.subplots(2, 1)
-ax1.loglog(residual)
+# ax1.loglog(residual)
 
-ax2.imshow(pot[0, 0])
+ax1.imshow(pot[0, 0], vmin=-1, vmax=1)
+ax2.imshow(pot[0, -1], vmin=-1, vmax=1)
 
 plt.show()
