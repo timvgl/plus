@@ -1,9 +1,10 @@
-import subprocess
 from hashlib import sha1
 import os
-import numpy as np
 import shutil
+import subprocess
 import sys
+
+import numpy as np
 
 CACHEDIR = sys.path[0] + "/.mumax3_cache"
 
@@ -48,17 +49,19 @@ class Mumax3Simulation:
         if os.path.exists(self.outputdir):
             shutil.rmtree(self.outputdir)
 
-        with open(self.scriptfile, 'w') as f:
+        with open(self.scriptfile, "w") as f:
             f.write(self.script)
 
-        subprocess.run(["mumax3", self.scriptfile],
-                       check=True, stdout=open(os.devnull, 'wb'))
+        subprocess.run(
+            ["mumax3", self.scriptfile], check=True, stdout=open(os.devnull, "wb")
+        )
 
-        subprocess.run(["mumax3-convert", "-numpy",
-                        self.outputdir + "/*.ovf"],
-                       check=True, 
-                       stdout=open(os.devnull, 'wb'),
-                       stderr=open(os.devnull, 'wb'))
+        subprocess.run(
+            ["mumax3-convert", "-numpy", self.outputdir + "/*.ovf"],
+            check=True,
+            stdout=open(os.devnull, "wb"),
+            stderr=open(os.devnull, "wb"),
+        )
 
     def get_field(self, fieldname):
         filename = self.outputdir + "/" + fieldname + ".npy"

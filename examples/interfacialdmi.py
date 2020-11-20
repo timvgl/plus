@@ -1,5 +1,5 @@
-from mumax5 import *
-from mumax5.util import *
+from mumax5 import Ferromagnet, Grid, TimeSolver, World
+from mumax5.util import show_field
 
 world = World(cellsize=(0.2, 0.2, 0.2))
 magnet = Ferromagnet(world, Grid((128, 128, 1)))

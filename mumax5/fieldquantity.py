@@ -1,5 +1,4 @@
 class FieldQuantity:
-
     def __init__(self, impl):
         self._impl = impl
 
@@ -26,8 +25,9 @@ class FieldQuantity:
 
     def _bench(self, ntimes=100):
         import time
+
         start = time.time()
         for i in range(ntimes):
             self._impl.exec()
         stop = time.time()
-        return (stop-start)/ntimes
+        return (stop - start) / ntimes

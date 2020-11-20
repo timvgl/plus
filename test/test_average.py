@@ -1,5 +1,6 @@
-from mumax5 import World, Grid, Ferromagnet
 import numpy as np
+
+from mumax5 import Ferromagnet, Grid, World
 
 
 class TestAverage:
@@ -10,4 +11,4 @@ class TestAverage:
         wanted = np.average(m, axis=(1, 2, 3))
         result = magnet.magnetization.average()
         for i in range(3):
-            assert np.abs((wanted[i]-result[i])/result[i]) < 1e-5
+            assert np.abs((wanted[i] - result[i]) / result[i]) < 1e-5

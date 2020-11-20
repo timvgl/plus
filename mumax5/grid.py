@@ -27,4 +27,4 @@ class Grid:
     @property
     def ncells(self):
         Nx, Ny, Nz = self.size
-        return Nx*Ny*Nz
+        return Nx * Ny * Nz

@@ -1,5 +1,6 @@
 import numpy as np
-from mumax5 import World, Grid, Ferromagnet
+
+from mumax5 import Ferromagnet, Grid, World
 
 X, Y, Z = 0, 1, 2
 
@@ -31,7 +32,7 @@ def compute_interfacialdmi_numpy(magnet):
 
     idmi = magnet.idmi.average()[0]
     msat = magnet.msat.average()[0]
-    h *= idmi/msat
+    h *= idmi / msat
     return h
 
 
@@ -46,7 +47,7 @@ class TestInterfacialDmi:
         result = magnet.interfacialdmi_field.eval()
         wanted = compute_interfacialdmi_numpy(magnet)
 
-        relative_error = np.abs(result-wanted)/np.abs(wanted)
+        relative_error = np.abs(result - wanted) / np.abs(wanted)
         max_relative_error = np.max(relative_error)
 
         assert max_relative_error < 1e-4

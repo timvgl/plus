@@ -4,7 +4,6 @@ from mumax5 import World
 
 
 class TestWorld:
-
     def test_init_args(self):
         valid_cellsizes = [(1.0, 3.2, 5.1), (3.2, 3.2, 3.2), [1e-8, 1e-9, 0.4]]
         invalid_cellsizes = [(-1.0, 3.2, 5.1), (3.2, 3.2), 5.3]
@@ -20,4 +19,4 @@ class TestWorld:
         cellsize = (9.1, 1e-3, 3.2)
         w = World(cellsize)
         for i in range(3):
-            assert abs((w.cellsize[i] - cellsize[i])/cellsize[i]) < 1e-4
+            assert abs((w.cellsize[i] - cellsize[i]) / cellsize[i]) < 1e-4

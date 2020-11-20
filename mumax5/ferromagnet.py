@@ -1,8 +1,9 @@
 import _mumax5cpp as _cpp
+
 from .fieldquantity import FieldQuantity
+from .grid import Grid
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
-from .grid import Grid
 
 
 class Ferromagnet:
@@ -218,7 +219,8 @@ class Ferromagnet:
 
     @property
     def max_angle(self):
-        """ Maximal angle difference of the magnetization between exchange coupled cells """
+        """Maximal angle difference of the magnetization between exchange\
+         coupled cells"""
         return ScalarQuantity(_cpp.max_angle(self._impl))
 
     @property
@@ -228,7 +230,8 @@ class Ferromagnet:
 
     @property
     def interfacialdmi_energy_density(self):
-        """ Energy density related to the interfacial Dzyaloshinskii-Moriya interaction """
+        """Energy density related to the interfacial Dzyaloshinskii-Moriya\
+         interaction"""
         return FieldQuantity(_cpp.interfacialdmi_energy_density(self._impl))
 
     @property

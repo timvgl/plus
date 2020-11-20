@@ -1,12 +1,12 @@
 [tool.black]
+target-version = ['py37', 'py38']
 exclude = '''
 (
-  | \.egg
-  | \.git
-  | \.pytest_cache
-  | build
-  | docs
-  | src
-  | setup.py
+  /(
+      \.git
+      | build
+      | docs
+      | src/bindings/pybind11
+  )/
 )
 '''

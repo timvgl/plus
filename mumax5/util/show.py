@@ -11,19 +11,19 @@ def vectorfield_to_rgb(field):
                 fx, fy, fz = field[:, iz, iy, ix]
                 H = np.arctan2(fy, fx)
                 S = 1.0
-                L = 0.5+0.5*fz
-                Hp = H/(np.pi/3)
+                L = 0.5 + 0.5 * fz
+                Hp = H / (np.pi / 3)
                 if Hp < 0:
                     Hp += 6.0
                 elif Hp > 6.0:
                     Hp -= 6.0
-                if (L <= 0.5):
-                    C = 2*L*S
+                if L <= 0.5:
+                    C = 2 * L * S
                 else:
-                    C = 2*(1-L)*S
+                    C = 2 * (1 - L) * S
 
-                X = C*(1-np.abs(np.mod(Hp, 2.0)-1.0))
-                m = L-C/2.0
+                X = C * (1 - np.abs(np.mod(Hp, 2.0) - 1.0))
+                m = L - C / 2.0
                 rgbcell = np.array([m, m, m])
                 if Hp > 0 and Hp < 1:
                     rgbcell += np.array([C, X, 0])

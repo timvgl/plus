@@ -18,7 +18,6 @@ class TimeSolverOutput:
 
 
 class TimeSolver:
-
     def __init__(self, variable, rhs):
         self._impl = _cpp.TimeSolver(variable._impl, rhs._impl)
 

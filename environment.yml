@@ -13,6 +13,7 @@ dependencies:
   - black
   - cpplint
   - flake8
+  - flake8-docstrings
   - isort # check that imports are in the right order
   - pre-commit
 

@@ -2,14 +2,13 @@ import _mumax5cpp as _cpp
 
 
 class World:
-    """ World
-     """
+    """World"""
 
     def __init__(self, cellsize):
         """ Construct a world with a given cell size """
         self._impl = _cpp.World(cellsize)
 
-    #def add_ferromagnet(self, grid, name=""):
+    # def add_ferromagnet(self, grid, name=""):
     #    """ Add a ferromagnet to this world
 
     #    Parameters
@@ -30,7 +29,7 @@ class World:
 
     @property
     def cellsize(self):
-        """ The cell size of the world
+        """The cell size of the world
 
         This property is a tuple of three floating pointing numbers which
         represent the dimensions of the cells in the x, y, and z direction.

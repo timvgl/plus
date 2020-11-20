@@ -1,6 +1,6 @@
 import numpy as np
 
-from mumax5 import World, Grid, Ferromagnet
+from mumax5 import Ferromagnet, Grid, World
 
 
 def compute_exchange_numpy(magnet):
@@ -9,24 +9,24 @@ def compute_exchange_numpy(magnet):
     h_exch = np.zeros(m.shape)
 
     m_ = np.roll(m, 1, axis=1)
-    h_exch[:, 1:, :, :] += (m_-m)[:, 1:, :, :] / (cellsize[2]**2)
+    h_exch[:, 1:, :, :] += (m_ - m)[:, 1:, :, :] / (cellsize[2] ** 2)
 
     m_ = np.roll(m, -1, axis=1)
-    h_exch[:, :-1, :, :] += (m_-m)[:, :-1, :, :] / (cellsize[2]**2)
+    h_exch[:, :-1, :, :] += (m_ - m)[:, :-1, :, :] / (cellsize[2] ** 2)
 
     m_ = np.roll(m, 1, axis=2)
-    h_exch[:, :, 1:, :] += (m_-m)[:, :, 1:, :] / (cellsize[1]**2)
+    h_exch[:, :, 1:, :] += (m_ - m)[:, :, 1:, :] / (cellsize[1] ** 2)
 
     m_ = np.roll(m, -1, axis=2)
-    h_exch[:, :, 0:-1, :] += (m_-m)[:, :, 0:-1, :] / (cellsize[1]**2)
+    h_exch[:, :, 0:-1, :] += (m_ - m)[:, :, 0:-1, :] / (cellsize[1] ** 2)
 
     m_ = np.roll(m, 1, axis=3)
-    h_exch[:, :, :, 1:] += (m_-m)[:, :, :, 1:] / (cellsize[0]**2)
+    h_exch[:, :, :, 1:] += (m_ - m)[:, :, :, 1:] / (cellsize[0] ** 2)
 
     m_ = np.roll(m, -1, axis=3)
-    h_exch[:, :, :, 0:-1] += (m_-m)[:, :, :, 0:-1] / (cellsize[0]**2)
+    h_exch[:, :, :, 0:-1] += (m_ - m)[:, :, :, 0:-1] / (cellsize[0] ** 2)
 
-    return 2*magnet.aex.average()[0]*h_exch/magnet.msat.average()[0]
+    return 2 * magnet.aex.average()[0] * h_exch / magnet.msat.average()[0]
 
 
 class TestExchange:
@@ -40,7 +40,7 @@ class TestExchange:
         result = magnet.exchange_field.eval()
         wanted = compute_exchange_numpy(magnet)
 
-        relative_error = np.abs(result-wanted)/np.abs(wanted)
+        relative_error = np.abs(result - wanted) / np.abs(wanted)
         max_relative_error = np.max(relative_error)
 
         assert max_relative_error < 1e-4
