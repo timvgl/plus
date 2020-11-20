@@ -86,9 +86,9 @@ class Jacobi : public LinSolverStepper {
   }
 };
 
-class ConjgentGradient : public LinSolverStepper {
+class ConjugateGradient : public LinSolverStepper {
  public:
-  ConjgentGradient(LinSolver* parent) : LinSolverStepper(parent) {}
+  ConjugateGradient(LinSolver* parent) : LinSolverStepper(parent) {}
   Method method() const { return Method::CONJUGATEGRADIENT; }
 
   void step() {
@@ -182,7 +182,7 @@ std::unique_ptr<LinSolverStepper> LinSolverStepper::create(LinSolver* parent,
     case Method::JACOBI:
       return std::make_unique<Jacobi>(parent);
     case Method::CONJUGATEGRADIENT:
-      return std::make_unique<ConjgentGradient>(parent);
+      return std::make_unique<ConjugateGradient>(parent);
     case Method::MINIMALRESIDUAL:
       return std::make_unique<MinimalResidual>(parent);
     case Method::STEEPESTDESCENT:
