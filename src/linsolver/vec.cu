@@ -3,18 +3,6 @@
 #include "cudalaunch.hpp"
 #include "vec.hpp"
 
-// This part is copied from reduce.cu  DRY!!!
-#define BLOCKDIM 512
-template <typename... Arguments>
-void cudaLaunchReductionKernel(void (*kernelfunction)(Arguments...),
-                               Arguments... args) {
-  dim3 blockDims(BLOCKDIM);
-  dim3 gridDims(1);
-  kernelfunction<<<gridDims, blockDims, 0, getCudaStream()>>>(args...);
-  checkCudaError(cudaPeekAtLastError());
-  checkCudaError(cudaDeviceSynchronize());
-}
-
 __global__ void k_add(real* y, real a1, real* x1, real a2, real* x2, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (idx >= N)
