@@ -60,14 +60,14 @@ lsReal maxAbsValue(const GVec& x) {
   if (x.size() == 0)
     return 0.0;
 
-  lsReal* d_result = (lsReal*)bufferPool.allocate(sizeof(lsReal));
-  cudaLaunchReductionKernel(k_maxAbsValue, d_result, x.get(), (int)x.size());
+  GpuBuffer<lsReal> d_result(1);
+  cudaLaunchReductionKernel(k_maxAbsValue, d_result.get(), x.get(),
+                            (int)x.size());
 
   // copy the result to the host and return
   lsReal result;
-  checkCudaError(cudaMemcpyAsync(&result, d_result, 1 * sizeof(lsReal),
+  checkCudaError(cudaMemcpyAsync(&result, d_result.get(), 1 * sizeof(lsReal),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
-  bufferPool.recycle((void**)&d_result);
   return result;
 }
 
@@ -104,13 +104,12 @@ lsReal dotSum(const GVec& x1, const GVec& x2) {
   if (x1.size() == 0)
     return 0.0;
 
-  lsReal* d_result = (lsReal*)bufferPool.allocate(sizeof(lsReal));
-  cudaLaunchReductionKernel(k_dotSum, d_result, x1.get(), x2.get(),
+  GpuBuffer<lsReal> d_result(1);
+  cudaLaunchReductionKernel(k_dotSum, d_result.get(), x1.get(), x2.get(),
                             (int)x1.size());
   // copy the result to the host and return
   lsReal result;
-  checkCudaError(cudaMemcpyAsync(&result, d_result, sizeof(lsReal),
+  checkCudaError(cudaMemcpyAsync(&result, d_result.get(), sizeof(lsReal),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
-  bufferPool.recycle((void**)&d_result);
   return result;
 }
