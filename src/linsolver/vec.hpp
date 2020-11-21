@@ -1,10 +1,10 @@
 #pragma once
-#include "datatypes.hpp"
 #include "gpubuffer.hpp"
 
-using GVec = GpuBuffer<real>;
+using lsReal = float;
+using GVec = GpuBuffer<lsReal>;
 
 GVec add(const GVec&, const GVec&);
-GVec add(real a1, const GVec& v1, real a2, const GVec& v2);
-real dotSum(const GVec&, const GVec&);
-real maxAbsValue(const GVec&);
+GVec add(lsReal a1, const GVec& v1, lsReal a2, const GVec& v2);
+lsReal dotSum(const GVec&, const GVec&);
+lsReal maxAbsValue(const GVec&);

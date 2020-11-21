@@ -25,14 +25,14 @@ void LinearSystem::allocate() {
 
   matrixvalPtrs_.allocate(nnz_);
   matrixidxPtrs_.allocate(nnz_);
-  real* h_matrixvalptrs[nnz_];
+  lsReal* h_matrixvalptrs[nnz_];
   int* h_matrixidxptrs[nnz_];
   for (int i = 0; i < nnz_; i++) {
     h_matrixvalptrs[i] = matrixval_[i].get();
     h_matrixidxptrs[i] = matrixidx_[i].get();
   }
   checkCudaError(cudaMemcpyAsync(matrixvalPtrs_.get(), h_matrixvalptrs,
-                                 nnz_ * sizeof(real*), cudaMemcpyHostToDevice,
+                                 nnz_ * sizeof(lsReal*), cudaMemcpyHostToDevice,
                                  getCudaStream()));
   checkCudaError(cudaMemcpyAsync(matrixidxPtrs_.get(), h_matrixidxptrs,
                                  nnz_ * sizeof(int*), cudaMemcpyHostToDevice,
@@ -47,17 +47,17 @@ void LinearSystem::free() {
   b_.recycle();
 }
 
-__global__ static void k_apply(real* y,
+__global__ static void k_apply(lsReal* y,
                                CuLinearSystem linsys,
-                               real* x,
-                               real ka,
-                               real kb) {
+                               lsReal* x,
+                               lsReal ka,
+                               lsReal kb) {
   int rowidx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (rowidx >= linsys.nrows)
     return;
 
-  real ycell = 0.0;
+  lsReal ycell = 0.0;
 
   for (int i = 0; i < linsys.nnz; i++) {
     int colidx = linsys.idx[i][rowidx];
@@ -70,7 +70,10 @@ __global__ static void k_apply(real* y,
 }
 
 // For a linear system Ax=b, this function returns y= ka * A*x + kb * b
-static GVec apply(const LinearSystem& sys, const GVec& x, real ka, real kb) {
+static GVec apply(const LinearSystem& sys,
+                  const GVec& x,
+                  lsReal ka,
+                  lsReal kb) {
   if (x.size() != sys.nrows()) {
     throw std::invalid_argument(
         "The numbers of rows in the linear system does not match the number of "

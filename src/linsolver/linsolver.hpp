@@ -24,7 +24,7 @@ class LinSolver {
   void setState(const GVec& newx);
   GVec solve();
   GVec residual() const;
-  real residualMaxNorm() const;
+  lsReal residualMaxNorm() const;
 
   void step();
   void restartStepper();

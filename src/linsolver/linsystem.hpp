@@ -1,6 +1,5 @@
 #pragma once
 
-#include "datatypes.hpp"
 #include "gpubuffer.hpp"
 #include "vec.hpp"
 
@@ -11,7 +10,7 @@ class LinearSystem {
   int nrows_;
   GVec b_;
   std::vector<GVec> matrixval_;
-  GpuBuffer<real*> matrixvalPtrs_;
+  GpuBuffer<lsReal*> matrixvalPtrs_;
   std::vector<GpuBuffer<int>> matrixidx_;
   GpuBuffer<int*> matrixidxPtrs_;
 
@@ -33,9 +32,13 @@ struct CuLinearSystem {
   const int nrows;
   const int nnz;
   int** idx;
-  real** a;
-  real* b;
+  lsReal** a;
+  lsReal* b;
 
-  CuLinearSystem(int nrows, int nNonZerosInRow, int** idx, real** a, real* b)
+  CuLinearSystem(int nrows,
+                 int nNonZerosInRow,
+                 int** idx,
+                 lsReal** a,
+                 lsReal* b)
       : nrows(nrows), nnz(nNonZerosInRow), idx(idx), a(a), b(b) {}
 };
