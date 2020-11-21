@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "anisotropy.hpp"
+#include "conductivitytensor.hpp"
 #include "demag.hpp"
 #include "effectivefield.hpp"
 #include "electricalpotential.hpp"
@@ -50,6 +51,7 @@ void wrap_ferromagnet(py::module& m) {
       .def_readonly("temperature", &Ferromagnet::temperature)
       .def_readonly("applied_potential", &Ferromagnet::appliedPotential)
       .def_readonly("conductivity", &Ferromagnet::conductivity)
+      .def_readonly("amr_ratio", &Ferromagnet::amrRatio)
       .def_readonly("poisson_system", &Ferromagnet::poissonSystem)
 
       .def_property_readonly(
@@ -99,6 +101,7 @@ void wrap_ferromagnet(py::module& m) {
   m.def("total_energy_density", &totalEnergyDensityQuantity);
   m.def("total_energy", &totalEnergyQuantity);
 
+  m.def("conductivity_tensor", &conductivityTensorQuantity);
   m.def("electrical_potential", &electricalPotentialQuantity);
 
   m.def("_demag_kernel", [](const Ferromagnet* fm) {

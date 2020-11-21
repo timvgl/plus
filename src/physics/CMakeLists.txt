@@ -4,6 +4,8 @@ project(mumax5physics)
 add_library(physics STATIC 
     anisotropy.cu 
     anisotropy.hpp 
+    conductivitytensor.cu
+    conductivitytensor.hpp
     constants.hpp
     demag.cpp
     demag.hpp

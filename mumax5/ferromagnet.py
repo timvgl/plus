@@ -179,12 +179,21 @@ class Ferromagnet:
 
     @property
     def conductivity(self):
-        """ Conductivity """
+        """ Conductivity without considering anisotropic magneto resistance """
         return self._impl.conductivity
 
     @conductivity.setter
     def conductivity(self, value):
         self._impl.conductivity.set(value)
+
+    @property
+    def amr_ratio(self):
+        """ Anisotropic magneto resistance ratio """
+        return self._impl.amr_ratio
+
+    @amr_ratio.setter
+    def amr_ratio(self, value):
+        self._impl.amr_ratio.set(value)
 
     # ----- POISSON SYSTEM ----------------------
 
@@ -311,3 +320,15 @@ class Ferromagnet:
     def electrical_potential(self):
         """ Electrical potential """
         return FieldQuantity(_cpp.electrical_potential(self._impl))
+
+    @property
+    def conductivity_tensor(self):
+        """ Conductivity tensor taking into account AMR
+
+        This quantity has six components (Cxx, Cyy, Czz, Cxy, Cxz, Cyz) 
+        which forms the symmetric conductivity tensor:
+               Cxx Cxy Cxz
+               Cxy Cyy Cyz
+               Cxz Cyz Czz
+         """
+        return FieldQuantity(_cpp.conductivity_tensor(self._impl))

@@ -43,6 +43,7 @@ class Ferromagnet : public System {
   Parameter pol;
   Parameter appliedPotential;
   Parameter conductivity;
+  Parameter amrRatio;
 
   mutable PoissonSystem poissonSystem;
 
