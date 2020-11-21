@@ -83,14 +83,18 @@ std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
   return system;
 }
 
+__global__ static void k_putSolutionInField(CuField f, lsReal* y) {
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!f.grid.cellInGrid(idx))
+    return;
+  f.setValueInCell(idx, 0, (real)y[idx]);
+}
+
 Field PoissonSystem::solve() {
   init();
   GVec y = solver_->solve();
   Field pot(magnet_->grid(), 1);
-  // TODO: this could be done without copy
-  checkCudaError(cudaMemcpyAsync(pot.devptr(0), y.get(),
-                                 y.size() * sizeof(real),
-                                 cudaMemcpyHostToDevice, getCudaStream()));
+  cudaLaunch(pot.grid().ncells(), k_putSolutionInField, pot.cu(), y.get());
   return pot;
 }
 

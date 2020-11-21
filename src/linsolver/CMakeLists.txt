@@ -10,6 +10,7 @@ add_library(linsolver STATIC
     vec.hpp
 )
 
+target_compile_definitions(linsolver PUBLIC -DLS_FP_PRECISION=DOUBLE) # should be SINGLE or DOUBLE 
 target_include_directories(linsolver PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_include_directories(linsolver PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(linsolver PUBLIC core)
