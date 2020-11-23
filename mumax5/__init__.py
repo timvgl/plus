@@ -1,3 +1,5 @@
+"""GPU accelerated micromagnetic simulator."""
+
 import _mumax5cpp as _cpp
 
 from .ferromagnet import Ferromagnet

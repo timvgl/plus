@@ -5,6 +5,7 @@ exclude = '''
   /(
       \.git
       | build
+      | examples
       | docs
       | src/bindings/pybind11
   )/

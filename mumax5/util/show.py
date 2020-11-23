@@ -1,8 +1,11 @@
+"""Plotting helper functions."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 def vectorfield_to_rgb(field):
+    """Map field modulus values to RGB."""
     field /= np.max(np.linalg.norm(field, axis=0))
     rgb = np.zeros((*(field[0].shape), 3))
     for ix in range(field.shape[3]):
@@ -44,6 +47,7 @@ def vectorfield_to_rgb(field):
 
 
 def show_field(quantity, layer=0):
+    """Plot a mumax5.FieldQuantity with 3 components using the mumax3 colorscheme."""
     plt.title(quantity.name)
     rgb = vectorfield_to_rgb(quantity.eval())
     plt.imshow(rgb[layer])
@@ -51,6 +55,7 @@ def show_field(quantity, layer=0):
 
 
 def show_layer(quantity, component=0, layer=0):
+    """Visualize a single component of a mumax5.FieldQuantity."""
     f = quantity.eval()
     plt.title(quantity.name)
     plt.imshow(f[component, layer])

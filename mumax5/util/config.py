@@ -1,7 +1,10 @@
+"""Common magnetization configurations."""
+
 import numpy as np
 
 
 def set_magnetization(magnet, cellsize, config):
+    """Set a magnetization configuration (e.g. the Neel skyrmion) on a magnet."""
     cs = cellsize
     gs = magnet.grid.size
     go = magnet.grid.origin
@@ -17,6 +20,8 @@ def set_magnetization(magnet, cellsize, config):
 
 
 def neelskyrmion(center, radius, charge, pol):
+    """Create the Neel skyrmion magnetization configuration."""
+
     def func(x, y, z):
         x -= center[0]
         y -= center[1]

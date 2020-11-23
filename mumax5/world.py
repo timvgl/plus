@@ -1,11 +1,19 @@
+"""World imlementation."""
+
 import _mumax5cpp as _cpp
 
 
 class World:
-    """World"""
+    """Construct a world with a given cell size.
+
+    Parameters
+    ----------
+    cellsize : tuple[float] of size 3
+        A tuple of three floating pointing numbers which represent the dimensions
+        of the cells in the x, y, and z direction.
+    """
 
     def __init__(self, cellsize):
-        """ Construct a world with a given cell size """
         self._impl = _cpp.World(cellsize)
 
     # def add_ferromagnet(self, grid, name=""):
@@ -23,24 +31,27 @@ class World:
     #    return self._impl.add_ferromagnet(grid, name)
 
     def get_ferromagnet(self, name):
-        """ Get a ferromagnet by its name """
-
+        """Get a ferromagnet by its name."""
         return self._impl.get_ferromagnet(name)
 
     @property
     def cellsize(self):
-        """The cell size of the world
+        """Return the cell size of the world.
 
-        This property is a tuple of three floating pointing numbers which
-        represent the dimensions of the cells in the x, y, and z direction.
+        Returns
+        -------
+        tuple[float] of size 3
+            A tuple of three floating pointing numbers which represent the dimensions
+            of the cells in the x, y, and z direction.
         """
         return self._impl.cellsize
 
     @property
     def bias_magnetic_field(self):
-        """ A uniform magnetic field which extends over the whole world """
+        """Return a uniform magnetic field which extends over the whole world."""
         return self._impl.bias_magnetic_field
 
     @bias_magnetic_field.setter
     def bias_magnetic_field(self, value):
+        """Set a uniform magnetic field which extends over the whole world."""
         self._impl.bias_magnetic_field = value

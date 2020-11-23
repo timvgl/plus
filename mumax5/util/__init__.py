@@ -1,3 +1,5 @@
+"""Utilities for mumax5."""
+
 from .config import neelskyrmion, set_magnetization
 from .show import show_field, show_layer
 
