@@ -6,14 +6,14 @@ from .fieldquantity import FieldQuantity
 
 
 class MagnetField(FieldQuantity):
-    """Create a magnetic field instance.
+    """Represent a stray field of a magnet in a specific grid.
 
     Parameters
     ----------
     magnet : mumax5.Ferromagnet
         Magnet instance which is the field source.
     grid : mumax5.Grid
-        Grid instance, determines number of cells in the magnet.
+        Grid instance on which the stray field will be computed.
     """
 
     def __init__(self, magnet, grid):

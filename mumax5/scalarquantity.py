@@ -2,7 +2,7 @@
 
 
 class ScalarQuantity:
-    """Create a new scalar quantity."""
+    """Functor representing a physical scalar quantity."""
 
     def __init__(self, impl):
         self._impl = impl
@@ -18,9 +18,9 @@ class ScalarQuantity:
         return self._impl.unit
 
     def eval(self):
-        """Evaluate and return scalar quantity."""
+        """Evaluate and return scalar value."""
         return self._impl.eval()
 
     def __call__(self):
-        """Evaluate and return scalar quantity."""
+        """Evaluate and return scalar value."""
         return self.eval()

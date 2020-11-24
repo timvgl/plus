@@ -25,17 +25,21 @@ class Grid:
 
     @property
     def size(self):
-        """Return the current size."""
+        """Return the number of cells in the x, y, and z direction."""
         return self._impl.size
 
     @property
     def origin(self):
-        """Return the current origin."""
+        """Return the origin the grid."""
         return self._impl.origin
 
     @property
     def shape(self):
-        """Return the current size."""
+        """Return the number of cells in the x, y, and z direction.
+
+        The shape property is similar to the size property, but with the order of
+        directions reversed (z, y, x).
+        """
         Nx, Ny, Nz = self.size
         return (Nz, Ny, Nx)
 

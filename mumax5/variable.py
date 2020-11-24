@@ -1,10 +1,10 @@
-"""Varaible implementation."""
+"""Variable implementation."""
 
 from .fieldquantity import FieldQuantity
 
 
 class Variable(FieldQuantity):
-    """Create a new variable."""
+    """Represent a physical variable, e.g. magnetization."""
 
     def __init__(self, impl):
         super().__init__(impl)

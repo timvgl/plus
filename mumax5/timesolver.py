@@ -25,8 +25,7 @@ class TimeSolverOutput:
             self._data[key].append(func())
 
     def __getitem__(self, key):
-        """Add a new docstring."""
-        # TODO add a docstring
+        """Return the computed values of a quantity."""
         return self._data[key]
 
 
@@ -45,23 +44,21 @@ class TimeSolver:
         self._impl = _cpp.TimeSolver(variable._impl, rhs._impl)
 
     def step(self):
-        """Stab docstring."""
-        # TODO add a docstring
+        """Make one step of the time solver."""
         self._impl.step()
 
     def steps(self, nsteps):
-        """Stab dosctring."""
-        # TODO add a docstring
+        """Make n steps of the time solver."""
         for i in range(nsteps):
             self.step()
 
     def run(self, duration):
-        """Solve the differential equation for one step.
+        """Run the solver for a given duration.
 
         Parameters
         ----------
         duration : float
-            Step duration.
+            Duration in seconds.
         """
         self._impl.run(duration)
 
@@ -93,29 +90,19 @@ class TimeSolver:
 
     @timestep.setter
     def timestep(self, timestep):
-        """Set the timestep value.
-
-        Parameters
-        ----------
-        timestep : float
-            New value.
-        """
         self._impl.timestep = timestep
 
     @property
     def adaptive_timestep(self):
-        """Return the adaptive_timestep value."""
+        """Return the adaptive_timestep value.
+
+        True if an adaptive time step is used, False otherwise.
+        To enable an adaptive time step, set to True, to disable set to False.
+        """
         return self._impl.adaptive_timestep
 
     @adaptive_timestep.setter
     def adaptive_timestep(self, adaptive):
-        """Set the adaptive_timestep value.
-
-        Parameters
-        ----------
-        adaptive : bool
-            To enable adaptive timestep provide True, to disable provide False.
-        """
         self._impl.timestep = adaptive
 
     @property

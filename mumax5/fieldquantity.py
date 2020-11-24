@@ -2,12 +2,9 @@
 
 
 class FieldQuantity:
-    """Wrapper for the C++ FieldQuantity class.
+    """A functor representing a physical field quantity.
 
-    Parameters
-    ----------
-    impl : object
-        C++ FieldQuantity implementation.
+    The class wraps the C++ FieldQuantity class.
     """
 
     def __init__(self, impl):
