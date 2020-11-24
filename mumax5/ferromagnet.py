@@ -4,9 +4,9 @@ import _mumax5cpp as _cpp
 
 from .fieldquantity import FieldQuantity
 from .grid import Grid
+from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
-from .poissonsystem import PoissonSystem
 
 
 class Ferromagnet:
@@ -170,7 +170,10 @@ class Ferromagnet:
 
     @property
     def applied_potential(self):
-        """ Applied electrical potential """
+        """Get the applied electrical potential.
+
+        Cells with Nan values do not have an applied potential.
+        """
         return self._impl.applied_potential
 
     @applied_potential.setter
@@ -179,7 +182,7 @@ class Ferromagnet:
 
     @property
     def conductivity(self):
-        """ Conductivity without considering anisotropic magneto resistance """
+        """Conductivity without considering anisotropic magneto resistance."""
         return self._impl.conductivity
 
     @conductivity.setter
@@ -188,7 +191,7 @@ class Ferromagnet:
 
     @property
     def amr_ratio(self):
-        """ Anisotropic magneto resistance ratio """
+        """Anisotropic magneto resistance ratio."""
         return self._impl.amr_ratio
 
     @amr_ratio.setter
@@ -199,7 +202,7 @@ class Ferromagnet:
 
     @property
     def poisson_system(self):
-        """ The poisson solver which computes the electric potential """
+        """Get the poisson solver which computes the electric potential."""
         return PoissonSystem(self._impl.poisson_system)
 
     # ----- QUANTITIES ----------------------
@@ -318,17 +321,17 @@ class Ferromagnet:
 
     @property
     def electrical_potential(self):
-        """ Electrical potential """
+        """Electrical potential."""
         return FieldQuantity(_cpp.electrical_potential(self._impl))
 
     @property
     def conductivity_tensor(self):
-        """ Conductivity tensor taking into account AMR
+        """Conductivity tensor taking into account AMR.
 
-        This quantity has six components (Cxx, Cyy, Czz, Cxy, Cxz, Cyz) 
+        This quantity has six components (Cxx, Cyy, Czz, Cxy, Cxz, Cyz)
         which forms the symmetric conductivity tensor:
                Cxx Cxy Cxz
                Cxy Cyy Cyz
                Cxz Cyz Czz
-         """
+        """
         return FieldQuantity(_cpp.conductivity_tensor(self._impl))

@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
+import numpy as np
+
 from mumax5 import *
 from mumax5.util import *
-import numpy as np
 
 world = World(cellsize=(1, 1, 1))
 magnet = Ferromagnet(world, Grid((128, 128, 16)))
