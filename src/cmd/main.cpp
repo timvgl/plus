@@ -7,7 +7,7 @@
 #include "grid.hpp"
 #include "timesolver.hpp"
 #include "torque.hpp"
-#include "world.hpp"
+#include "mumaxworld.hpp"
 
 
 int main() {
@@ -20,7 +20,7 @@ int main() {
     real3 cellsize{ length / n.x, width / n.y, thickness / n.z };
     std::string ferromagnet_name = "";
 
-    World mWorld(cellsize);
+    MumaxWorld mWorld(cellsize);
     Grid mGrid(n);
     auto magnet = mWorld.addFerromagnet(mGrid, ferromagnet_name);
 
