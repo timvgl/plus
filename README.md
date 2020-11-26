@@ -28,11 +28,12 @@ Build and install mumax5 using pip
 ```
 pip install .
 ```
-or, if you are planning to contribute to the development of mumax5, then we recommend to install miniconda or anaconda to install mumax5 in a clean conda environment
+or, if you are planning to contribute to the development of mumax5, then we recommend to install miniconda or anaconda to install mumax5 in a clean conda environment, and to put the pre-commit hooks in place as follows
 ```
 conda env create -f environment.yml
 conda activate mumax5
 pip install -e .
+pre-commit install
 ```
 If changes are made to the c++ code, then `pip install -ve .` can be used to rebuild mumax5.
 
