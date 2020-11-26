@@ -1,4 +1,5 @@
 #include "demag.hpp"
+
 #include "energy.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
@@ -10,13 +11,13 @@ bool demagFieldAssuredZero(const Ferromagnet* magnet) {
 
 Field evalDemagField(const Ferromagnet* magnet) {
   if (demagFieldAssuredZero(magnet))
-    return Field(magnet->grid(), 3, 0.0);
-  return magnet->getMagnetField(magnet)->eval();
+    return Field(magnet->system(), 3, 0.0);
+  return magnet->getStrayField(magnet)->eval();
 }
 
 Field evalDemagEnergyDensity(const Ferromagnet* magnet) {
   if (demagFieldAssuredZero(magnet))
-    return Field(magnet->grid(), 1, 0.0);
+    return Field(magnet->system(), 1, 0.0);
   return evalEnergyDensity(magnet, evalDemagField(magnet), 0.5);
 }
 
@@ -30,7 +31,7 @@ real evalDemagEnergy(const Ferromagnet* magnet) {
 }
 
 FM_FieldQuantity demagFieldQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalDemagField, 3, "exchange_field", "T");
+  return FM_FieldQuantity(magnet, evalDemagField, 3, "demag_field", "T");
 }
 
 FM_FieldQuantity demagEnergyDensityQuantity(const Ferromagnet* magnet) {

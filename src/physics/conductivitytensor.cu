@@ -36,7 +36,7 @@ Field evalConductivityTensor(const Ferromagnet* magnet) {
     return magnet->conductivity.eval();
   }
 
-  Field conductivity(magnet->grid(), 6);
+  Field conductivity(magnet->system(), 6);
   int ncells = magnet->grid().ncells();
   auto conduct0 = magnet->conductivity.cu();
   auto amr = magnet->amrRatio.cu();

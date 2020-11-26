@@ -10,26 +10,55 @@
 #include "field.hpp"
 #include "grid.hpp"
 #include "handler.hpp"
-#include "magnetfield.hpp"
 #include "parameter.hpp"
 #include "poissonsystem.hpp"
 #include "ref.hpp"
-#include "system.hpp"
+#include "strayfield.hpp"
 #include "variable.hpp"
+#include "world.hpp"
 
 class FieldQuantity;
-class World;
+class MumaxWorld;
+class System;
 
-class Ferromagnet : public System {
+class Ferromagnet {
  public:
-  Ferromagnet(World* world, std::string name, Grid grid);
+  Ferromagnet(MumaxWorld* world, Grid grid, std::string name);
   ~Ferromagnet();
   Ferromagnet(Ferromagnet&&) = default;  // TODO: check if default is ok
 
+  std::string name() const;
+  std::shared_ptr<System> system() const;
+  World* world() const;
+  Grid grid() const;
+  real3 cellsize() const;
   const Variable* magnetization() const;
 
-  bool enableDemag;
+  const StrayField* getStrayField(const Ferromagnet*) const;
+  std::vector<const StrayField*> getStrayFields() const;
+  void addStrayField(
+      const Ferromagnet*,
+      StrayFieldExecutor::Method method = StrayFieldExecutor::METHOD_AUTO);
+  void removeStrayField(const Ferromagnet*);
 
+  void minimize(real tol = 1e-6, int nSamples = 10);
+
+ private:
+  Ferromagnet(const Ferromagnet&);
+  Ferromagnet& operator=(const Ferromagnet&);
+
+ private:
+  std::shared_ptr<System>
+      system_;  // the system_ has to be initialized first,
+                // hence its listed as the first datamember here
+  NormalizedVariable magnetization_;
+  std::map<const Ferromagnet*, StrayField*> strayFields_;
+  std::string name_;
+
+ public:
+  mutable PoissonSystem poissonSystem;
+
+  bool enableDemag;
   VectorParameter anisU;
   VectorParameter jcur;
   Parameter msat;
@@ -45,25 +74,5 @@ class Ferromagnet : public System {
   Parameter conductivity;
   Parameter amrRatio;
 
-  mutable PoissonSystem poissonSystem;
-
-  const MagnetField* getMagnetField(const Ferromagnet*) const;
-  std::vector<const MagnetField*> getMagnetFields() const;
-  void addMagnetField(
-      const Ferromagnet*,
-      MagnetFieldComputationMethod method = MAGNETFIELDMETHOD_BRUTE);
-  void removeMagnetField(const Ferromagnet*);
-
-  void minimize(real tol = 1e-6, int nSamples = 10);
-
- private:
-  Ferromagnet(const Ferromagnet&);
-  Ferromagnet& operator=(const Ferromagnet&);
-
- private:
-  NormalizedVariable magnetization_;
-  std::map<const Ferromagnet*, MagnetField*> magnetFields_;
-
- public:
   curandGenerator_t randomGenerator;
 };

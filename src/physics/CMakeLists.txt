@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.18) 
-project(mumax5physics)
+#project(mumax5)
 
 add_library(physics STATIC 
     anisotropy.cu 
@@ -25,38 +24,34 @@ add_library(physics STATIC
     interfacialdmi.hpp
     minimizer.cu
     minimizer.hpp
-    magnetfield.cpp
-    magnetfield.hpp
-    magnetfieldbrute.cu
-    magnetfieldbrute.hpp
-    magnetfieldfft.cu
-    magnetfieldfft.hpp
-    magnetfieldkernel.cu
-    magnetfieldkernel.hpp
+    strayfield.cpp
+    strayfield.hpp
+    strayfieldbrute.cu
+    strayfieldbrute.hpp
+    strayfieldfft.cu
+    strayfieldfft.hpp
+    strayfieldkernel.cu
+    strayfieldkernel.hpp
+    mumaxworld.cpp
+    mumaxworld.hpp
     newell.cu
     newell.hpp
     poissonsystem.hpp
     poissonsystem.cu
     stt.cu
     stt.hpp
-    system.cpp 
-    system.hpp 
     thermalnoise.cu
     thermalnoise.hpp
     torque.cu 
     torque.hpp 
-    world.cpp 
-    world.hpp
     zeeman.cu
     zeeman.hpp
 )
 
 target_include_directories(physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-target_include_directories(physics PUBLIC ${PROJECT_SOURCE_DIR})
-target_link_libraries(physics PUBLIC core linsolver)
+target_include_directories(physics PUBLIC .)
+
+target_link_libraries(physics PUBLIC core timesolver linsolver)
 
 link_directories(${CUDA_LIBRARY_DIR})
 target_link_libraries(physics PRIVATE cufft curand)
-
-set_target_properties(physics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-set_target_properties(physics PROPERTIES POSITION_INDEPENDENT_CODE ON)

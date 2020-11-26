@@ -93,7 +93,7 @@ __global__ static void k_putSolutionInField(CuField f, lsReal* y) {
 Field PoissonSystem::solve() {
   init();
   GVec y = solver_->solve();
-  Field pot(magnet_->grid(), 1);
+  Field pot(magnet_->system(), 1);
   cudaLaunch(pot.grid().ncells(), k_putSolutionInField, pot.cu(), y.get());
   return pot;
 }

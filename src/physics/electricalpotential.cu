@@ -7,7 +7,7 @@ bool electricalPotentialAssuredZero(const Ferromagnet* magnet) {
 }
 
 Field evalElectricalPotential(const Ferromagnet* magnet) {
-  Field pot(magnet->grid(), 1);
+  Field pot(magnet->system(), 1);
   if (electricalPotentialAssuredZero(magnet)) {
     pot.makeZero();
     return pot;

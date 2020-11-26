@@ -5,10 +5,14 @@
 
 #include "constants.hpp"
 #include "cudalaunch.hpp"
+#include "ferromagnet.hpp"
+#include "ferromagnetquantity.hpp"
 #include "field.hpp"
-#include "magnetfieldfft.hpp"
-#include "magnetfieldkernel.hpp"
+#include "grid.hpp"
 #include "parameter.hpp"
+#include "strayfieldfft.hpp"
+#include "strayfieldkernel.hpp"
+#include "system.hpp"
 
 #if FP_PRECISION == SINGLE
 const cufftType FFT = CUFFT_R2C;
@@ -125,10 +129,14 @@ __global__ void k_apply_kernel_2d(complex* hx,
   hz[i] = preFactor * (kzz[i] * mz[i]);
 }
 
-MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid gridOut,
-                                               Grid gridIn,
-                                               real3 cellsize)
-    : kernel_(gridOut, gridIn, cellsize), kfft(6), hfft(3), mfft(3) {
+StrayFieldFFTExecutor::StrayFieldFFTExecutor(
+    const Ferromagnet* magnet,
+    std::shared_ptr<const System> system)
+    : StrayFieldExecutor(magnet, system),
+      kernel_(system->grid(), magnet_->grid(), system_->cellsize()),
+      kfft(6),
+      hfft(3),
+      mfft(3) {
   int3 size = kernel_.grid().size();
   fftSize = {size.x / 2 + 1, size.y, size.z};
   int ncells = fftSize.x * fftSize.y * fftSize.z;
@@ -140,11 +148,8 @@ MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid gridOut,
   for (auto& p : hfft)
     cudaMalloc((void**)&p, ncells * sizeof(complex));
 
-
-  checkCufftResult(
-      cufftPlan3d(&forwardPlan, size.z, size.y, size.x, FFT));
-  checkCufftResult(
-      cufftPlan3d(&backwardPlan, size.z, size.y, size.x, IFFT));
+  checkCufftResult(cufftPlan3d(&forwardPlan, size.z, size.y, size.x, FFT));
+  checkCufftResult(cufftPlan3d(&backwardPlan, size.z, size.y, size.x, IFFT));
 
   cufftSetStream(forwardPlan, getCudaStream());
   cufftSetStream(backwardPlan, getCudaStream());
@@ -154,7 +159,7 @@ MagnetFieldFFTExecutor::MagnetFieldFFTExecutor(Grid gridOut,
         fftExec(forwardPlan, kernel_.field().devptr(comp), kfft.at(comp)));
 }
 
-MagnetFieldFFTExecutor::~MagnetFieldFFTExecutor() {
+StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
   for (auto p : mfft)
     cudaFree(p);
   for (auto p : kfft)
@@ -166,17 +171,19 @@ MagnetFieldFFTExecutor::~MagnetFieldFFTExecutor() {
   checkCufftResult(cufftDestroy(backwardPlan));
 }
 
-void MagnetFieldFFTExecutor::exec(Field* h,
-                                  const Field* m,
-                                  const Parameter* msat) const {
+Field StrayFieldFFTExecutor::exec() const {
+  const Field& m = magnet_->magnetization()->field();
+
   // pad m, and multiply with msat
-  std::unique_ptr<Field> mpad(new Field(kernel_.grid(), 3));
-  cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m->cu(), msat->cu());
+  std::shared_ptr<System> kernelSystem =
+      std::make_shared<System>(m.system()->world(), kernel_.grid());
+  std::unique_ptr<Field> mpad(new Field(kernelSystem, 3));
+  cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m.cu(),
+             magnet_->msat.cu());
 
   // Forward fourier transforms
   for (int comp = 0; comp < 3; comp++)
-    checkCufftResult(
-        fftExec(forwardPlan, mpad->devptr(comp), mfft.at(comp)));
+    checkCufftResult(fftExec(forwardPlan, mpad->devptr(comp), mfft.at(comp)));
 
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
@@ -197,9 +204,10 @@ void MagnetFieldFFTExecutor::exec(Field* h,
 
   // backward fourier transfrom
   for (int comp = 0; comp < 3; comp++)
-    checkCufftResult(
-        ifftExec(backwardPlan, hfft.at(comp), mpad->devptr(comp)));
+    checkCufftResult(ifftExec(backwardPlan, hfft.at(comp), mpad->devptr(comp)));
 
   // unpad
-  cudaLaunch(h->grid().ncells(), k_unpad, h->cu(), mpad->cu());
+  Field h(system_, 3);
+  cudaLaunch(h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  return h;
 }

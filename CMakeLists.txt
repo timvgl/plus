@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
 
+set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 if (WIN32)
     set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS TRUE)
 endif()
@@ -22,7 +25,10 @@ endif()
 add_definitions(-DFP_PRECISION=SINGLE) # FP_PRECISION should be SINGLE or DOUBLE
 add_definitions(-D_USE_MATH_DEFINES) # Needed for cmath constants on Windows
 
-add_subdirectory(src/core)
 add_subdirectory(src/bindings)
-add_subdirectory(src/physics)
+add_subdirectory(src/cmd)
+add_subdirectory(src/core)
+add_subdirectory(src/cudautil)
 add_subdirectory(src/linsolver)
+add_subdirectory(src/physics)
+add_subdirectory(src/timesolver)

@@ -1,24 +1,28 @@
 #pragma once
 
+#include <vector>
+
 #include "datatypes.hpp"
 #include "grid.hpp"
 
 class Field;
+class System;
 
-class MagnetFieldKernel {
+class StrayFieldKernel {
  public:
-  MagnetFieldKernel(Grid grid, real3 cellsize);
-  MagnetFieldKernel(Grid dst, Grid src, real3 cellsize);
-  ~MagnetFieldKernel();
+  StrayFieldKernel(Grid grid, real3 cellsize);
+  StrayFieldKernel(Grid dst, Grid src, real3 cellsize);
+  ~StrayFieldKernel();
 
   Grid grid() const;
+  std::shared_ptr<const System> kernelSystem() const;
   real3 cellsize() const;
   const Field& field() const;
 
   void compute();
 
  private:
-  Grid grid_;
+  std::shared_ptr<System> kernelSystem_;
   real3 cellsize_;
   Field* kernel_;
 

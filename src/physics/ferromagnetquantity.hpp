@@ -1,12 +1,12 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
-#include "handler.hpp"
-#include "ref.hpp"
 #include "scalarquantity.hpp"
+#include "system.hpp"
 
 class Ferromagnet;
 
@@ -31,7 +31,9 @@ class FM_FieldQuantity : public FieldQuantity {
   }
 
   int ncomp() const { return ncomp_; }
-  Grid grid() const { return ferromagnet_->grid(); }
+  std::shared_ptr<const System> system() const {
+    return ferromagnet_->system();
+  }
   std::string name() const { return name_; }
   std::string unit() const { return unit_; }
 

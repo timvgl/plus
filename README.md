@@ -28,11 +28,12 @@ Build and install mumax5 using pip
 ```
 pip install .
 ```
-or, if you are planning to contribute to the development of mumax5, then we recommend to install miniconda or anaconda to install mumax5 in a clean conda environment
+or, if you are planning to contribute to the development of mumax5, then we recommend to install miniconda or anaconda to install mumax5 in a clean conda environment, and to put the pre-commit hooks in place as follows
 ```
 conda env create -f environment.yml
 conda activate mumax5
 pip install -e .
+pre-commit install
 ```
 If changes are made to the c++ code, then `pip install -ve .` can be used to rebuild mumax5.
 
@@ -60,6 +61,20 @@ or `conda`
 conda activate mumax5
 conda develop -b .
 ```
+
+# Debugging (Windows)
+
+Visual Studio (VS) can be used for debugging of the C++ host and device code. For this purpose it is important to have [NVIDIA Nsight Visual Studio Edition](https://docs.nvidia.com/gameworks/index.html#developertools/desktop/nsight/nvidia_nsight.htm), which is a VS extension. It should be automatically installed with NVIDIA CUDA Toolkit.
+
+To start debugging session:
+
+1. Launch `mumax5.sln` in VS, it is created automatically by cmake and placed in `mumax5/build`
+2. When project is loaded, in *Solution Configurations* select *Debug*, *x64*
+3. In *Solution Explorer* set `cmd` as startup project
+4. For the `core` and `physics` projects set *CUDA C/C++->Device->Generate GPU Debug Information* to *Yes* using [project properties](https://docs.nvidia.com/nsight-visual-studio-edition/2020.2/cuda-build-run/index.html)
+5. Rebuild the mumax5.sln solution with VS
+6. Launch a debugging session via *Extensions->NSight->Start CUDA Debugging*
+
 
 # Contributing
 Contributions are gratefully accepted. To contribute code, fork our repo on github and send a pull request.
