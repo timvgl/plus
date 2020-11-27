@@ -19,7 +19,7 @@ class Handler {
  public:
   // Create an object handler. When the handler is destroyed, the object will be
   // destroyed
-  Handler(T* object) : ptr_(object), link_(new HandlerLink<T>{this}) {}
+  explicit Handler(T* object) : ptr_(object), link_(new HandlerLink<T>{this}) {}
 
   // Move constructor
   Handler(Handler&& other) noexcept : ptr_(other.ptr_), link_(other.link_) {
@@ -64,9 +64,9 @@ class Handler {
 template <class T>
 class Handle {
  public:
-  Handle(){};
+  Handle() {}
   Handle(const Handle<T>& handle) : link_(handle.link_) {}
-  Handle(const Handler<T>& handler) : link_(handler.link()) {}
+  explicit Handle(const Handler<T>& handler) : link_(handler.link()) {}
 
   Handle& operator=(const Handle& other) {
     link_ = other.link_;

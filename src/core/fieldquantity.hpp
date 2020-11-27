@@ -14,7 +14,7 @@ class System;
 class FieldQuantity {
  public:
   /// Virtual destructor which does nothing
-  virtual ~FieldQuantity(){};
+  virtual ~FieldQuantity() {}
 
   /***** PURE VIRTUAL FUNCTIONS *****/
 

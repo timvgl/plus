@@ -1,6 +1,6 @@
 #include"scalarquantity.hpp"
 
-ScalarQuantity::~ScalarQuantity(){}
+ScalarQuantity::~ScalarQuantity() {}
 
 std::string ScalarQuantity::unit() const {
   return "";

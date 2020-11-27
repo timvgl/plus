@@ -16,7 +16,7 @@ class ButcherTableau {
                  int order1,
                  int order2);
 
-  ButcherTableau(RKmethod method);
+  explicit ButcherTableau(RKmethod method);
 
   bool isConsistent() const;
 

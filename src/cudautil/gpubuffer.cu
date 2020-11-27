@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <utility>
 
 #include "cudaerror.hpp"
 #include "gpubuffer.hpp"
@@ -16,7 +17,7 @@ GpuMemoryPool::~GpuMemoryPool() {
 void* GpuMemoryPool::allocate(size_t size) {
   void* ptr;
   if (pool_[size].size() == 0) {
-    checkCudaError(cudaMalloc((void**)&ptr, size));
+    checkCudaError(cudaMalloc(reinterpret_cast<void**>(&ptr), size));
   } else {
     ptr = pool_[size].back();
     pool_[size].pop_back();

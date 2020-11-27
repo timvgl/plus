@@ -12,7 +12,7 @@ class System;
 
 class Parameter : public FieldQuantity {
  public:
-  Parameter(std::shared_ptr<const System> system, real value = 0.0);
+  explicit Parameter(std::shared_ptr<const System> system, real value = 0.0);
   ~Parameter();
 
   void set(real value);
@@ -42,9 +42,9 @@ class CuParameter {
 
  public:
   CuParameter(Grid grid, real uniformValue)
-      : grid(grid), uniformValue(uniformValue), valuesPtr(nullptr){};
+      : grid(grid), uniformValue(uniformValue), valuesPtr(nullptr) {}
   CuParameter(Grid grid, real* valuesPtr)
-      : grid(grid), uniformValue(0), valuesPtr(valuesPtr){};
+      : grid(grid), uniformValue(0), valuesPtr(valuesPtr) {}
 
   __device__ bool isUniform() const;
   __device__ real valueAt(int idx) const;

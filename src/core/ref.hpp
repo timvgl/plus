@@ -5,7 +5,7 @@
 template <class T>
 class RefLink {
  public:
-  RefLink(T* object) : object_(object){};
+  explicit RefLink(T* object) : object_(object) {}
   T* get() { return object_; }
 
  private:
@@ -15,9 +15,9 @@ class RefLink {
 template <class T>
 class Ref {
  public:
-  Ref(){};
-  Ref(const Ref<T>& ref) : link_(ref.link_) {}
-  Ref(std::shared_ptr<RefLink<T>> link) : link_(link) {}
+  Ref() {}
+  explicit Ref(const Ref<T>& ref) : link_(ref.link_) {}
+  explicit Ref(std::shared_ptr<RefLink<T>> link) : link_(link) {}
 
   Ref& operator=(const Ref& other) {
     link_ = other.link_;
@@ -39,7 +39,7 @@ class Ref {
 template <class T>
 class RefHandler {
  public:
-  RefHandler(T* object)
+  explicit RefHandler(T* object)
       : link_(new RefLink<T>(object)), clink_(new RefLink<const T>(object)) {}
   Ref<T> ref() const { return Ref<T>(link_); }
   Ref<const T> constref() const { return Ref<const T>(clink_); }
@@ -50,7 +50,7 @@ class RefHandler {
 };
 
 
-//  
+//
 //  RefHandler<Ferromagnet> refHandler{this};
 //  Ref<Ferromagnet> ref() { return refHandler.ref(); }
 //  Ref<const Ferromagnet> ref() const { return refHandler.constref(); }

@@ -1,11 +1,11 @@
-#pragma once 
+#pragma once
 
 #include<pybind11/pybind11.h>
 #include<pybind11/stl.h>
 
 #include"datatypes.hpp"
 
-namespace pybind11 { 
+namespace pybind11 {
 namespace detail {
 
 // int3 caster by a small wrapper around the array<int, 3> caster

@@ -17,3 +17,18 @@ repos:
     rev: master
     hooks:
     -   id: nbstripout
+-   repo: local
+    hooks:
+    # FYI https://gitlab.com/daverona/pre-commit/cpp
+    -   id: cpplint
+        name: cpplint
+        description: Run `cpplint` against C/C++ header and source files
+        language: python
+        files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
+        entry: cpplint
+        args: [
+            "--verbose=3",
+            "--counting=toplevel",
+            "--filter=-legal/copyright",
+            "--linelength=88"
+            ]
