@@ -38,7 +38,6 @@ DynamicEquation::DynamicEquation(const Variable* x,
 
 int DynamicEquation::ncomp() const {
   return x->ncomp();
-  ;
 }
 
 Grid DynamicEquation::grid() const {

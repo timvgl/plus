@@ -91,7 +91,7 @@ __global__ void k_exchangeField(CuField hField,
   //                                         int3{0, 0, -1}, int3{1, 0, 0},
   //                                         int3{0, 1, 0},  int3{0, 0, 1}};
   //
-  //#pragma unroll
+  //  #pragma unroll
   //  for (int3 relcoo : neighborRelativeCoordinates) {
   //    const int3 coo_ = coo + relcoo;
   //    const int idx_ = hField.grid.coord2index(coo_);

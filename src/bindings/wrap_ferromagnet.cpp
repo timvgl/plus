@@ -34,7 +34,7 @@ void wrap_ferromagnet(py::module& m) {
 
       // TODO: implement the world property which returns the MumaxWorld to
       // which the ferromagnet belongs
-      //.def_property_readonly("world",...)
+      // .def_property_readonly("world",...)
 
       .def_property_readonly("magnetization", &Ferromagnet::magnetization)
 

@@ -14,7 +14,7 @@ void wrap_fieldquantity(py::module& m) {
       .def("eval",
            [](const FieldQuantity* q) { return fieldToArray(q->eval()); })
       // exec does the same as eval but without returning the result (useful for benchmarking)
-      .def("exec", 
+      .def("exec",
            [](const FieldQuantity* q) { q->eval(); })
       .def("average", &FieldQuantity::average);
 }

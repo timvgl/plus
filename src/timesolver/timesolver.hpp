@@ -12,8 +12,8 @@ class Table;
 
 class TimeSolver {
  public:
-  TimeSolver(DynamicEquation eq);
-  TimeSolver(std::vector<DynamicEquation> eqs);
+  explicit TimeSolver(DynamicEquation eq);
+  explicit TimeSolver(std::vector<DynamicEquation> eqs);
   ~TimeSolver();
 
   DynamicEquation equation(int idx) const;

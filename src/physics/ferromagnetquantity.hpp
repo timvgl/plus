@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"

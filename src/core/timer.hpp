@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chrono>
+#include <chrono> // NOLINT [build/c++11]
 #include <iostream>
 #include <map>
 #include <stdexcept>
@@ -36,7 +36,7 @@ class Timer {
 
  private:
   struct Clock {
-    Clock() : invocations(0), total(0){};
+    Clock() : invocations(0), total(0) {}
     std::chrono::microseconds total;
     std::chrono::high_resolution_clock::time_point started;
     int invocations;

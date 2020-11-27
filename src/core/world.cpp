@@ -10,7 +10,7 @@ World::World(real3 cellsize, Grid mastergrid)
   if (cellsize.x <= 0 || cellsize.y <= 0 || cellsize.z <= 0) {
     throw std::invalid_argument("The cell size should be larger than 0");
   }
-};
+}
 
 World::~World() {}
 

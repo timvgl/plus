@@ -9,7 +9,7 @@
 #include "system.hpp"
 
 MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
-    : World(cellsize, mastergrid), biasMagneticField({0, 0, 0}){};
+    : World(cellsize, mastergrid), biasMagneticField({0, 0, 0}) {}
 
 MumaxWorld::~MumaxWorld() {}
 
@@ -56,7 +56,7 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid, std::string name) {
   }
 
   return newMagnet;
-};
+}
 
 Ferromagnet* MumaxWorld::getFerromagnet(std::string name) const {
   auto namedMagnet = ferromagnets_.find(name);

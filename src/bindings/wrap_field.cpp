@@ -52,7 +52,7 @@ void setArrayInField(Field& f, py::array_t<real> data) {
     }
 
     py::buffer_info buf = data.request();
-    real* cValues = (real*)buf.ptr;
+    real* cValues = reinterpret_cast<real*>(buf.ptr);
 
     int N = f.grid().ncells() * f.ncomp();
     int nCells = N / f.ncomp();
@@ -79,7 +79,7 @@ void setArrayInField(Field& f, py::array_t<real> data) {
       }
     }
     py::buffer_info buf = data.request();
-    f.setData((real*)buf.ptr);
+    f.setData(reinterpret_cast<real*>(buf.ptr));
 
   } else {
     throw std::runtime_error(

@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 #include "datatypes.hpp"
 #include "grid.hpp"
@@ -16,7 +17,7 @@ class Ferromagnet;
 class MumaxWorld : public World {
  public:
   /** Construct a mumax world. */
-  MumaxWorld(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
+  explicit MumaxWorld(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
 
   /** Destroy the world and all systems it contains. */
   ~MumaxWorld();
