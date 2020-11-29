@@ -9,7 +9,7 @@
 
 DynamicEquation::DynamicEquation(const Variable* x,
                                  std::shared_ptr<FieldQuantity> rhs,
-                                 const FieldQuantity* noiseTerm)
+                                 std::shared_ptr<FieldQuantity> noiseTerm)
     : x(x), rhs(rhs), noiseTerm(noiseTerm) {
   if (x->system() != rhs->system()) {
     throw std::runtime_error(
@@ -38,7 +38,6 @@ DynamicEquation::DynamicEquation(const Variable* x,
 
 int DynamicEquation::ncomp() const {
   return x->ncomp();
-  ;
 }
 
 Grid DynamicEquation::grid() const {

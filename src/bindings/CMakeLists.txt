@@ -6,14 +6,14 @@ pybind11_add_module(_mumax5cpp
     cast.hpp
     main.cpp
     wrappers.hpp
-    wrap_debug.cpp
     wrap_ferromagnet.cpp
     wrap_field.cpp
     wrap_fieldquantity.cpp
     wrap_grid.cpp
     wrap_parameter.cpp
-    wrap_strayfield.cpp
     wrap_scalarquantity.cpp
+    wrap_strayfield.cpp
+    wrap_system.cpp
     wrap_timesolver.cpp
     wrap_variable.cpp
     wrap_world.cpp

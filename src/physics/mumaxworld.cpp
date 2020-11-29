@@ -2,14 +2,21 @@
 
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "datatypes.hpp"
+#include "dynamicequation.hpp"
 #include "ferromagnet.hpp"
 #include "grid.hpp"
 #include "system.hpp"
+#include "thermalnoise.hpp"
+#include "timesolver.hpp"
+#include "torque.hpp"
 
 MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
-    : World(cellsize, mastergrid), biasMagneticField({0, 0, 0}){};
+    : World(cellsize, mastergrid),
+      biasMagneticField({0, 0, 0}),
+      timesolver_(new TimeSolver()) {}
 
 MumaxWorld::~MumaxWorld() {}
 
@@ -55,12 +62,30 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid, std::string name) {
     }
   }
 
+  resetTimeSolverEquations();
   return newMagnet;
-};
+}
 
 Ferromagnet* MumaxWorld::getFerromagnet(std::string name) const {
   auto namedMagnet = ferromagnets_.find(name);
   if (namedMagnet == ferromagnets_.end())
     return nullptr;
   return namedMagnet->second.get();
+}
+
+TimeSolver* MumaxWorld::timesolver() {
+  return timesolver_.get();
+}
+
+void MumaxWorld::resetTimeSolverEquations() {
+  std::vector<DynamicEquation> equations;
+  for (const auto& namedMagnet : ferromagnets_) {
+    Ferromagnet* magnet = namedMagnet.second.get();
+    DynamicEquation eq(
+        magnet->magnetization(),
+        std::shared_ptr<FieldQuantity>(torqueQuantity(magnet).clone()),
+        std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(magnet).clone()));
+    equations.push_back(eq);
+  }
+  timesolver_->setEquations(equations);
 }

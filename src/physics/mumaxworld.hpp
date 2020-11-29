@@ -3,12 +3,14 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 #include "datatypes.hpp"
 #include "grid.hpp"
 #include "world.hpp"
 
 class Ferromagnet;
+class TimeSolver;
 
 /** MumaxWorld is World with additional functionalities for the actual physics
  *  of mumax5.
@@ -16,7 +18,7 @@ class Ferromagnet;
 class MumaxWorld : public World {
  public:
   /** Construct a mumax world. */
-  MumaxWorld(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
+  explicit MumaxWorld(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
 
   /** Destroy the world and all systems it contains. */
   ~MumaxWorld();
@@ -36,6 +38,12 @@ class MumaxWorld : public World {
   const std::map<std::string, std::shared_ptr<Ferromagnet>>& ferromagnets()
       const;
 
+  TimeSolver* timesolver();
+
+ private:
+  void resetTimeSolverEquations();
+
  private:
   std::map<std::string, std::unique_ptr<Ferromagnet>> ferromagnets_;
+  std::unique_ptr<TimeSolver> timesolver_;
 };

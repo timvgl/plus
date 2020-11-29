@@ -47,7 +47,7 @@ class Ferromagnet:
 
     @magnetization.setter
     def magnetization(self, value):
-        self._impl.magnetization.set(value)
+        self.magnetization.set(value)
 
     @property
     def enable_demag(self):
@@ -330,3 +330,7 @@ class Ferromagnet:
                Cxz Cyz Czz
         """
         return FieldQuantity(_cpp.conductivity_tensor(self._impl))
+
+    def thermal_noise(self):
+        """Thermal noise on the magnetization."""
+        return FieldQuantity(_cpp.thermal_noise(self._impl))

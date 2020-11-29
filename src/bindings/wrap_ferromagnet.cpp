@@ -21,13 +21,6 @@
 #include "wrappers.hpp"
 #include "zeeman.hpp"
 
-#define GETPARAM(NAME) [](const Ferromagnet* fm) { return &fm->NAME; }
-
-#define SETPARAM(NAME)                     \
-  [](Ferromagnet* fm, py::object data) {   \
-    py::cast(&fm->NAME).attr("set")(data); \
-  }
-
 void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
       .def_property_readonly("name", &Ferromagnet::name)
@@ -36,7 +29,7 @@ void wrap_ferromagnet(py::module& m) {
 
       // TODO: implement the world property which returns the MumaxWorld to
       // which the ferromagnet belongs
-      //.def_property_readonly("world",...)
+      // .def_property_readonly("world",...)
 
       .def_property_readonly("magnetization", &Ferromagnet::magnetization)
 
@@ -57,10 +50,6 @@ void wrap_ferromagnet(py::module& m) {
       .def_readonly("conductivity", &Ferromagnet::conductivity)
       .def_readonly("amr_ratio", &Ferromagnet::amrRatio)
       .def_readonly("poisson_system", &Ferromagnet::poissonSystem)
-
-      .def_property_readonly(
-          "thermal_noise",
-          [](const Ferromagnet* fm) { return thermalNoiseQuantity(fm); })
 
       .def(
           "magnetic_field_from_magnet",
@@ -107,6 +96,8 @@ void wrap_ferromagnet(py::module& m) {
 
   m.def("conductivity_tensor", &conductivityTensorQuantity);
   m.def("electrical_potential", &electricalPotentialQuantity);
+
+  m.def("thermal_noise", &thermalNoiseQuantity);
 
   m.def("_demag_kernel", [](const Ferromagnet* fm) {
     Grid grid = fm->grid();

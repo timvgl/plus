@@ -9,10 +9,8 @@
 
 #include "field.hpp"
 #include "grid.hpp"
-#include "handler.hpp"
 #include "parameter.hpp"
 #include "poissonsystem.hpp"
-#include "ref.hpp"
 #include "strayfield.hpp"
 #include "variable.hpp"
 #include "world.hpp"

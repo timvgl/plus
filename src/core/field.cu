@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 #include "cudaerror.hpp"
 #include "cudalaunch.hpp"

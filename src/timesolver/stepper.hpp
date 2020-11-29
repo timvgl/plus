@@ -5,7 +5,7 @@ class TimeSolver;
 class Stepper {
  public:
   virtual void step() = 0;
-  virtual ~Stepper(){}
+  virtual ~Stepper() {}
   void setParentTimeSolver(TimeSolver*);
 
  protected:

@@ -1,6 +1,13 @@
 """Utilities for mumax5."""
 
-from .config import neelskyrmion, set_magnetization
+from .config import antivortex, blochskyrmion, neelskyrmion, vortex
 from .show import show_field, show_layer
 
-__all__ = ["neelskyrmion", "set_magnetization", "show_field", "show_layer"]
+__all__ = [
+    "vortex",
+    "antivortex",
+    "neelskyrmion",
+    "blochskyrmion",
+    "show_field",
+    "show_layer",
+]

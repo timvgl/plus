@@ -10,55 +10,35 @@
 #include "rungekutta.hpp"
 #include "stepper.hpp"
 
-TimeSolver::TimeSolver(DynamicEquation eq)
-    : time_(0), maxerror_(1e-5), fixedTimeStep_(false) {
-  eqs_.push_back(eq);
-  stepper_ = new RungeKuttaStepper(this, FEHLBERG);
+TimeSolver::TimeSolver()
+    : TimeSolver::TimeSolver(std::vector<DynamicEquation>{}) {}
 
-  // initial guess for the timestep
-  timestep_ = 0.01 / maxVecNorm(eqs_[0].rhs->eval());
+TimeSolver::TimeSolver(DynamicEquation eq)
+    : TimeSolver::TimeSolver(std::vector<DynamicEquation>{eq}) {}
+
+TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs) {
+  setEquations(eqs);  // This call sets the initial timestep
+                      // by calling initializeTimeStep
+  stepper_ = std::make_unique<RungeKuttaStepper>(this, FEHLBERG);
 }
 
-TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs)
-    : time_(0), maxerror_(1e-5), eqs_(eqs), fixedTimeStep_(false) {
-  stepper_ = new RungeKuttaStepper(this, FEHLBERG);
+TimeSolver::~TimeSolver() {}
+
+real TimeSolver::sensibleTimeStep() const {
+  if (eqs_.empty())
+    return 0.0;  // Timestep is irrelevant if there are no equations to solve
 
   real globalMaxNorm = 0;
   for (auto eq : eqs_)
     if (real maxNorm = maxVecNorm(eq.rhs->eval()); maxNorm > globalMaxNorm)
       globalMaxNorm = maxNorm;
 
-  // initial guess for the timestep
-  timestep_ = 0.01 / globalMaxNorm;
+  return 0.01 / globalMaxNorm;
 }
 
-TimeSolver::~TimeSolver() {
-  if (stepper_)
-    delete stepper_;
-}
-
-const real& TimeSolver::time() const {
-  return time_;
-}
-
-DynamicEquation TimeSolver::equation(int idx) const {
-  return eqs_.at(idx);
-}
-
-int TimeSolver::nEquations() const {
-  return eqs_.size();
-}
-
-const real& TimeSolver::timestep() const {
-  return timestep_;
-}
-
-real TimeSolver::maxerror() const {
-  return maxerror_;
-}
-
-void TimeSolver::setTime(real time) {
-  time_ = time;
+void TimeSolver::setEquations(std::vector<DynamicEquation> eqs) {
+  eqs_ = eqs;
+  timestep_ = sensibleTimeStep();
 }
 
 void TimeSolver::adaptTimeStep(real correctionFactor) {
@@ -77,25 +57,12 @@ void TimeSolver::adaptTimeStep(real correctionFactor) {
   timestep_ *= correctionFactor;
 }
 
-void TimeSolver::setTimeStep(real dt) {
-  if (dt <= 0.0)
-    std::invalid_argument("Time step has to be larger than zero");
-  timestep_ = dt;
-}
-
-void TimeSolver::enableAdaptiveTimeStep() {
-  fixedTimeStep_ = false;
-}
-
-void TimeSolver::disableAdaptiveTimeStep() {
-  fixedTimeStep_ = true;
-}
-
-bool TimeSolver::adaptiveTimeStep() const {
-  return !fixedTimeStep_;
-}
-
 void TimeSolver::step() {
+  if (timestep_ <= 0)
+    std::runtime_error(
+        "Timesolver can not make a step because the timestep is smaller than "
+        "or equal to zero.");
+
   stepper_->step();
 }
 

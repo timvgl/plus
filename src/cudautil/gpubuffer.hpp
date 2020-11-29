@@ -73,7 +73,7 @@ class GpuBuffer {
   /**
    * Constructs a gpu buffer for N objects of type T;
    */
-  GpuBuffer(size_t N) { allocate(N); }
+  explicit GpuBuffer(size_t N) { allocate(N); }
 
   /**
    * Constructs an empty gpu buffer.
@@ -90,7 +90,7 @@ class GpuBuffer {
    * The size of the gpu buffer matches the size of the vector.
    * The values are copied from the vector on the host to the gpu.
    */
-  GpuBuffer(const std::vector<T>& other) {
+  explicit GpuBuffer(const std::vector<T>& other) {
     allocate(other.size());
     if (size_ > 0) {
       checkCudaError(cudaMemcpyAsync(ptr_, &other[0], size_ * sizeof(T),
@@ -158,7 +158,7 @@ class GpuBuffer {
     recycle();
 
     if (size > 0) {
-      ptr_ = (T*)memoryPool.allocate(size * sizeof(T));
+      ptr_ = reinterpret_cast<T*>(memoryPool.allocate(size * sizeof(T)));
     } else {
       ptr_ = nullptr;
     }
@@ -171,7 +171,7 @@ class GpuBuffer {
    */
   void recycle() {
     if (ptr_)
-      memoryPool.recycle((void**)&ptr_);
+      memoryPool.recycle(reinterpret_cast<void**>(&ptr_));
     ptr_ = nullptr;
     size_ = 0;
   }

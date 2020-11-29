@@ -9,7 +9,7 @@ class World {
    *  If the mastergrid has a zero size, then the mastergrid is considered to be
    *  infinitely large.
    */
-  World(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
+  explicit World(real3 cellsize, Grid mastergrid = Grid(int3{0, 0, 0}));
 
   /** Destroy the world. */
   ~World();
