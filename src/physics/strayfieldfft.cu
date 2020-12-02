@@ -46,14 +46,18 @@ __CUDAOP__ complex operator*(complex a, complex b) {
 
 __global__ void k_pad(CuField out, CuField in, CuParameter msat) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (outIdx >= out.grid.ncells())
+
+  Grid outgrid = out.system.grid;
+  Grid ingrid = in.system.grid;
+
+  if (outIdx >= outgrid.ncells())
     return;
 
-  int3 outCoo = out.grid.index2coord(outIdx);
-  int3 inCoo = outCoo - out.grid.origin() + in.grid.origin();
-  int inIdx = in.grid.coord2index(inCoo);
+  int3 outCoo = outgrid.index2coord(outIdx);
+  int3 inCoo = outCoo - outgrid.origin() + ingrid.origin();
+  int inIdx = ingrid.coord2index(inCoo);
 
-  if (in.grid.cellInGrid(inCoo)) {
+  if (in.cellInGeometry(inCoo)) {
     real Ms = msat.valueAt(inIdx);
     for (int c = 0; c < out.ncomp; c++)
       out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
@@ -66,16 +70,24 @@ __global__ void k_pad(CuField out, CuField in, CuParameter msat) {
 __global__ void k_unpad(CuField out, CuField in) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (outIdx >= out.grid.ncells())
+  // When outside the geometry of destiny field, set to zero and return
+  // early
+  if (!out.cellInGeometry(outIdx)) {
+    if (out.cellInGrid(outIdx))
+      out.setVectorInCell(outIdx, {0, 0, 0});
     return;
+  }
+
+  Grid outgrid = out.system.grid;
+  Grid ingrid = in.system.grid;
 
   // Output coordinate relative to the origin of the output grid
-  int3 outRelCoo = out.grid.index2coord(outIdx) - out.grid.origin();
+  int3 outRelCoo = outgrid.index2coord(outIdx) - outgrid.origin();
 
   // Input coordinate relative to the origin of the input grid
-  int3 inRelCoo = in.grid.size() - out.grid.size() + outRelCoo;
+  int3 inRelCoo = ingrid.size() - outgrid.size() + outRelCoo;
 
-  int inIdx = in.grid.coord2index(inRelCoo + in.grid.origin());
+  int inIdx = ingrid.coord2index(inRelCoo + ingrid.origin());
 
   for (int c = 0; c < out.ncomp; c++) {
     out.setValueInCell(outIdx, c, in.valueAt(inIdx, c));
@@ -133,7 +145,7 @@ StrayFieldFFTExecutor::StrayFieldFFTExecutor(
     const Ferromagnet* magnet,
     std::shared_ptr<const System> system)
     : StrayFieldExecutor(magnet, system),
-      kernel_(system->grid(), magnet_->grid(), system_->cellsize()),
+      kernel_(system->grid(), magnet_->grid(), magnet->world()),
       kfft(6),
       hfft(3),
       mfft(3) {

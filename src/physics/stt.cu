@@ -17,14 +17,18 @@ __global__ void k_spinTransferTorque(CuField torque,
                                      const CuParameter polParam,
                                      const CuParameter xiParam,
                                      const CuParameter alphaParam,
-                                     const CuVectorParameter jcurParam,
-                                     real3 cellsize) {
+                                     const CuVectorParameter jcurParam) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  const Grid grid = torque.grid;
+  const Grid grid = torque.system.grid;
+  const real3 cellsize = torque.system.cellsize;
 
-  if (!grid.cellInGrid(idx))
+  // When outside the geometry, set to zero and return early
+  if (!torque.cellInGeometry(idx)) {
+    if (torque.cellInGrid(idx))
+      torque.setVectorInCell(idx, {0, 0, 0});
     return;
+  }
 
   const real3 m = mField.vectorAt(idx);
   const real3 j = jcurParam.vectorAt(idx);
@@ -92,7 +96,7 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
   auto jcur = magnet->jcur.cu();
   auto cellsize = magnet->world()->cellsize();
   cudaLaunch(ncells, k_spinTransferTorque, torque.cu(), m, msat, pol, xi, alpha,
-             jcur, cellsize);
+             jcur);
   return torque;
 }
 

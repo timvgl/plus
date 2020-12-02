@@ -12,3 +12,4 @@ API Reference
     TimeSolver
     Variable
     PoissonSolver
+    Parameter

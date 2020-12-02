@@ -85,7 +85,7 @@ std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
 
 __global__ static void k_putSolutionInField(CuField f, lsReal* y) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (!f.grid.cellInGrid(idx))
+  if (!f.cellInGeometry(idx))
     return;
   f.setValueInCell(idx, 0, (real)y[idx]);
 }

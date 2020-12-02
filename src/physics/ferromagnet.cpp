@@ -2,19 +2,22 @@
 
 #include <curand.h>
 
-#include <cmath>
 #include <memory>
 #include <random>
 
 #include "fieldquantity.hpp"
+#include "gpubuffer.hpp"
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
 #include "poissonsystem.hpp"
 #include "strayfield.hpp"
 #include "system.hpp"
 
-Ferromagnet::Ferromagnet(MumaxWorld* world, Grid grid, std::string name)
-    : system_(new System(world, grid)),
+Ferromagnet::Ferromagnet(MumaxWorld* world,
+                         Grid grid,
+                         std::string name,
+                         GpuBuffer<bool> geometry)
+    : system_(new System(world, grid, geometry)),
       magnetization_(name + ":magnetization", "", system_, 3),
       aex(system_, 0.0),
       msat(system_, 1.0),
@@ -62,11 +65,11 @@ std::string Ferromagnet::name() const {
   return name_;
 }
 
-std::shared_ptr<System> Ferromagnet::system() const {
+std::shared_ptr<const System> Ferromagnet::system() const {
   return system_;
 }
 
-World* Ferromagnet::world() const {
+const World* Ferromagnet::world() const {
   return system()->world();
 }
 
@@ -80,6 +83,10 @@ real3 Ferromagnet::cellsize() const {
 
 const Variable* Ferromagnet::magnetization() const {
   return &magnetization_;
+}
+
+const GpuBuffer<bool>& Ferromagnet::getGeometry() const {
+  return system_->geometry();
 }
 
 void Ferromagnet::minimize(real tol, int nSamples) {

@@ -24,8 +24,7 @@
 void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
       .def_property_readonly("name", &Ferromagnet::name)
-      .def_property_readonly("grid", &Ferromagnet::grid)
-      .def_property_readonly("cellsize", &Ferromagnet::cellsize)
+      .def_property_readonly("system", &Ferromagnet::system)
 
       // TODO: implement the world property which returns the MumaxWorld to
       // which the ferromagnet belongs
@@ -102,7 +101,7 @@ void wrap_ferromagnet(py::module& m) {
   m.def("_demag_kernel", [](const Ferromagnet* fm) {
     Grid grid = fm->grid();
     real3 cellsize = fm->world()->cellsize();
-    StrayFieldKernel demagKernel(grid, grid, cellsize);
+    StrayFieldKernel demagKernel(grid, grid, fm->world());
     return fieldToArray(demagKernel.field());
   });
 }

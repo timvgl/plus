@@ -13,7 +13,7 @@ __global__ static void k_conductTensor(CuField conductivity,
                                        const CuField mField) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (!mField.grid.cellInGrid(idx))
+  if (!mField.cellInGeometry(idx))
     return;
 
   const real3 m = mField.vectorAt(idx);

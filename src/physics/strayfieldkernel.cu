@@ -6,30 +6,28 @@
 #include "newell.hpp"
 #include "strayfieldkernel.hpp"
 #include "system.hpp"
+#include "world.hpp"
 
-StrayFieldKernel::StrayFieldKernel(Grid grid, real3 cellsize)
-    : cellsize_(cellsize) {
-  kernelSystem_ = std::make_shared<System>(nullptr, grid);
-  kernel_ = new Field(kernelSystem_, 6);
+StrayFieldKernel::StrayFieldKernel(Grid grid, const World* world) {
+  kernel_ = std::make_unique<Field>(std::make_shared<System>(world, grid), 6);
   compute();
 }
 
-StrayFieldKernel::StrayFieldKernel(Grid dst, Grid src, real3 cellsize)
-    : StrayFieldKernel(kernelGrid(dst, src), cellsize) {}
+StrayFieldKernel::StrayFieldKernel(Grid dst, Grid src, const World* world)
+    : StrayFieldKernel(kernelGrid(dst, src), world) {}
 
-StrayFieldKernel::~StrayFieldKernel() {
-  delete kernel_;
-}
+StrayFieldKernel::~StrayFieldKernel() {}
 
 std::shared_ptr<const System> StrayFieldKernel::kernelSystem() const {
-  return kernelSystem_;
+  return kernel_->system();
 }
 
-__global__ void k_strayFieldKernel(CuField kernel, real3 cellsize) {
+__global__ void k_strayFieldKernel(CuField kernel) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!kernel.cellInGrid(idx))
     return;
-  int3 coo = kernel.grid.index2coord(idx);
+  const real3 cellsize = kernel.system.cellsize;
+  int3 coo = kernel.system.grid.index2coord(idx);
   kernel.setValueInCell(idx, 0, calcNewellNxx(coo, cellsize));
   kernel.setValueInCell(idx, 1, calcNewellNyy(coo, cellsize));
   kernel.setValueInCell(idx, 2, calcNewellNzz(coo, cellsize));
@@ -39,14 +37,14 @@ __global__ void k_strayFieldKernel(CuField kernel, real3 cellsize) {
 }
 
 void StrayFieldKernel::compute() {
-  cudaLaunch(grid().ncells(), k_strayFieldKernel, kernel_->cu(), cellsize_);
+  cudaLaunch(grid().ncells(), k_strayFieldKernel, kernel_->cu());
 }
 
 Grid StrayFieldKernel::grid() const {
-  return kernelSystem_->grid();
+  return kernelSystem()->grid();
 }
 real3 StrayFieldKernel::cellsize() const {
-  return cellsize_;
+  return kernelSystem()->cellsize();
 }
 
 const Field& StrayFieldKernel::field() const {
