@@ -12,7 +12,7 @@ class Ferromagnet;
 
 class PoissonSystem {
  public:
-  PoissonSystem(const Ferromagnet* magnet);
+  explicit PoissonSystem(const Ferromagnet* magnet);
 
   void init();
   Field solve();
@@ -20,6 +20,7 @@ class PoissonSystem {
 
  private:
   std::unique_ptr<LinearSystem> construct() const;
+  std::unique_ptr<LinearSystem> construct_isotropic() const;
 
  private:
   const Ferromagnet* magnet_;
