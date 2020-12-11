@@ -20,7 +20,6 @@ class PoissonSystem {
 
  private:
   std::unique_ptr<LinearSystem> construct() const;
-  std::unique_ptr<LinearSystem> construct_isotropic() const;
 
  private:
   const Ferromagnet* magnet_;

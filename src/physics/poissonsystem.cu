@@ -7,33 +7,120 @@
 #include "poissonsystem.hpp"
 #include "reduce.hpp"
 
-/** Represent a sparce matrix row with max N non zero elements. */
-template <int N>
-struct Row {
-  real value[N] = {0.0};
-  int colidx[N] = {-1};  // initialize with invalid indices
+/** Returns the neighbor index for a given relative position.
+ *  This index correspond to the index of this position in the neighbors array.
+ */
+__device__ static constexpr int neighbor_id(int3 rcoo) {
+  int id = 0;
+  id += 1 * (rcoo.x == -1 ? 2 : rcoo.x);
+  id += 3 * (rcoo.y == -1 ? 2 : rcoo.y);
+  id += 9 * (rcoo.z == -1 ? 2 : rcoo.z);
+  return id;
+}
 
-  __device__ Row(int idx) { colidx[0] = idx; }
-  __device__ void addDiff(int lid1, int lid2, real val) {
-    value[lid1] += val;
-    value[lid2] -= val;
-  }
+/** List of the relative positions of the neighbors */
+__constant__ const int3 neighbors[27] = {
+    // clang-format off
+    int3{  0,  0,  0}, // id = 0     output of neighbor_id
+    int3{  1,  0,  0}, // id = 1
+    int3{ -1,  0,  0}, // id = 2
+    int3{  0,  1,  0}, // id = 3
+    int3{  1,  1,  0}, // id = 4
+    int3{ -1,  1,  0}, // id = 5
+    int3{  0, -1,  0}, // id = 6
+    int3{  1, -1,  0}, // id = 7
+    int3{ -1, -1,  0}, // id = 8
+    int3{  0,  0,  1}, // id = 9     3D from here on
+    int3{  1,  0,  1}, // id = 10
+    int3{ -1,  0,  1}, // id = 11
+    int3{  0,  1,  1}, // id = 12
+    int3{  1,  1,  1}, // id = 13
+    int3{ -1,  1,  1}, // id = 14
+    int3{  0, -1,  1}, // id = 15
+    int3{  1, -1,  1}, // id = 16
+    int3{ -1, -1,  1}, // id = 17
+    int3{  0,  0, -1}, // id = 18
+    int3{  1,  0, -1}, // id = 19
+    int3{ -1,  0, -1}, // id = 20
+    int3{  0,  1, -1}, // id = 21
+    int3{  1,  1, -1}, // id = 22
+    int3{ -1,  1, -1}, // id = 23
+    int3{  0, -1, -1}, // id = 24
+    int3{  1, -1, -1}, // id = 25
+    int3{ -1, -1, -1}, // id = 26
+    // clang-format on
 };
 
-//* Returns a local id for the central cell and its nearest neighbors. */
-__device__ constexpr int lid_nearest(int ix, int iy, int iz) {
-  // clang-format off
-  if      (ix ==  0 && iy ==  0 && iz ==  0) return 0; // id for central cell
-  else if (ix == -1 && iy ==  0 && iz ==  0) return 1; // id for left cell
-  else if (ix ==  1 && iy ==  0 && iz ==  0) return 2; // ...
-  else if (ix ==  0 && iy == -1 && iz ==  0) return 3;
-  else if (ix ==  0 && iy ==  1 && iz ==  0) return 4;
-  // 3D
-  else if (ix ==  0 && iy ==  0 && iz == -1) return 5;
-  else if (ix ==  0 && iy ==  0 && iz ==  1) return 6;
-  return -1;
-  // clang-format on
-}
+/** Represent a sparce matrix row with max N non zero elements. */
+class Row {
+ public:
+  /** Maximal non zero values in a sparse row.
+   *  1 center cell + 6 nearest neighbors + 20 next nearest neighbors
+   */
+  static const int N = 27;
+
+  real b; /** Right hand sight of this row in Ax=b */
+
+ private:
+  int rowidx;     /** Row index of this sparse row  */
+  real value_[N]; /** matrix values in this sparse row */
+  int colidx_[N]; /** column indices of the matrix values in this sparse row */
+
+ public:
+  __device__ Row(int rowidx, CuSystem system) : b(0), rowidx(rowidx) {
+    const int3 coo = system.grid.index2coord(rowidx);
+    for (auto rcoo : neighbors) {
+      value(rcoo) = 0.0;
+      if (system.inGeometry(coo + rcoo)) {
+        colidx(rcoo) = system.grid.coord2index(coo + rcoo);
+      } else {
+        colidx(rcoo) = -1;
+      }
+    }
+  }
+
+  /** Return Column index for cell with relative coordinates rcoo to center
+   *  cell. If cell is outside the geometry, return -1.
+   */
+  __device__ int& colidx(int3 rcoo) { return colidx_[neighbor_id(rcoo)]; }
+
+  /** Matrix value for cell with relative coordinate rcoo to center cell. */
+  __device__ real& value(int3 rcoo) { return value_[neighbor_id(rcoo)]; }
+
+  /** Return true if cell with relative coordinate rcoo to center cell is inside
+   * the geometry. */
+  __device__ bool inGeometry(int3 rcoo) { return colidx(rcoo) < 0; }
+
+  /** Add a finite difference in the matrix row. */
+  __device__ void addDiff(int3 rcoo1, int3 rcoo2, real val) {
+    int nid1 = neighbor_id(rcoo1);
+    int nid2 = neighbor_id(rcoo2);
+    if (colidx_[nid1] >= 0 && colidx_[nid2] >= 0) {
+      value_[nid1] += val;
+      value_[nid2] -= val;
+    }
+  }
+
+  /** Fill in the row in the linear system linsys. */
+  __device__ void writeRowInLinearSystem(CuLinearSystem* linsys) {
+    // Set the right hand side of the row in the system of linear equations
+    linsys->b[rowidx] = b;
+
+    // Fill in the non zero matrix values
+    int c = 0;
+    for (int3 rcoo : neighbors) {
+      if (value(rcoo) != 0.0 && colidx(rcoo) >= 0) {  // element is non zero
+        linsys->idx[c][rowidx] = colidx(rcoo);
+        linsys->a[c][rowidx] = value(rcoo) / value({0, 0, 0});
+        c++;
+      }
+    }
+
+    // Invalidate other available places by setting an invalid column index.
+    for (; c < linsys->nnz; c++)
+      linsys->idx[c][rowidx] = -1;
+  }
+};
 
 PoissonSystem::PoissonSystem(const Ferromagnet* magnet) : magnet_(magnet) {}
 
@@ -44,31 +131,22 @@ __global__ static void k_construct(CuLinearSystem linsys,
 
   CuSystem system = pot.system;
 
+  // if outside the grid, then there is nothing to do, and we can return early
   if (!system.grid.cellInGrid(idx))
     return;
 
-  // short alias, since we will use this a lot
-  constexpr auto lid = lid_nearest;
+  Row row(idx, system);
 
-  // coordinate of central cell
-  int3 coo = system.grid.index2coord(idx);
+  if (!system.inGeometry(idx) || conductivity.valueAt(idx) == real(0.0) ||
+      !isnan(pot.valueAt(idx))) {
+    // Put 1 on the diagonal
+    row.colidx({0, 0, 0}) = idx;
+    row.value({0, 0, 0}) = 1.0;
+    // set applied potential as rhs (or 0 if there is no applied potential)
+    row.b = isnan(pot.valueAt(idx)) ? 0.0 : pot.valueAt(idx);
 
-  // Row values for row idx
-  Row<7> row(idx);
+  } else {  // NON TRIVIAL MATRIX ROW
 
-  // if potential applied, set potential directly
-  if (!isnan(pot.valueAt(idx))) {
-    row.value[0] = 1.0;
-    linsys.b[idx] = pot.valueAt(idx);
-
-    // set potential to 0 if outside geometry or conductivity is zero
-  } else if (!system.inGeometry(idx) ||
-             conductivity.valueAt(idx) == real(0.0)) {
-    row.value[0] = 1.0;
-    linsys.b[idx] = 0.0;
-
-    // Compute the current flowing from the center cell to the neighboring cells
-  } else {
     // Return the average conductivity of two cells
     auto avgConductivity = [&conductivity](int idx1, int idx2) {
       real c1 = conductivity.valueAt(idx1);
@@ -76,49 +154,41 @@ __global__ static void k_construct(CuLinearSystem linsys,
       return sqrt(c1 * c2);
     };
 
-    real dx = system.cellsize.x;
-    real dy = system.cellsize.y;
-    real dz = system.cellsize.z;
+    const real dx = system.cellsize.x;
+    const real dy = system.cellsize.y;
+    const real dz = system.cellsize.z;
 
     // current along x direction
     for (int ix : {-1, 1}) {
-      if (system.inGeometry(coo + int3{ix, 0, 0})) {
-        int idx_ = system.grid.coord2index(coo + int3{ix, 0, 0});
-        row.colidx[lid(ix, 0, 0)] = idx_;
-        real fac = dy * dz * avgConductivity(idx, idx_) / dx;
-        row.addDiff(lid(0, 0, 0), lid(ix, 0, 0), fac);
+      if (!row.inGeometry({ix, 0, 0})) {
+        int idx_ = row.colidx({ix, 0, 0});
+        real fac = dy * dz * avgConductivity(idx, idx_);
+        row.addDiff({0, 0, 0}, {ix, 0, 0}, fac / dx);
       }
     }
 
     // current along y direction
     for (int iy : {-1, 1}) {
-      int3 coo_ = coo + int3{0, iy, 0};
-      if (system.inGeometry(coo_)) {
-        int idx_ = system.grid.coord2index(coo_);
-        row.colidx[lid(0, iy, 0)] = idx_;
+      if (!row.inGeometry({0, iy, 0})) {
+        int idx_ = row.colidx({0, iy, 0});
         real fac = dx * dz * avgConductivity(idx, idx_) / dy;
-        row.addDiff(lid(0, 0, 0), lid(0, iy, 0), fac);
+        row.addDiff({0, 0, 0}, {0, iy, 0}, fac);
       }
     }
 
     // current along z direction
     for (int iz : {-1, 1}) {
-      int3 coo_ = coo + int3{0, 0, iz};
-      if (system.inGeometry(coo_)) {
-        int idx_ = system.grid.coord2index(coo_);
-        row.colidx[lid(0, 0, iz)] = idx_;
+      if (!row.inGeometry({0, 0, iz})) {
+        int idx_ = row.colidx({0, 0, iz});
         real fac = dx * dy * avgConductivity(idx, idx_) / dz;
-        row.addDiff(lid(0, 0, 0), lid(0, 0, iz), fac);
+        row.addDiff({0, 0, 0}, {0, 0, iz}, fac);
       }
     }
 
-    linsys.b[idx] = 0.0;
+    row.b = 0.0;
   }
 
-  for (int c = 0; c < linsys.nnz; c++) {
-    linsys.idx[c][idx] = row.colidx[c];
-    linsys.a[c][idx] = row.value[c] / row.value[0];
-  }
+  row.writeRowInLinearSystem(&linsys);
 }
 
 void PoissonSystem::init() {
