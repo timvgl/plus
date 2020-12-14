@@ -1,3 +1,4 @@
+#include "conductivitytensor.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnetquantity.hpp"
 #include "field.hpp"
@@ -7,58 +8,14 @@
 #include "poissonsystem.hpp"
 #include "reduce.hpp"
 
-/** Returns the neighbor index for a given relative position.
- *  This index correspond to the index of this position in the neighbors array.
- */
-__device__ static constexpr int neighbor_id(int3 rcoo) {
-  int id = 0;
-  id += 1 * (rcoo.x == -1 ? 2 : rcoo.x);
-  id += 3 * (rcoo.y == -1 ? 2 : rcoo.y);
-  id += 9 * (rcoo.z == -1 ? 2 : rcoo.z);
-  return id;
-}
-
-/** List of the relative positions of the neighbors */
-__constant__ const int3 neighbors[27] = {
-    // clang-format off
-    int3{  0,  0,  0}, // id = 0     output of neighbor_id
-    int3{  1,  0,  0}, // id = 1
-    int3{ -1,  0,  0}, // id = 2
-    int3{  0,  1,  0}, // id = 3
-    int3{  1,  1,  0}, // id = 4
-    int3{ -1,  1,  0}, // id = 5
-    int3{  0, -1,  0}, // id = 6
-    int3{  1, -1,  0}, // id = 7
-    int3{ -1, -1,  0}, // id = 8
-    int3{  0,  0,  1}, // id = 9     3D from here on
-    int3{  1,  0,  1}, // id = 10
-    int3{ -1,  0,  1}, // id = 11
-    int3{  0,  1,  1}, // id = 12
-    int3{  1,  1,  1}, // id = 13
-    int3{ -1,  1,  1}, // id = 14
-    int3{  0, -1,  1}, // id = 15
-    int3{  1, -1,  1}, // id = 16
-    int3{ -1, -1,  1}, // id = 17
-    int3{  0,  0, -1}, // id = 18
-    int3{  1,  0, -1}, // id = 19
-    int3{ -1,  0, -1}, // id = 20
-    int3{  0,  1, -1}, // id = 21
-    int3{  1,  1, -1}, // id = 22
-    int3{ -1,  1, -1}, // id = 23
-    int3{  0, -1, -1}, // id = 24
-    int3{  1, -1, -1}, // id = 25
-    int3{ -1, -1, -1}, // id = 26
-    // clang-format on
-};
-
 /** Represent a sparce matrix row with max N non zero elements. */
 class Row {
- public:
   /** Maximal non zero values in a sparse row.
-   *  1 center cell + 6 nearest neighbors + 20 next nearest neighbors
+   *  1 center cell + 6 nearest neighbors + 12 next nearest neighbors
    */
-  static const int N = 27;
+  static const int N = 19;
 
+ public:
   real b; /** Right hand sight of this row in Ax=b */
 
  private:
@@ -67,51 +24,59 @@ class Row {
   int colidx_[N]; /** column indices of the matrix values in this sparse row */
 
  public:
+  /** Construct a row of a sparse linear system of equations */
   __device__ Row(int rowidx, CuSystem system) : b(0), rowidx(rowidx) {
     const int3 coo = system.grid.index2coord(rowidx);
-    for (auto rcoo : neighbors) {
-      value(rcoo) = 0.0;
-      if (system.inGeometry(coo + rcoo)) {
-        colidx(rcoo) = system.grid.coord2index(coo + rcoo);
-      } else {
-        colidx(rcoo) = -1;
+    for (int ix = -1; ix <= 1; ix++) {
+      for (int iy = -1; iy <= 1; iy++) {
+        for (int iz = -1; iz <= 1; iz++) {
+          if (ix * ix + iy * iy + iz * iz > 2)  // only include (next) nearest
+            continue;
+
+          int3 rcoo{ix, iy, iz};
+          value(rcoo) = 0.0;
+          if (system.inGeometry(coo + rcoo)) {
+            colidx(rcoo) = system.grid.coord2index(coo + rcoo);
+          } else {
+            colidx(rcoo) = -1;
+          }
+        }
       }
     }
   }
 
-  /** Return Column index for cell with relative coordinates rcoo to center
-   *  cell. If cell is outside the geometry, return -1.
+  /** Column index for neighbor with relative position rcoo.
+   *  If neighbor is outside the geometry, return -1.
    */
-  __device__ int& colidx(int3 rcoo) { return colidx_[neighbor_id(rcoo)]; }
+  __device__ int& colidx(int3 rcoo) { return colidx_[neighborId(rcoo)]; }
 
-  /** Matrix value for cell with relative coordinate rcoo to center cell. */
-  __device__ real& value(int3 rcoo) { return value_[neighbor_id(rcoo)]; }
+  /** Matrix value for neighbor with relative position rcoo. */
+  __device__ real& value(int3 rcoo) { return value_[neighborId(rcoo)]; }
 
-  /** Return true if cell with relative coordinate rcoo to center cell is inside
-   * the geometry. */
-  __device__ bool inGeometry(int3 rcoo) { return colidx(rcoo) < 0; }
+  /** Return true if neighbor is in geometry. */
+  __device__ bool inGeometry(int3 rcoo) const {
+    return colidx_[neighborId(rcoo)] >= 0;
+  }
 
-  /** Add a finite difference in the matrix row. */
+  /** Add finite difference in the matrix row. */
   __device__ void addDiff(int3 rcoo1, int3 rcoo2, real val) {
-    int nid1 = neighbor_id(rcoo1);
-    int nid2 = neighbor_id(rcoo2);
-    if (colidx_[nid1] >= 0 && colidx_[nid2] >= 0) {
-      value_[nid1] += val;
-      value_[nid2] -= val;
+    if (inGeometry(rcoo1) && inGeometry(rcoo2)) {
+      value(rcoo1) += val;
+      value(rcoo2) -= val;
     }
   }
 
   /** Fill in the row in the linear system linsys. */
-  __device__ void writeRowInLinearSystem(CuLinearSystem* linsys) {
+  __device__ void writeRowInLinearSystem(CuLinearSystem* linsys) const {
     // Set the right hand side of the row in the system of linear equations
     linsys->b[rowidx] = b;
 
     // Fill in the non zero matrix values
     int c = 0;
-    for (int3 rcoo : neighbors) {
-      if (value(rcoo) != 0.0 && colidx(rcoo) >= 0) {  // element is non zero
-        linsys->idx[c][rowidx] = colidx(rcoo);
-        linsys->a[c][rowidx] = value(rcoo) / value({0, 0, 0});
+    for (int k = 0; k < N; k++) {
+      if (value_[k] != 0.0) {  // element is non zero
+        linsys->idx[c][rowidx] = colidx_[k];
+        linsys->a[c][rowidx] = value_[k] / value_[neighborId({0, 0, 0})];
         c++;
       }
     }
@@ -120,12 +85,47 @@ class Row {
     for (; c < linsys->nnz; c++)
       linsys->idx[c][rowidx] = -1;
   }
+
+ private:
+  /** Return local index of neighbor (-1 if rcoo does not point to neighbor). */
+  __device__ int constexpr neighborId(int3 rcoo) const {
+    // clang-format off
+    int id = -1;
+    if      (rcoo.x == 0 && rcoo.y == 0 && rcoo.z == 0 ) id =  0; // center
+    else if (rcoo.x ==-1 && rcoo.y == 0 && rcoo.z == 0 ) id =  1; // nearest
+    else if (rcoo.x == 1 && rcoo.y == 0 && rcoo.z == 0 ) id =  2; //  |
+    else if (rcoo.x == 0 && rcoo.y ==-1 && rcoo.z == 0 ) id =  3; //  |
+    else if (rcoo.x == 0 && rcoo.y == 1 && rcoo.z == 0 ) id =  4; //  |
+    else if (rcoo.x == 0 && rcoo.y == 0 && rcoo.z ==-1 ) id =  5; //  |
+    else if (rcoo.x == 0 && rcoo.y == 0 && rcoo.z == 1 ) id =  6; //  |
+    else if (rcoo.x ==-1 && rcoo.y ==-1 && rcoo.z == 0 ) id =  7; // next nearest
+    else if (rcoo.x ==-1 && rcoo.y == 1 && rcoo.z == 0 ) id =  8; //  |
+    else if (rcoo.x == 1 && rcoo.y ==-1 && rcoo.z == 0 ) id =  9; //  |
+    else if (rcoo.x == 1 && rcoo.y == 1 && rcoo.z == 0 ) id = 10; //  |
+    else if (rcoo.x ==-1 && rcoo.y == 0 && rcoo.z ==-1 ) id = 11; //  |
+    else if (rcoo.x ==-1 && rcoo.y == 0 && rcoo.z == 1 ) id = 12; //  |
+    else if (rcoo.x == 1 && rcoo.y == 0 && rcoo.z ==-1 ) id = 13; //  |
+    else if (rcoo.x == 1 && rcoo.y == 0 && rcoo.z == 1 ) id = 14; //  |
+    else if (rcoo.x == 0 && rcoo.y ==-1 && rcoo.z ==-1 ) id = 15; //  |
+    else if (rcoo.x == 0 && rcoo.y ==-1 && rcoo.z == 1 ) id = 16; //  |
+    else if (rcoo.x == 0 && rcoo.y == 1 && rcoo.z ==-1 ) id = 17; //  |
+    else if (rcoo.x == 0 && rcoo.y == 1 && rcoo.z == 1 ) id = 18; //  |
+    return id;
+    // clang-format on
+  }
 };
+
+//------------------------------------------------------------------------------
 
 PoissonSystem::PoissonSystem(const Ferromagnet* magnet) : magnet_(magnet) {}
 
+void PoissonSystem::init() {
+  solver_ = std::make_unique<LinSolver>(construct());
+  solver_->restartStepper();
+}
+
 __global__ static void k_construct(CuLinearSystem linsys,
-                                   const CuParameter conductivity,
+                                   const CuField conductivity,
                                    const CuParameter pot) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -147,10 +147,12 @@ __global__ static void k_construct(CuLinearSystem linsys,
 
   } else {  // NON TRIVIAL MATRIX ROW
 
+    bool anisotropic = conductivity.ncomp > 1;
+
     // Return the average conductivity of two cells
-    auto avgConductivity = [&conductivity](int idx1, int idx2) {
-      real c1 = conductivity.valueAt(idx1);
-      real c2 = conductivity.valueAt(idx2);
+    auto avgConductivity = [&conductivity](int idx1, int idx2, int comp) {
+      real c1 = conductivity.valueAt(idx1, comp);
+      real c2 = conductivity.valueAt(idx2, comp);
       return sqrt(c1 * c2);
     };
 
@@ -160,28 +162,95 @@ __global__ static void k_construct(CuLinearSystem linsys,
 
     // current along x direction
     for (int ix : {-1, 1}) {
-      if (!row.inGeometry({ix, 0, 0})) {
+      if (row.inGeometry({ix, 0, 0})) {
         int idx_ = row.colidx({ix, 0, 0});
-        real fac = dy * dz * avgConductivity(idx, idx_);
-        row.addDiff({0, 0, 0}, {ix, 0, 0}, fac / dx);
+        real crosssection = dy * dz;
+
+        {  // Isotropic part
+          real conductivityXX = avgConductivity(idx, idx_, 0);
+          real fac = crosssection * conductivityXX / dx;
+          row.addDiff({0, 0, 0}, {ix, 0, 0}, fac);
+        }
+
+        if (anisotropic) {
+          real conductivityXY = avgConductivity(idx, idx_, 3);
+          real fac_dy = -ix * crosssection * conductivityXY / dy / 4;
+          // clang-format off
+          row.addDiff({ 0,  0,  0}, { 0, -1,  0}, fac_dy);
+          row.addDiff({ix,  0,  0}, {ix, -1,  0}, fac_dy);
+          row.addDiff({ 0,  1,  0}, { 0,  0,  0}, fac_dy);
+          row.addDiff({ix,  1,  0}, {ix,  0,  0}, fac_dy);
+          // clang-format on
+
+          real conductivityXZ = avgConductivity(idx, idx_, 4);
+          real fac_dz = -ix * crosssection * conductivityXZ / dz / 4;
+          // clang-format off
+          row.addDiff({ 0,  0,  0}, { 0,  0, -1}, fac_dz);
+          row.addDiff({ix,  0,  0}, {ix,  0, -1}, fac_dz);
+          row.addDiff({ 0,  0,  1}, { 0,  0,  0}, fac_dz);
+          row.addDiff({ix,  0,  1}, {ix,  0,  0}, fac_dz);
+          // clang-format on
+        }
       }
     }
 
     // current along y direction
     for (int iy : {-1, 1}) {
-      if (!row.inGeometry({0, iy, 0})) {
+      if (row.inGeometry({0, iy, 0})) {
         int idx_ = row.colidx({0, iy, 0});
-        real fac = dx * dz * avgConductivity(idx, idx_) / dy;
-        row.addDiff({0, 0, 0}, {0, iy, 0}, fac);
+        real crosssection = dx * dz;
+
+        {  // Isotropic part
+          real conductivityYY = avgConductivity(idx, idx_, anisotropic ? 1 : 0);
+          real fac = crosssection * conductivityYY / dy;
+          row.addDiff({0, 0, 0}, {0, iy, 0}, fac);
+        }
+
+        if (anisotropic) {  // clang-format off
+          real conductivityXY = avgConductivity(idx, idx_, 3);
+          real fac_dx = -iy * crosssection * conductivityXY  / dx / 4;
+          row.addDiff({ 0,  0,  0}, {-1,  0,  0}, fac_dx);
+          row.addDiff({ 0, iy,  0}, {-1, iy,  0}, fac_dx);
+          row.addDiff({ 1,  0,  0}, { 0,  0,  0}, fac_dx);
+          row.addDiff({ 1, iy,  0}, { 0, iy,  0}, fac_dx);
+
+          real conductivityYZ = avgConductivity(idx, idx_, 5);
+          real fac_dz = -iy * crosssection * conductivityYZ / dz / 4;
+          row.addDiff({ 0,  0,  0}, { 0,  0, -1}, fac_dz);
+          row.addDiff({ 0, iy,  0}, { 0, iy, -1}, fac_dz);
+          row.addDiff({ 0,  0,  1}, { 0,  0,  0}, fac_dz);
+          row.addDiff({ 0, iy,  1}, { 0, iy,  0}, fac_dz);
+        }  // clang-format on
       }
     }
 
     // current along z direction
     for (int iz : {-1, 1}) {
-      if (!row.inGeometry({0, 0, iz})) {
+      if (row.inGeometry({0, 0, iz})) {
         int idx_ = row.colidx({0, 0, iz});
-        real fac = dx * dy * avgConductivity(idx, idx_) / dz;
-        row.addDiff({0, 0, 0}, {0, 0, iz}, fac);
+        real crosssection = dx * dy;
+
+        {  // Isotropic part
+          real conductivityZZ = avgConductivity(idx, idx_, anisotropic ? 2 : 0);
+          real fac = crosssection * conductivityZZ / dz;
+          row.addDiff({0, 0, 0}, {0, 0, iz}, fac);
+        }
+
+        if (anisotropic) {  // clang-format off
+          real conductivityXZ = avgConductivity(idx, idx_, 4);
+          real fac_dx = -iz * crosssection * conductivityXZ  / dx / 4;
+          row.addDiff({ 0,  0,  0}, {-1,  0,  0}, fac_dx);
+          row.addDiff({ 0,  0, iz}, {-1,  0, iz}, fac_dx);
+          row.addDiff({ 1,  0,  0}, { 0,  0,  0}, fac_dx);
+          row.addDiff({ 1,  0, iz}, { 0,  0, iz}, fac_dx);
+
+          real conductivityYZ = avgConductivity(idx, idx_, 5);
+          real fac_dy = -iz * crosssection * conductivityYZ / dy / 4;
+          row.addDiff({ 0,  0,  0}, { 0, -1,  0}, fac_dy);
+          row.addDiff({ 0,  0, iz}, { 0, -1, iz}, fac_dy);
+          row.addDiff({ 0,  1,  0}, { 0,  0,  0}, fac_dy);
+          row.addDiff({ 0,  1, iz}, { 0,  0, iz}, fac_dy);
+        }  // clang-format on
       }
     }
 
@@ -191,19 +260,27 @@ __global__ static void k_construct(CuLinearSystem linsys,
   row.writeRowInLinearSystem(&linsys);
 }
 
-void PoissonSystem::init() {
-  solver_ = std::make_unique<LinSolver>(construct());
-  solver_->restartStepper();
-}
-
 std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
   Grid grid = magnet_->grid();
   bool threeDimenstional = grid.size().z > 1;
-  int nNeighbors = threeDimenstional ? 6 : 4;  // nearest neighbors
-  int nnz = 1 + nNeighbors;                    // central cell + neighbors
-  auto system = std::make_unique<LinearSystem>(grid.ncells(), nnz);
-  cudaLaunch(grid.ncells(), k_construct, system->cu(),
-             magnet_->conductivity.cu(), magnet_->appliedPotential.cu());
+  bool anisotropic = !magnet_->amrRatio.assuredZero();
+
+  int maxNonZeros;
+  Field conductivity;
+
+  if (anisotropic) {
+    conductivity = evalConductivityTensor(magnet_);  // 6 components!
+    maxNonZeros = threeDimenstional ? 19 : 9;
+  } else {
+    conductivity = magnet_->conductivity.eval();  // only 1 component
+    maxNonZeros = threeDimenstional ? 7 : 5;
+  }
+
+  auto system = std::make_unique<LinearSystem>(grid.ncells(), maxNonZeros);
+
+  cudaLaunch(grid.ncells(), k_construct, system->cu(), conductivity.cu(),
+             magnet_->appliedPotential.cu());
+
   return system;
 }
 

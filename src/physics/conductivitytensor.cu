@@ -30,12 +30,6 @@ __global__ static void k_conductTensor(CuField conductivity,
 }
 
 Field evalConductivityTensor(const Ferromagnet* magnet) {
-  // If there is no amr, then there is nothing to compute
-  // We can simply return conductivity0
-  if (magnet->amrRatio.assuredZero()) {
-    return magnet->conductivity.eval();
-  }
-
   Field conductivity(magnet->system(), 6);
   int ncells = magnet->grid().ncells();
   auto conduct0 = magnet->conductivity.cu();
