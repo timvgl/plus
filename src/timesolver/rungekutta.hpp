@@ -23,18 +23,18 @@ class RungeKuttaStepper : public Stepper {
 
 class RungeKuttaStepper::RungeKuttaStageExecutor {
   public:
-    RungeKuttaStageExecutor(DynamicEquation eq, RungeKuttaStepper* stepper);
+    RungeKuttaStageExecutor(DynamicEquation, const RungeKuttaStepper&);
 
-    void setStageK(int stage);
-    void setStageX(int stage);
+    void setStageK(int);
+    void setStageX(int);
     void setFinalX();
     void resetX();
     real getError() const;
 
   private:
     Field x0;
-    const ButcherTableau butcher;
-    const real& dt;
+    const ButcherTableau& butcher;
+    const RungeKuttaStepper& stepper;
     const Variable& x;  // TODO: make this non constant
     std::optional<Field> noise;
     std::vector<Field> k;

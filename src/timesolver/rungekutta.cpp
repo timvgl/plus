@@ -32,7 +32,7 @@ void RungeKuttaStepper::step() {
   // construct a Runge Kutta stage executor for every equation
   std::vector<RungeKuttaStepper::RungeKuttaStageExecutor> equations;
   for (auto eq : solver_->equations())
-    equations.emplace_back(eq, this);
+    equations.emplace_back(eq, *this);
 
   real t0 = solver_->time();
 
@@ -85,13 +85,13 @@ void RungeKuttaStepper::step() {
 }
 
 RungeKuttaStepper::RungeKuttaStageExecutor::
-  RungeKuttaStageExecutor(DynamicEquation eq, RungeKuttaStepper* stepper)
-    : eq_(eq),
-      k(stepper->nStages()),
+  RungeKuttaStageExecutor(DynamicEquation eq, const RungeKuttaStepper& stepper)
+    : x0(eq.x->eval()),
+      butcher(stepper.butcher_),
+      stepper(stepper),
       x(*eq.x),
-      x0(eq.x->eval()),
-      dt(stepper->solver_->timestep()),
-      butcher(stepper->butcher_) {
+      k(stepper.nStages()),
+      eq_(eq) {
   // Noise term evaluated only here, it remains constant throughout all stages
   if (eq_.noiseTerm && !eq_.noiseTerm->assuredZero())
     noise = eq_.noiseTerm->eval();
@@ -100,7 +100,8 @@ RungeKuttaStepper::RungeKuttaStageExecutor::
 void RungeKuttaStepper::RungeKuttaStageExecutor::setStageK(int stage) {
   k[stage] = eq_.rhs->eval();
 
-  // k += noise/sqrt(dt)
+  auto dt = stepper.solver_->timestep();
+
   if (noise)
     addTo(k[stage], 1 / sqrt(dt), noise.value());
 }
@@ -108,6 +109,8 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setStageK(int stage) {
 void RungeKuttaStepper::RungeKuttaStageExecutor::setStageX(int stage) {
   if (stage == 0)
     return;
+
+  auto dt = stepper.solver_->timestep();
 
   Field xstage = x0;
   for (int i = 0; i < stage; i++)
@@ -121,6 +124,8 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setStageX(int stage) {
 
 void RungeKuttaStepper::RungeKuttaStageExecutor::setFinalX() {
   Field xstage = x0;
+  auto dt = stepper.solver_->timestep();
+
   for (int i = 0; i < butcher.nStages; i++)
     addTo(xstage, dt * butcher.weights1[i], k[i]);
 
@@ -137,7 +142,11 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::resetX() {
 real RungeKuttaStepper::RungeKuttaStageExecutor::getError() const {
   Field err(x.system(), x.ncomp());
   err.makeZero();
+
+  auto dt = stepper.solver_->timestep();
+
   for (int i = 0; i < butcher.nStages; i++)
     addTo(err, dt * (butcher.weights1[i] - butcher.weights2[i]), k[i]);
+
   return maxVecNorm(err);
 }
