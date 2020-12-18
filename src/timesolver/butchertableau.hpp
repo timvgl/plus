@@ -4,7 +4,13 @@
 
 #include "datatypes.hpp"
 
-enum class RKmethod { HEUN, BOGACKI_SHAMPINE, CASH_KARP, FEHLBERG, DORMAND_PRINCE };
+enum class RKmethod {
+  HEUN,
+  BOGACKI_SHAMPINE,
+  CASH_KARP,
+  FEHLBERG,
+  DORMAND_PRINCE
+};
 
 /// Extended Butcher Tableau for Adaptive Runge-Kutta methods
 class ButcherTableau {
