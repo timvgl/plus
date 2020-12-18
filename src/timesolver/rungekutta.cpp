@@ -84,8 +84,9 @@ void RungeKuttaStepper::step() {
   }
 }
 
-RungeKuttaStepper::RungeKuttaStageExecutor::
-  RungeKuttaStageExecutor(DynamicEquation eq, const RungeKuttaStepper& stepper)
+RungeKuttaStepper::RungeKuttaStageExecutor::RungeKuttaStageExecutor(
+    DynamicEquation eq,
+    const RungeKuttaStepper& stepper)
     : x0(eq.x->eval()),
       butcher(stepper.butcher_),
       stepper(stepper),
