@@ -16,6 +16,9 @@ class World:
     """
 
     def __init__(self, cellsize):
+        if len(cellsize) != 3:
+            raise ValueError("'cellsize' should have three dimensions.")
+
         self._impl = _cpp.World(cellsize)
 
     def __repr__(self):
@@ -25,7 +28,7 @@ class World:
     @property
     def timesolver(self):
         """Time solver for this world."""
-        return TimeSolver._from_impl(self._impl.timesolver)
+        return TimeSolver(self._impl.timesolver)
 
     def get_ferromagnet(self, name):
         """Get a ferromagnet by its name."""

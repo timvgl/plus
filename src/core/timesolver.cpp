@@ -10,16 +10,12 @@
 #include "rungekutta.hpp"
 #include "stepper.hpp"
 
-TimeSolver::TimeSolver()
-    : TimeSolver::TimeSolver(std::vector<DynamicEquation>{}) {}
+std::unique_ptr<TimeSolver> TimeSolver::Factory::create() {
+  return std::unique_ptr<TimeSolver>(new TimeSolver());
+}
 
-TimeSolver::TimeSolver(DynamicEquation eq)
-    : TimeSolver::TimeSolver(std::vector<DynamicEquation>{eq}) {}
-
-TimeSolver::TimeSolver(std::vector<DynamicEquation> eqs) {
-  setEquations(eqs);  // This call sets the initial timestep
-                      // by calling initializeTimeStep
-  stepper_ = std::make_unique<RungeKuttaStepper>(this, FEHLBERG);
+TimeSolver::TimeSolver() {
+  stepper_ = std::make_unique<RungeKuttaStepper>(this, RKmethod::FEHLBERG);
 }
 
 TimeSolver::~TimeSolver() {}
