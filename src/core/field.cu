@@ -24,8 +24,7 @@ Field::Field(std::shared_ptr<const System> system, int nComponents)
 
 Field::Field(std::shared_ptr<const System> system, int nComponents, real value)
     : Field(system, nComponents) {
-  for (int comp = 0; comp < nComponents; comp++)
-    setUniformComponent(comp, value);
+  setUniformComponent(value);
 }
 
 Field::Field(const Field& other)
@@ -106,10 +105,12 @@ void Field::getData(real* buffer) const {
   }
 }
 
-void Field::getData(std::vector<real>& buffer) const {
-  buffer.clear();
-  buffer.reserve(ncomp_ * grid().ncells());
+std::vector<real> Field::getData() const {
+  auto size = ncomp_ * grid().ncells();
+  std::vector<real> buffer(size, 0);
   getData(buffer.data());
+
+  return buffer;
 }
 
 void Field::setData(const real* buffer) {

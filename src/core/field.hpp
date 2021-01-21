@@ -57,7 +57,7 @@ class Field : public FieldQuantity {
    *
    * @param buffer an output container.
    */
-  void getData(std::vector<real>& buffer) const;
+  std::vector<real> getData() const;
   /** Set field values using a C-style array.
    *
    * Values should be provided for every cell and every component.
