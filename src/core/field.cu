@@ -24,7 +24,7 @@ Field::Field(std::shared_ptr<const System> system, int nComponents)
 
 Field::Field(std::shared_ptr<const System> system, int nComponents, real value)
     : Field(system, nComponents) {
-  setUniformComponent(value);
+  setUniformValue(value);
 }
 
 Field::Field(const Field& other)
@@ -155,17 +155,17 @@ void Field::setUniformComponent(int comp, real value) {
   cudaLaunch(grid().ncells(), k_setComponent, cu(), value, comp);
 }
 
-void Field::setUniformComponent(real value) {
+void Field::setUniformValue(real value) {
   for (int comp = 0; comp < ncomp_; comp++)
     setUniformComponent(comp, value);
 }
 
-void Field::setUniformComponent(real3 value) {
+void Field::setUniformValue(real3 value) {
   cudaLaunch(grid().ncells(), k_setVectorValue, cu(), value);
 }
 
 void Field::makeZero() {
-  setUniformComponent(0);
+  setUniformValue(0);
 }
 
 __global__ void k_setZeroOutsideGeometry(CuField f) {

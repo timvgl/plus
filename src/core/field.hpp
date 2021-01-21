@@ -76,8 +76,8 @@ class Field : public FieldQuantity {
    */
   void setData(const std::vector<real>& buffer);
   void setUniformComponent(int comp, real value);
-  void setUniformComponent(real value);
-  void setUniformComponent(real3 value);
+  void setUniformValue(real value);
+  void setUniformValue(real3 value);
 
   void makeZero();
 
