@@ -35,12 +35,12 @@ class Parameter(FieldQuantity):
     @property
     def is_uniform(self):
         """Return True if a Parameter instance is uniform, otherwise False."""
-        return self._impl.is_uniform()
+        return self._impl.is_uniform
 
     @property
     def is_dynamic(self):
         """Return True if a Parameter instance has time dependent terms."""
-        return self._impl.is_dynamic()
+        return self._impl.is_dynamic
 
     def add_time_term(self, term, mask=None):
         """Add a time-dependent term.

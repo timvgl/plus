@@ -47,7 +47,7 @@ class DynamicParameter {
   /** Remove all time-dependet terms and their masks. */
   void removeAllTimeDependentTerms() { time_dep_terms.clear(); }
   /** Return true if parameter has non-zero time dependent terms. */
-  bool isDynamic() const noexcept { return !time_dep_terms.empty(); };
+  bool isDynamic() const noexcept { return !time_dep_terms.empty(); }
   /** Return true if dynamic parameter values are independent of the cell
    * location. */
   bool isUniform() const;
