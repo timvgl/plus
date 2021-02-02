@@ -36,8 +36,8 @@ class World {
   /** Returns true if the grid is completely inside the mastergrid. */
   bool inMastergrid(Grid) const;
 
-  /** Return a pointer to the world's timesolver. */
-  TimeSolver* timesolver() const;
+  /** Return a reference to the world's timesolver. */
+  TimeSolver& timesolver() const;
 
  protected:
   real3 cellsize_;

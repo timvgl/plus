@@ -111,9 +111,9 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setStageX(int stage) {
   if (stage == 0)
     return;
 
+  Field xstage = x0;
   auto dt = stepper.solver_->timestep();
 
-  Field xstage = x0;
   for (int i = 0; i < stage; i++)
     addTo(xstage, dt * butcher.rkMatrix[stage][i], k[i]);
 
@@ -142,6 +142,7 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::resetX() {
 
 real RungeKuttaStepper::RungeKuttaStageExecutor::getError() const {
   Field err(x.system(), x.ncomp());
+
   err.makeZero();
 
   auto dt = stepper.solver_->timestep();

@@ -122,7 +122,7 @@ class Ferromagnet:
 
     @bias_magnetic_field.setter
     def bias_magnetic_field(self, value):
-        self._impl.bias_magnetic_field.set(value)
+        self.bias_magnetic_field.set(value)
 
     def minimize(self):
         """Minimize the total energy."""
