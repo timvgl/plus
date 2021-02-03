@@ -22,16 +22,6 @@ class Parameter(FieldQuantity):
         """Return Parameter string representation."""
         return super().__repr__().replace("FieldQuantity", "Parameter")
 
-    def eval(self):
-        """Estimate parameter value on the given grid.
-
-        Returns
-        -------
-        numpy.ndarray
-            Parameter value.
-        """
-        return self._impl.eval()
-
     @property
     def is_uniform(self):
         """Return True if a Parameter instance is uniform, otherwise False."""
@@ -137,6 +127,8 @@ class Parameter(FieldQuantity):
         value: float, tuple of floats, numpy array, or callable
             The new value for the parameter.
         """
+        self._reset_fields_default()
+
         if callable(value):
             # test whether given function takes 1 or 3 arguments
             is_time_function = True
@@ -146,13 +138,11 @@ class Parameter(FieldQuantity):
                 is_time_function = False
 
             if is_time_function:
-                self.remove_time_terms()
                 self.add_time_term(value)
             else:
                 self._set_func(value)
         elif isinstance(value, tuple) and callable(value[0]):
             # first term is time-function, second term is a mask
-            self.remove_time_terms()
             self.add_time_term(*value)
         else:
             self._impl.set(value)
@@ -171,3 +161,11 @@ class Parameter(FieldQuantity):
                         value[ic, iz, iy, ix] = cell_value[ic]
 
         self._impl.set(value)
+
+    def _reset_fields_default(self):
+        if isinstance(self._impl, _cpp.Parameter):
+            self._impl.set(0)
+        elif isinstance(self._impl, _cpp.VectorParameter):
+            self._impl.set((0, 0, 0))
+
+        self.remove_time_terms()

@@ -65,6 +65,7 @@ def test_assign_scalar_time_dependent_term(test_parameters: Tuple[World, Ferroma
 
     magnet.ku1.remove_time_terms()
     assert magnet.ku1.is_dynamic == False
+    assert_almost_equal(magnet.ku1.eval(), 0)
 
 
 def test_assign_scalar_time_dependent_term_mask(
@@ -122,6 +123,7 @@ def test_add_multiple_scalar_time_dependent_terms(
     )
     magnet.alpha.remove_time_terms()
     assert magnet.alpha.is_dynamic == False
+    assert_almost_equal(magnet.alpha.eval(), alpha_value)
 
 
 def test_assign_vector_time_dependent_term(test_parameters: Tuple[World, Ferromagnet]):
@@ -144,6 +146,7 @@ def test_assign_vector_time_dependent_term(test_parameters: Tuple[World, Ferroma
 
     magnet.bias_magnetic_field.remove_time_terms()
     assert magnet.bias_magnetic_field.is_dynamic == False
+    assert_almost_equal(magnet.bias_magnetic_field.eval(), 0)
 
 
 def test_assign_vector_time_dependent_term_mask(
@@ -214,4 +217,11 @@ def test_add_multiple_vector_time_dependent_terms(
     assert_almost_equal(magnet.bias_magnetic_field.eval(), expected_value)
 
     magnet.bias_magnetic_field.remove_time_terms()
+
+    expected_value2 = np.zeros(shape=(ncomp, *magnet.grid.shape))
+    expected_value2[0, :, :, :] = b_value[0]
+    expected_value2[1, :, :, :] = b_value[1]
+    expected_value2[2, :, :, :] = b_value[2]
+
     assert magnet.bias_magnetic_field.is_dynamic == False
+    assert_almost_equal(magnet.bias_magnetic_field.eval(), expected_value2)

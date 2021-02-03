@@ -54,7 +54,6 @@ Field Parameter::eval() const {
     auto t = system_->world()->time();
     Field dynamicField(system_, ncomp());
 
-    dynamicField.makeZero();
     evalTimeDependentTerms(t, dynamicField);
 
     staticField += dynamicField;
@@ -67,7 +66,6 @@ CuParameter Parameter::cu() const {
   if (isDynamic()) {
     auto t = system_->world()->time();
     dynamicField_.reset(new Field(system_, ncomp()));
-    dynamicField_->makeZero();
 
     evalTimeDependentTerms(t, *dynamicField_);
   }
@@ -123,7 +121,6 @@ Field VectorParameter::eval() const {
     auto t = system_->world()->time();
     Field dynamicField(system_, ncomp());
 
-    dynamicField.makeZero();
     evalTimeDependentTerms(t, dynamicField);
 
     staticField += dynamicField;
@@ -136,7 +133,6 @@ CuVectorParameter VectorParameter::cu() const {
   if (isDynamic()) {
     auto t = system_->world()->time();
     dynamicField_.reset(new Field(system_, ncomp()));
-    dynamicField_->makeZero();
 
     evalTimeDependentTerms(t, *dynamicField_);
   }

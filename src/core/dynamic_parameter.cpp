@@ -43,6 +43,8 @@ DynamicParameter<T>& DynamicParameter<T>::operator=(
 
 template <typename T>
 void DynamicParameter<T>::evalTimeDependentTerms(real t, Field& p) const {
+  p.makeZero();
+
   for (auto& term : time_dep_terms) {
     auto& func = std::get<std::function<T(real)>>(term);
     auto& mask = std::get<Field>(term);

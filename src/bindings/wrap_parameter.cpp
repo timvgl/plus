@@ -20,11 +20,6 @@ void wrap_parameter(py::module& m) {
              setArrayInField(field_mask, mask);
              p->addTimeDependentTerm(term, field_mask);
            })
-      .def("eval",
-           [](Parameter* p) {
-             auto f = p->eval();
-             return fieldToArray(f);
-           })
       .def_property_readonly("is_uniform", &Parameter::isUniform)
       .def_property_readonly("is_dynamic",
                              [](Parameter* p) { return p->isDynamic(); })
@@ -86,11 +81,6 @@ void wrap_parameter(py::module& m) {
              };
 
              p->addTimeDependentTerm(cpp_term, field_mask);
-           })
-      .def("eval",
-           [](VectorParameter* p) {
-             auto f = p->eval();
-             return fieldToArray(f);
            })
       .def_property_readonly("is_uniform", &VectorParameter::isUniform)
       .def_property_readonly("is_dynamic",
