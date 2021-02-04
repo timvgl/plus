@@ -50,7 +50,7 @@ void DynamicParameter<T>::evalTimeDependentTerms(real t, Field& p) const {
     auto& mask = std::get<Field>(term);
 
     if (!mask.empty()) {
-      p += func(t) * mask;
+      addTo(p, func(t), mask);
     } else {
       Field f(p.system(), p.ncomp());
       f.setUniformValue(func(t));

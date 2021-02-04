@@ -85,6 +85,11 @@ void addTo(Field& y, real a, const Field& x) {
   add(y, 1, y, a, x);
 }
 
+void addTo(Field& y, real3 a, const Field& x) {
+  real3 a0 = real3{1, 1, 1};
+  add(y, a0, y, a, x);
+}
+
 // TODO: this can be done much more efficient
 Field add(std::vector<const Field*> x, std::vector<real> weights) {
   // TODO:: throw error if inputs are not compatible

@@ -49,7 +49,7 @@ Bt = lambda t: (0.01 * np.sinc(2 * fmax * (t - T / 2)), 0, 0)
 mask = np.zeros(shape=(1, 1, nx))
 # Put signal at the center of the simulation box
 mask[:, :, 511:513] = 1
-magnet.bias_magnetic_field = Bt, mask
+magnet.bias_magnetic_field.add_time_term(Bt, mask)
 
 magnet.magnetization = (0, 0, 1)
 magnet.minimize()
