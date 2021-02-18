@@ -25,7 +25,7 @@ class Field : public FieldQuantity {
   Field(const Field&);   // copies gpu field data
   Field(Field&& other);  // moves gpu field data
 
-  ~Field() {}
+  ~Field() = default;
 
   Field eval() const { return Field(*this); }
 
@@ -40,16 +40,45 @@ class Field : public FieldQuantity {
 
   void clear();
 
-  bool empty() const { return grid().ncells() == 0 || ncomp_ == 0; }
+  bool empty() const { return !system_ || grid().ncells() == 0 || ncomp_ == 0; }
   std::shared_ptr<const System> system() const;
   int ncomp() const { return ncomp_; }
-  real* devptr(int comp) const { return buffers_[comp].get(); }
+  real* device_ptr(int comp) const { return buffers_[comp].get(); }
 
   CuField cu() const;
 
+  /** Copy field values into a C-style array from the device to host memory.
+   *
+   * @param buffer a pointer to an array of size number of cells by number of
+   * components.
+   */
   void getData(real* buffer) const;
-  void setData(real* buffer);
+  /** Copy field values into a vector from the device to host memory.
+   *
+   * @param buffer an output container.
+   */
+  std::vector<real> getData() const;
+  /** Set field values using a C-style array.
+   *
+   * Values should be provided for every cell and every component.
+   * The buffer content will be copied from the host to device memory.
+   *
+   * @param buffer a pointer to an array of size number of cells by number of
+   * components.
+   */
+  void setData(const real* buffer);
+  /** Set field values using a vector instance.
+   *
+   * Values should be provided for every cell and every component.
+   * The buffer content will be copied from the host to device memory.
+   *
+   * @param buffer a vector of size number of cells by number of components.
+   */
+  void setData(const std::vector<real>& buffer);
   void setUniformComponent(int comp, real value);
+  void setUniformValue(real value);
+  void setUniformValue(real3 value);
+
   void makeZero();
 
   void setZeroOutsideGeometry();

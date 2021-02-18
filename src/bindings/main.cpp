@@ -16,4 +16,5 @@ PYBIND11_MODULE(_mumax5cpp, m) {
   wrap_linsolver(m);
   wrap_strayfield(m);
   wrap_system(m);
+  wrap_dmitensor(m);
 }

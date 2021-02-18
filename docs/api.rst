@@ -13,3 +13,6 @@ API Reference
     Variable
     PoissonSolver
     Parameter
+    FieldQuantity
+    ScalarQuantity
+    DmiTensor

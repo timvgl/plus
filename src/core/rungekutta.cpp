@@ -14,12 +14,12 @@
 #include "variable.hpp"
 
 RungeKuttaStepper::RungeKuttaStepper(TimeSolver* solver, RKmethod method)
-    : butcher_(constructTableau(method)) {
+    : butcher_(ButcherTableau::get(method)) {
   setParentTimeSolver(solver);
 }
 
 int RungeKuttaStepper::nStages() const {
-  return butcher_.nStages;
+  return butcher_.nodes.size();
 }
 
 void RungeKuttaStepper::step() {
@@ -111,9 +111,9 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setStageX(int stage) {
   if (stage == 0)
     return;
 
+  Field xstage = x0;
   auto dt = stepper.solver_->timestep();
 
-  Field xstage = x0;
   for (int i = 0; i < stage; i++)
     addTo(xstage, dt * butcher.rkMatrix[stage][i], k[i]);
 
@@ -127,7 +127,7 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setFinalX() {
   Field xstage = x0;
   auto dt = stepper.solver_->timestep();
 
-  for (int i = 0; i < butcher.nStages; i++)
+  for (int i = 0; i < stepper.nStages(); i++)
     addTo(xstage, dt * butcher.weights1[i], k[i]);
 
   // If x is a normalized variable, then xstage will be normalized during the
@@ -142,11 +142,12 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::resetX() {
 
 real RungeKuttaStepper::RungeKuttaStageExecutor::getError() const {
   Field err(x.system(), x.ncomp());
+
   err.makeZero();
 
   auto dt = stepper.solver_->timestep();
 
-  for (int i = 0; i < butcher.nStages; i++)
+  for (int i = 0; i < stepper.nStages(); i++)
     addTo(err, dt * (butcher.weights1[i] - butcher.weights2[i]), k[i]);
 
   return maxVecNorm(err);

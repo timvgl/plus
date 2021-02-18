@@ -155,9 +155,12 @@ __global__ void k_dotSum(real* result, CuField f, CuField g) {
   int tid = threadIdx.x;
 
   real threadValue = 0.0;
-  for (int i = tid; i < ncells; i += BLOCKDIM)
+  for (int i = tid; i < ncells; i += BLOCKDIM) {
+    if (!f.cellInGeometry(i))
+      continue;
     for (int c = 0; c < f.ncomp; c++)
       threadValue += f.valueAt(i, c) * g.valueAt(i, c);
+  }
 
   sdata[tid] = threadValue;
   __syncthreads();

@@ -8,6 +8,10 @@ add_library(physics STATIC
     constants.hpp
     demag.cpp
     demag.hpp
+    dmi.cu
+    dmi.hpp
+    dmitensor.cpp
+    dmitensor.hpp
     effectivefield.hpp 
     effectivefield.cpp
     electricalpotential.hpp
@@ -20,14 +24,14 @@ add_library(physics STATIC
     ferromagnet.hpp 
     ferromagnetquantity.cpp 
     ferromagnetquantity.hpp 
-    interfacialdmi.cu
-    interfacialdmi.hpp
     minimizer.cu
     minimizer.hpp
     mumaxworld.cpp
     mumaxworld.hpp
     newell.cu
     newell.hpp
+    poissonsystem.hpp
+    poissonsystem.cu
     strayfield.cpp
     strayfield.hpp
     strayfieldbrute.cu
@@ -36,8 +40,6 @@ add_library(physics STATIC
     strayfieldfft.hpp
     strayfieldkernel.cu
     strayfieldkernel.hpp
-    poissonsystem.hpp
-    poissonsystem.cu
     stt.cu
     stt.hpp
     thermalnoise.cu
