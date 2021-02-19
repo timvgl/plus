@@ -1,72 +1,78 @@
 #include "linsolver.hpp"
 
 #include <memory>
+#include <utility>
 
 #include "linsystem.hpp"
 #include "vec.hpp"
 
-LinSolver::LinSolver(std::unique_ptr<LinearSystem> system) {
-  stepper_ = LinSolverStepper::create(this, JACOBI);
-  setSystem(std::move(system));
+LinSolver::LinSolver() : LinSolver(LinearSystem()) {}
+
+LinSolver::LinSolver(LinearSystem system) : system_{std::move(system)} {
+  stepper_ = Stepper::create(this, JACOBI);
+  resetState();
 }
 
-void LinSolver::setSystem(std::unique_ptr<LinearSystem> newSystem) {
+void LinSolver::setSystem(LinearSystem newSystem) {
   system_ = std::move(newSystem);
-  if (system_->nrows() != x_.size()) {
+  if (system_.nRows() != x_.size()) {
     resetState();
   }
 }
 
 void LinSolver::setMethod(Method method) {
-  stepper_ = LinSolverStepper::create(this, method);
-  restartStepper();
+  stepper_ = Stepper::create(this, method);
+  stepper_->restart();
 }
 
-void LinSolver::setMethodByName(std::string methodname) {
+void LinSolver::setMethod(const std::string& methodname) {
   setMethod(getMethodByName(methodname));
 }
 
 void LinSolver::resetState() {
-  x_ = GVec(system_->nrows());
-  restartStepper();
+  x_ = GVec(system_.nRows());
+  stepper_->restart();
 }
 
 GVec LinSolver::getState() const {
   return x_;
 }
 
-void LinSolver::setState(const GVec& newx) {
-  // todo check grid and ncomp
-  x_ = newx;
+void LinSolver::setState(GVec newx) {
+  if (newx.size() != system_.nRows())
+    std::runtime_error(
+        "The size of the input vector does not match the number of rows in the "
+        "linear system.");
+  x_ = std::move(newx);
+  stepper_->restart();
 }
 
 GVec LinSolver::solve() {
+  if (system_.empty())
+    return GVec(0);
+
   int nstep = 0;
-  while ((double)residualMaxNorm() > tol) {
-    if (nstep > maxIterations && maxIterations >= 0) {
+  while (residualMaxNorm() > tol) {
+    if (nstep > max_iter && max_iter >= 0) {
       break;
     }
 
-    step();
+    stepper_->step();
     nstep++;
   }
   return x_;
 }
 
-void LinSolver::step() {
-  stepper_->step();
-}
-
-void LinSolver::restartStepper() {
-  stepper_->restart();
+LinSolver::Stepper* LinSolver::stepper() {
+  return stepper_.get();
 }
 
 GVec LinSolver::residual() const {
-  return system_->residual(x_);
+  return system_.residual(x_);
 }
 
-lsReal LinSolver::residualMaxNorm() const {
-  return maxAbsValue(system_->residual(x_));
+double LinSolver::residualMaxNorm() const {
+  return maxAbsValue(system_.residual(x_));
 }
 
 //--- IMPLEMENTATION OF STEPPERS -----------------------------------------------
@@ -81,9 +87,9 @@ namespace {
  * Jacobi stepper to solve systems of linear equations
  * @see https://en.wikipedia.org/wiki/Jacobi_method
  */
-class Jacobi : public LinSolverStepper {
+class Jacobi : public LinSolver::Stepper {
  public:
-  Jacobi(LinSolver* parent) : LinSolverStepper(parent) {}
+  explicit Jacobi(LinSolver* parent) : LinSolver::Stepper(parent) {}
   Method method() const { return Method::JACOBI; }
 
   void step() {
@@ -97,9 +103,9 @@ class Jacobi : public LinSolverStepper {
  * Conjugate gradient stepper to solve systems of linear equations.
  * @see https://en.wikipedia.org/wiki/Conjugate_gradient_method
  */
-class ConjugateGradient : public LinSolverStepper {
+class ConjugateGradient : public LinSolver::Stepper {
  public:
-  ConjugateGradient(LinSolver* parent) : LinSolverStepper(parent) {}
+  explicit ConjugateGradient(LinSolver* parent) : LinSolver::Stepper(parent) {}
   Method method() const { return Method::CONJUGATEGRADIENT; }
 
   void step() {
@@ -130,9 +136,9 @@ class ConjugateGradient : public LinSolverStepper {
 /**
  * Minimal residual stepper to solve systems of linear equations.
  */
-class MinimalResidual : public LinSolverStepper {
+class MinimalResidual : public LinSolver::Stepper {
  public:
-  MinimalResidual(LinSolver* parent) : LinSolverStepper(parent) {}
+  explicit MinimalResidual(LinSolver* parent) : LinSolver::Stepper(parent) {}
   Method method() const { return Method::MINIMALRESIDUAL; }
 
   void step() {
@@ -163,9 +169,9 @@ class MinimalResidual : public LinSolverStepper {
  * @see
  * https://www-m2.ma.tum.de/foswiki/pub/M2/Allgemeines/CSENumerikWS12/15_handout_iterative_III.pdf
  */
-class SteepestDescent : public LinSolverStepper {
+class SteepestDescent : public LinSolver::Stepper {
  public:
-  SteepestDescent(LinSolver* parent) : LinSolverStepper(parent) {}
+  explicit SteepestDescent(LinSolver* parent) : LinSolver::Stepper(parent) {}
   Method method() const { return Method::STEEPESTDESCENT; }
 
   void step() {
@@ -193,10 +199,11 @@ class SteepestDescent : public LinSolverStepper {
 
 }  // namespace
 
-//--- LINSOLVER FACTORT METHOD -----------------------------------
+//--- LINSOLVER FACTORY METHOD -----------------------------------
 
-std::unique_ptr<LinSolverStepper> LinSolverStepper::create(LinSolver* parent,
-                                                           Method method) {
+std::unique_ptr<LinSolver::Stepper> LinSolver::Stepper::create(
+    LinSolver* parent,
+    Method method) {
   switch (method) {
     case Method::JACOBI:
       return std::make_unique<Jacobi>(parent);
@@ -209,7 +216,7 @@ std::unique_ptr<LinSolverStepper> LinSolverStepper::create(LinSolver* parent,
   }
 }
 
-LinSolver::Method LinSolver::getMethodByName(std::string methodName) {
+LinSolver::Method LinSolver::getMethodByName(const std::string& methodName) {
   if (methodName == "jacobi")
     return Method::JACOBI;
   if (methodName == "conjugategradient")

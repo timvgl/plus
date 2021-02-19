@@ -16,12 +16,13 @@ class PoissonSystem {
 
   void init();
   Field solve();
-  LinSolver* solver();
+
+  LinSolver* solver() { return &solver_; }
 
  private:
-  std::unique_ptr<LinearSystem> construct() const;
+  LinearSystem construct() const;
 
  private:
   const Ferromagnet* magnet_;
-  std::unique_ptr<LinSolver> solver_;
+  LinSolver solver_;
 };

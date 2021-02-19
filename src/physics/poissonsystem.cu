@@ -67,7 +67,7 @@ class Row {
   }
 
   /** Fill in the row in the linear system linsys. */
-  __device__ void writeRowInLinearSystem(CuLinearSystem* linsys) const {
+  __device__ void writeRowInLinearSystem(LinearSystem::CuData* linsys) const {
     // Set the right hand side of the row in the system of linear equations
     linsys->b[rowidx] = b;
 
@@ -117,14 +117,14 @@ class Row {
 
 //------------------------------------------------------------------------------
 
-PoissonSystem::PoissonSystem(const Ferromagnet* magnet) : magnet_(magnet) {}
+PoissonSystem::PoissonSystem(const Ferromagnet* magnet)
+    : magnet_(magnet), solver_() {}
 
 void PoissonSystem::init() {
-  solver_ = std::make_unique<LinSolver>(construct());
-  solver_->restartStepper();
+  solver_.setSystem(construct());
 }
 
-__global__ static void k_construct(CuLinearSystem linsys,
+__global__ static void k_construct(LinearSystem::CuData linsys,
                                    const CuField conductivity,
                                    const CuParameter pot) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -260,7 +260,7 @@ __global__ static void k_construct(CuLinearSystem linsys,
   row.writeRowInLinearSystem(&linsys);
 }
 
-std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
+LinearSystem PoissonSystem::construct() const {
   Grid grid = magnet_->grid();
   bool threeDimenstional = grid.size().z > 1;
   bool anisotropic = !magnet_->amrRatio.assuredZero();
@@ -276,9 +276,9 @@ std::unique_ptr<LinearSystem> PoissonSystem::construct() const {
     maxNonZeros = threeDimenstional ? 7 : 5;
   }
 
-  auto system = std::make_unique<LinearSystem>(grid.ncells(), maxNonZeros);
+  LinearSystem system(grid.ncells(), maxNonZeros);
 
-  cudaLaunch(grid.ncells(), k_construct, system->cu(), conductivity.cu(),
+  cudaLaunch(grid.ncells(), k_construct, system.cu(), conductivity.cu(),
              magnet_->appliedPotential.cu());
 
   return system;
@@ -293,12 +293,8 @@ __global__ static void k_putSolutionInField(CuField f, lsReal* y) {
 
 Field PoissonSystem::solve() {
   init();
-  GVec y = solver_->solve();
+  GVec y = solver_.solve();
   Field pot(magnet_->system(), 1);
   cudaLaunch(pot.grid().ncells(), k_putSolutionInField, pot.cu(), y.get());
   return pot;
-}
-
-LinSolver* PoissonSystem::solver() {
-  return solver_.get();
 }
