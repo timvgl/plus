@@ -1,49 +1,49 @@
 #pragma once
 
-#include <vector>
-
 #include "gpubuffer.hpp"
 #include "vec.hpp"
 
-/** Represent a sparse system of linear equations Ax = b. */
+/** Represent a system of linear equations Ax = b with A a sparse square matrix.
+ */
 class LinearSystem {
  public:
-  LinearSystem();
   LinearSystem(int nrows, int nonZerosInRow);
-  LinearSystem(const LinearSystem&);
-  LinearSystem(LinearSystem&&);
 
-  LinearSystem& operator=(const LinearSystem&);
-  LinearSystem& operator=(LinearSystem&&);
+  LinearSystem() = default;
+  LinearSystem(const LinearSystem&) = default;
+  LinearSystem(LinearSystem&&) = default;
 
-  void clear(); /** Make linear system empty (nRows=0). */
+  LinearSystem& operator=(const LinearSystem&) = default;
+  LinearSystem& operator=(LinearSystem&&) = default;
 
-  int nRows() const { return b_.size(); }
-  int nNonZerosInMatrixRow() const { return matrixval_.size(); }
+  int nRows() const { return b_.size() == 0 ? 0 : b_.size() / nnz_; }
   bool empty() const { return nRows() == 0; }
 
   GVec matrixmul(const GVec& x) const; /** Return Ax */
   GVec residual(const GVec& x) const;  /** Return b - Ax */
 
-  struct CuData {
-    int nrows;
-    int nnz;
-    int** idx;
-    lsReal** a;
-    lsReal* b;
-  };
-
+  struct CuData;
   CuData cu() const;
 
  private:
   GVec b_;
-  std::vector<GVec> matrixval_;
-  std::vector<GpuBuffer<int>> matrixidx_;
+  int nnz_;
+  GVec matrixval_;
+  GpuBuffer<int> matrixidx_;
+};
 
- private:
-  void invalidateDevicePtrs() const;
-  GpuBuffer<lsReal*>& matrixvalPtrs() const;
-  GpuBuffer<int*>& matrixidxPtrs() const;
-  mutable GpuBuffer<lsReal*> matrixvalPtrs_;
-  mutable GpuBuffer<int*> matrixidxPtrs_;
+struct LinearSystem::CuData {
+  int nrows;
+  int nnz;
+  int* idx_;
+  lsReal* val_;
+  lsReal* b;
+
+  __device__ int& matrixIdx(int row, int elem) {
+    return idx_[row + nrows * elem];
+  }
+
+  __device__ lsReal& matrixVal(int row, int elem) {
+    return val_[row + nrows * elem];
+  }
 };

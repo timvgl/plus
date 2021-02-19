@@ -49,9 +49,15 @@ class Row {
    *  If neighbor is outside the geometry, return -1.
    */
   __device__ int& colidx(int3 rcoo) { return colidx_[neighborId(rcoo)]; }
+  __device__ const int& colidx(int3 rcoo) const {
+    return colidx_[neighborId(rcoo)];
+  }
 
   /** Matrix value for neighbor with relative position rcoo. */
   __device__ real& value(int3 rcoo) { return value_[neighborId(rcoo)]; }
+  __device__ const real& value(int3 rcoo) const {
+    return value_[neighborId(rcoo)];
+  }
 
   /** Return true if neighbor is in geometry. */
   __device__ bool inGeometry(int3 rcoo) const {
@@ -75,15 +81,15 @@ class Row {
     int c = 0;
     for (int k = 0; k < N; k++) {
       if (value_[k] != 0.0) {  // element is non zero
-        linsys->idx[c][rowidx] = colidx_[k];
-        linsys->a[c][rowidx] = value_[k] / value_[neighborId({0, 0, 0})];
+        linsys->matrixIdx(rowidx, c) = colidx_[k];
+        linsys->matrixVal(rowidx, c) = value_[k] / value({0, 0, 0});
         c++;
       }
     }
 
     // Invalidate other available places by setting an invalid column index.
     for (; c < linsys->nnz; c++)
-      linsys->idx[c][rowidx] = -1;
+      linsys->matrixIdx(rowidx, c) = -1;
   }
 
  private:
