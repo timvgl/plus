@@ -243,29 +243,29 @@ class Ferromagnet:
 
         Cells with Nan values do not have an applied potential.
         """
-        return self._impl.applied_potential
+        return Parameter(self._impl.applied_potential)
 
     @applied_potential.setter
     def applied_potential(self, value):
-        self._impl.applied_potential.set(value)
+        self.applied_potential.set(value)
 
     @property
     def conductivity(self):
         """Conductivity without considering anisotropic magneto resistance."""
-        return self._impl.conductivity
+        return Parameter(self._impl.conductivity)
 
     @conductivity.setter
     def conductivity(self, value):
-        self._impl.conductivity.set(value)
+        self.conductivity.set(value)
 
     @property
     def amr_ratio(self):
         """Anisotropic magneto resistance ratio."""
-        return self._impl.amr_ratio
+        return Parameter(self._impl.amr_ratio)
 
     @amr_ratio.setter
     def amr_ratio(self, value):
-        self._impl.amr_ratio.set(value)
+        self.amr_ratio.set(value)
 
     # ----- POISSON SYSTEM ----------------------
 
