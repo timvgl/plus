@@ -11,6 +11,7 @@ API Reference
     Ferromagnet
     TimeSolver
     Variable
+    PoissonSolver
     Parameter
     FieldQuantity
     ScalarQuantity

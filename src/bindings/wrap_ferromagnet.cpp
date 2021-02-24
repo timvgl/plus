@@ -2,9 +2,11 @@
 #include <stdexcept>
 
 #include "anisotropy.hpp"
+#include "conductivitytensor.hpp"
 #include "demag.hpp"
 #include "dmi.hpp"
 #include "effectivefield.hpp"
+#include "electricalpotential.hpp"
 #include "energy.hpp"
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
@@ -45,6 +47,10 @@ void wrap_ferromagnet(py::module& m) {
       .def_readonly("jcur", &Ferromagnet::jcur)
       .def_readonly("temperature", &Ferromagnet::temperature)
       .def_readonly("dmi_tensor", &Ferromagnet::dmiTensor)
+      .def_readonly("applied_potential", &Ferromagnet::appliedPotential)
+      .def_readonly("conductivity", &Ferromagnet::conductivity)
+      .def_readonly("amr_ratio", &Ferromagnet::amrRatio)
+      .def_readonly("poisson_system", &Ferromagnet::poissonSystem)
 
       .def(
           "magnetic_field_from_magnet",
@@ -88,6 +94,9 @@ void wrap_ferromagnet(py::module& m) {
   m.def("effective_field", &effectiveFieldQuantity);
   m.def("total_energy_density", &totalEnergyDensityQuantity);
   m.def("total_energy", &totalEnergyQuantity);
+
+  m.def("conductivity_tensor", &conductivityTensorQuantity);
+  m.def("electrical_potential", &electricalPotentialQuantity);
 
   m.def("thermal_noise", &thermalNoiseQuantity);
 

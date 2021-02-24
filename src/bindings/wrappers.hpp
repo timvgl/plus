@@ -23,5 +23,7 @@ void wrap_world(py::module& m);
 void wrap_strayfield(py::module& m);
 void wrap_ferromagnetfieldquantity(py::module& m);
 void wrap_ferromagnetscalarquantity(py::module& m);
+void wrap_poissonsolver(py::module& m);
+void wrap_linsolver(py::module& m);
 void wrap_system(py::module& m);
 void wrap_dmitensor(py::module& m);

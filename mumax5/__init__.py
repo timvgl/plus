@@ -7,6 +7,7 @@ from .ferromagnet import Ferromagnet
 from .fieldquantity import FieldQuantity
 from .grid import Grid
 from .parameter import Parameter
+from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
 from .strayfield import StrayField
 from .timesolver import TimeSolver
@@ -25,4 +26,5 @@ __all__ = [
     "TimeSolver",
     "Variable",
     "World",
+    "PoissonSystem",
 ]

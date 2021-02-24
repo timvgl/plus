@@ -9,6 +9,7 @@
 #include "gpubuffer.hpp"
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
+#include "poissonsystem.hpp"
 #include "strayfield.hpp"
 #include "system.hpp"
 
@@ -31,7 +32,11 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
       jcur(system_, {0, 0, 0}),
       biasMagneticField(system_, {0, 0, 0}),
       dmiTensor(system_),
-      enableDemag(true) {
+      enableDemag(true),
+      appliedPotential(system_, std::nanf("0")),
+      conductivity(system_, 0.0),
+      amrRatio(system_, 0.0),
+      poissonSystem(this) {
   {
     // TODO: this can be done much more efficient somewhere else
     int ncomp = 3;

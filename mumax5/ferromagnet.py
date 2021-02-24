@@ -8,6 +8,7 @@ from .dmitensor import DmiTensor
 from .fieldquantity import FieldQuantity
 from .grid import Grid
 from .parameter import Parameter
+from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
 
@@ -236,6 +237,43 @@ class Ferromagnet:
         """
         return DmiTensor(self._impl.dmi_tensor)
 
+    @property
+    def applied_potential(self):
+        """Get the applied electrical potential.
+
+        Cells with Nan values do not have an applied potential.
+        """
+        return Parameter(self._impl.applied_potential)
+
+    @applied_potential.setter
+    def applied_potential(self, value):
+        self.applied_potential.set(value)
+
+    @property
+    def conductivity(self):
+        """Conductivity without considering anisotropic magneto resistance."""
+        return Parameter(self._impl.conductivity)
+
+    @conductivity.setter
+    def conductivity(self, value):
+        self.conductivity.set(value)
+
+    @property
+    def amr_ratio(self):
+        """Anisotropic magneto resistance ratio."""
+        return Parameter(self._impl.amr_ratio)
+
+    @amr_ratio.setter
+    def amr_ratio(self, value):
+        self.amr_ratio.set(value)
+
+    # ----- POISSON SYSTEM ----------------------
+
+    @property
+    def poisson_system(self):
+        """Get the poisson solver which computes the electric potential."""
+        return PoissonSystem(self._impl.poisson_system)
+
     # ----- QUANTITIES ----------------------
 
     @property
@@ -372,6 +410,23 @@ class Ferromagnet:
     def total_energy(self):
         """Energy related to the total effective field."""
         return ScalarQuantity(_cpp.total_energy(self._impl))
+
+    @property
+    def electrical_potential(self):
+        """Electrical potential."""
+        return FieldQuantity(_cpp.electrical_potential(self._impl))
+
+    @property
+    def conductivity_tensor(self):
+        """Conductivity tensor taking into account AMR.
+
+        This quantity has six components (Cxx, Cyy, Czz, Cxy, Cxz, Cyz)
+        which forms the symmetric conductivity tensor:
+               Cxx Cxy Cxz
+               Cxy Cyy Cyz
+               Cxz Cyz Czz
+        """
+        return FieldQuantity(_cpp.conductivity_tensor(self._impl))
 
     @property
     def thermal_noise(self):

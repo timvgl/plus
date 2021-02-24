@@ -158,9 +158,10 @@ __global__ void k_dotSum(real* result, CuField f, CuField g) {
   for (int i = tid; i < ncells; i += BLOCKDIM) {
     if (!f.cellInGeometry(i))
       continue;
-
-    threadValue += dot(f.vectorAt(i), g.vectorAt(i));
+    for (int c = 0; c < f.ncomp; c++)
+      threadValue += f.valueAt(i, c) * g.valueAt(i, c);
   }
+
   sdata[tid] = threadValue;
   __syncthreads();
 
@@ -170,7 +171,6 @@ __global__ void k_dotSum(real* result, CuField f, CuField g) {
       sdata[tid] += sdata[tid + s];
     __syncthreads();
   }
-  // TODO: check if loop unrolling makes sense here
 
   // Set the result
   if (tid == 0)

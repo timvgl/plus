@@ -3,6 +3,8 @@
 add_library(physics STATIC 
     anisotropy.cu 
     anisotropy.hpp 
+    conductivitytensor.cu
+    conductivitytensor.hpp
     constants.hpp
     demag.cpp
     demag.hpp
@@ -12,6 +14,8 @@ add_library(physics STATIC
     dmitensor.hpp
     effectivefield.hpp 
     effectivefield.cpp
+    electricalpotential.hpp
+    electricalpotential.cu
     energy.hpp 
     energy.cu
     exchange.hpp 
@@ -26,6 +30,8 @@ add_library(physics STATIC
     mumaxworld.hpp
     newell.cu
     newell.hpp
+    poissonsystem.hpp
+    poissonsystem.cu
     strayfield.cpp
     strayfield.hpp
     strayfieldbrute.cu
@@ -47,7 +53,7 @@ add_library(physics STATIC
 target_include_directories(physics PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_include_directories(physics PUBLIC .)
 
-target_link_libraries(physics PUBLIC core)
+target_link_libraries(physics PUBLIC core linsolver)
 
 link_directories(${CUDA_LIBRARY_DIR})
 target_link_libraries(physics PRIVATE cufft curand)

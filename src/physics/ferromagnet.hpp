@@ -12,6 +12,7 @@
 #include "gpubuffer.hpp"
 #include "grid.hpp"
 #include "parameter.hpp"
+#include "poissonsystem.hpp"
 #include "strayfield.hpp"
 #include "variable.hpp"
 #include "world.hpp"
@@ -59,6 +60,8 @@ class Ferromagnet {
   std::string name_;
 
  public:
+  mutable PoissonSystem poissonSystem;
+
   bool enableDemag;
   VectorParameter anisU;
   VectorParameter jcur;
@@ -75,6 +78,10 @@ class Ferromagnet {
   Parameter idmi;
   Parameter xi;
   Parameter pol;
+  Parameter appliedPotential;
+  Parameter conductivity;
+  Parameter amrRatio;
+
   curandGenerator_t randomGenerator;
 
   DmiTensor dmiTensor;
