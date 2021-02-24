@@ -10,35 +10,19 @@ nx, ny, nz = 128, 128, 1
 world = World(cellsize=(length/nx, width/ny, height/nz))
 magnet = Ferromagnet(world, Grid((nx, ny, nz)))
 
+magnet.conductivity = 2.3
+
 
 # Set the applied potential (nan is no applied potential)
 def applied_potential(x,y,z):
     if y < 0.1*width:
         return 1
-    elif y > 0.9*width:
+    elif y > 0.9*width and abs(x-length/2) < 0.4 * length:
         return -1
     else:
         return np.nan
 
 magnet.applied_potential = applied_potential
-
-
-# Set the conductivity of the ferromagnet
-def conductivity(x, y, z):
-    if x < 0.8*length and abs(y-width/2) < 0.1*width:
-        return 0.0
-    else:
-        return 16.2
-
-magnet.conductivity = conductivity
-
-
-# Compute and show the electrical potential
-show_layer(magnet.electrical_potential)
-
-
-
-exit()
 
 magnet.poisson_system._init()
 solver = magnet.poisson_system._solver
