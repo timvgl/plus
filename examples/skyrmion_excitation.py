@@ -67,5 +67,3 @@ plt.ylabel('Spectrum (a.u.)')
 plt.xlabel('Frequency (GHz)')
 plt.title('Skyrmion Excitation (Python)')
 plt.show()
-
-show_field(magnet.magnetization)

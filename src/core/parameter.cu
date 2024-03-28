@@ -73,42 +73,77 @@ CuParameter Parameter::cu() const {
   return CuParameter(this);
 }
 
-VectorParameter::VectorParameter(std::shared_ptr<const System> system,
+FM_VectorParameter::FM_VectorParameter(std::shared_ptr<const System> system,
                                  real3 value)
     : system_(system), staticField_(nullptr), uniformValue_(value) {}
 
-VectorParameter::~VectorParameter() {
+AFM_VectorParameter::AFM_VectorParameter(std::shared_ptr<const System> system,
+                                 real6 value)
+    : system_(system), staticField_(nullptr), uniformValue_(value) {}
+
+FM_VectorParameter::~FM_VectorParameter() {
   if (staticField_)
     delete staticField_;
 }
 
-void VectorParameter::set(real3 value) {
+AFM_VectorParameter::~AFM_VectorParameter() {
+  if (staticField_)
+    delete staticField_;
+}
+
+void FM_VectorParameter::set(real3 value) {
   uniformValue_ = value;
   if (staticField_)
     delete staticField_;
 }
 
-void VectorParameter::set(const Field& values) {
+void AFM_VectorParameter::set(real6 value) {
+  uniformValue_ = value;
+  if (staticField_)
+    delete staticField_;
+}
+
+void FM_VectorParameter::set(const Field& values) {
   staticField_ = new Field(values);
 }
 
-bool VectorParameter::isUniform() const {
+void AFM_VectorParameter::set(const Field& values) {
+  staticField_ = new Field(values);
+}
+
+bool FM_VectorParameter::isUniform() const {
   return !staticField_ && DynamicParameter<real3>::isUniform();
 }
 
-bool VectorParameter::assuredZero() const {
+bool AFM_VectorParameter::isUniform() const {
+  return !staticField_ && DynamicParameter<real6>::isUniform();
+}
+
+bool FM_VectorParameter::assuredZero() const {
   return !isDynamic() && isUniform() && uniformValue_ == real3{0.0, 0.0, 0.0};
 }
 
-int VectorParameter::ncomp() const {
+bool AFM_VectorParameter::assuredZero() const {
+  return !isDynamic() && isUniform() && uniformValue_ == real6{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+}
+
+int FM_VectorParameter::ncomp() const {
   return 3;
 }
 
-std::shared_ptr<const System> VectorParameter::system() const {
+int AFM_VectorParameter::ncomp() const {
+  return 6;
+}
+
+std::shared_ptr<const System> FM_VectorParameter::system() const {
   return system_;
 }
 
-Field VectorParameter::eval() const {
+std::shared_ptr<const System> AFM_VectorParameter::system() const {
+  return system_;
+}
+
+Field FM_VectorParameter::eval() const {
   Field staticField(system_, ncomp());
 
   if (staticField_) {
@@ -129,7 +164,28 @@ Field VectorParameter::eval() const {
   return staticField;
 }
 
-CuVectorParameter VectorParameter::cu() const {
+Field AFM_VectorParameter::eval() const {
+  Field staticField(system_, ncomp());
+
+  if (staticField_) {
+    staticField = *staticField_;
+  } else {
+    staticField.setUniformValue(uniformValue_);
+  }
+
+  if (isDynamic()) {
+    auto t = system_->world()->time();
+    Field dynamicField(system_, ncomp());
+
+    evalTimeDependentTerms(t, dynamicField);
+
+    staticField += dynamicField;
+  }
+
+  return staticField;
+}
+
+FM_CuVectorParameter FM_VectorParameter::cu() const {
   if (isDynamic()) {
     auto t = system_->world()->time();
     dynamicField_.reset(new Field(system_, ncomp()));
@@ -137,5 +193,16 @@ CuVectorParameter VectorParameter::cu() const {
     evalTimeDependentTerms(t, *dynamicField_);
   }
 
-  return CuVectorParameter(this);
+  return FM_CuVectorParameter(this);
+}
+
+AFM_CuVectorParameter AFM_VectorParameter::cu() const {
+  if (isDynamic()) {
+    auto t = system_->world()->time();
+    dynamicField_.reset(new Field(system_, ncomp()));
+
+    evalTimeDependentTerms(t, *dynamicField_);
+  }
+
+  return AFM_CuVectorParameter(this);
 }

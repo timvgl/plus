@@ -3,7 +3,7 @@
 import _mumax5cpp as _cpp
 
 from .timesolver import TimeSolver
-
+from .grid import Grid
 
 class World:
     """Construct a world with a given cell size.
@@ -15,7 +15,7 @@ class World:
         of the cells in the x, y, and z direction.
     """
 
-    def __init__(self, cellsize):
+    def __init__(self, cellsize, mastergrid=Grid((0, 0, 0))):
         if len(cellsize) != 3:
             raise ValueError("'cellsize' should have three dimensions.")
 

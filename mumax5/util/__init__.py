@@ -1,9 +1,10 @@
 """Utilities for mumax5."""
 
-from .config import antivortex, blochskyrmion, neelskyrmion, vortex
-from .show import show_field, show_layer
+from .config import twodomain, antivortex, blochskyrmion, neelskyrmion, vortex
+from .show import show_field, show_layer, show_neel
 
 __all__ = [
+    "twodomain",
     "vortex",
     "antivortex",
     "neelskyrmion",

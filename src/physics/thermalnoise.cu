@@ -20,15 +20,21 @@ bool thermalNoiseAssuredZero(const Ferromagnet* magnet) {
 
 __global__ void k_thermalNoise(CuField noiseField,
                                const CuParameter msat,
+                               const CuParameter msat2,
                                const CuParameter alpha,
                                const CuParameter temperature,
-                               real preFactor) {
+                               real preFactor,
+                               int comp) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry, set to zero and return early
   if (!noiseField.cellInGeometry(idx)) {
-    if (noiseField.cellInGrid(idx))
-      noiseField.setVectorInCell(idx, {0, 0, 0});
+    if (noiseField.cellInGrid(idx)) {
+      if (comp == 3)
+        noiseField.setVectorInCell(idx, real3{0, 0, 0});
+      else if (comp == 6)
+        noiseField.setVectorInCell(idx, real6{0, 0, 0, 0, 0, 0});
+    }
     return;
   }
 
@@ -36,40 +42,50 @@ __global__ void k_thermalNoise(CuField noiseField,
     return;
 
   real Ms = msat.valueAt(idx);
+  real Ms2 = msat2.valueAt(idx);
   real T = temperature.valueAt(idx);
   real a = alpha.valueAt(idx);
-  real3 noise = noiseField.vectorAt(idx);
-
-  noise *= sqrt(preFactor * a * T / ((1 + a * a) * Ms));
-
-  noiseField.setVectorInCell(idx, noise);
+  if (comp == 3) {
+    real3 noise = noiseField.FM_vectorAt(idx);
+    noise *= sqrt(preFactor * a * T / ((1 + a * a) * Ms));
+    noiseField.setVectorInCell(idx, noise);
+  }
+  else if (comp == 6) {
+    real6 noise = noiseField.AFM_vectorAt(idx);
+    noise *= sqrt(preFactor * a * T / ((1 + a * a) * real2{Ms, Ms2}));
+    noiseField.setVectorInCell(idx, noise);
+  }
 }
 
 Field evalThermalNoise(const Ferromagnet* magnet) {
-  Field noise(magnet->system(), 3);
+  int comp = magnet->magnetization()->ncomp();
+  Field noise(magnet->system(), comp);
+
   if (thermalNoiseAssuredZero(magnet)) {
     noise.makeZero();
     return noise;
   }
-
+  
   int N = noise.grid().ncells();
   real mean = 0.0;
   real stddev = 1.0;
-  for (int c = 0; c < 3; c++) {
+  for (int c = 0; c < comp; c++) {
     generateRandNormal(magnet->randomGenerator, noise.device_ptr(c), N, mean,
                        stddev);
   }
 
   auto msat = magnet->msat.cu();
+  auto msat2 = magnet->msat2.cu();
   auto alpha = magnet->alpha.cu();
   auto temperature = magnet->temperature.cu();
   real cellVolume = magnet->world()->cellVolume();
   real preFactor = 2 * KB * GAMMALL / cellVolume;
-  cudaLaunch(N, k_thermalNoise, noise.cu(), msat, alpha, temperature,
-             preFactor);
+  cudaLaunch(N, k_thermalNoise, noise.cu(), msat, msat2, alpha, temperature,
+             preFactor, comp);
   return noise;
 }
 
 FM_FieldQuantity thermalNoiseQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalThermalNoise, 3, "thermalNoise", "");
+  int comp = magnet->magnetization()->ncomp();
+  return FM_FieldQuantity(magnet, evalThermalNoise, comp, "thermalNoise", "");
 }

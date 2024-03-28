@@ -54,7 +54,6 @@ void setArrayInField(Field& f, py::array_t<real> data) {
          << "expected " << data.shape(0) << ", got " << f.ncomp() << ".";
       throw std::invalid_argument(ss.str());
     }
-
     py::buffer_info buf = data.request();
     real* cValues = reinterpret_cast<real*>(buf.ptr);
 

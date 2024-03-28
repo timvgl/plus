@@ -37,7 +37,7 @@ void spinwave_dispersion() {
 
   MumaxWorld mWorld(cellsize);
   Grid mGrid(grid_size);
-  auto magnet = mWorld.addFerromagnet(mGrid, ferromagnet_name);
+  auto magnet = mWorld.addFerromagnet(mGrid, 3, ferromagnet_name);
 
   magnet->enableDemag = false;
   magnet->msat.set(Ms);

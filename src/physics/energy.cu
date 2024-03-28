@@ -13,59 +13,81 @@ __global__ void k_energyDensity(CuField edens,
                                 const CuField mag,
                                 const CuField hfield,
                                 const CuParameter msat,
-                                const real prefactor) {
+                                const CuParameter msat2,
+                                const real prefactor,
+                                const int comp) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry, set to zero and return early
   if (!edens.cellInGeometry(idx)) {
-    if (edens.cellInGrid(idx))
-      edens.setValueInCell(idx, 0, 0.0);
+    if (edens.cellInGrid(idx)) {
+      if (comp == 3)
+        edens.setValueInCell(idx, 0, 0.0);
+      else if (comp == 6)
+        edens.setValueInCell(idx, real2{0.0, 0.0});
+    }
     return;
   }
 
-  real Ms = msat.valueAt(idx);
-  real3 h = hfield.vectorAt(idx);
-  real3 m = mag.vectorAt(idx);
-
-  edens.setValueInCell(idx, 0, -prefactor * Ms * dot(m, h));
+  if (comp == 3) {
+    real Ms = msat.valueAt(idx);
+    real3 h = hfield.FM_vectorAt(idx);
+    real3 m = mag.FM_vectorAt(idx);
+    edens.setValueInCell(idx, 0, -prefactor * Ms * dot(m, h));
+  }
+  else if (comp == 6) {
+    real Ms = msat.valueAt(idx);
+    real Ms2 = msat2.valueAt(idx);
+    real6 h = hfield.AFM_vectorAt(idx);
+    real6 m = mag.AFM_vectorAt(idx);
+    edens.setValueInCell(idx, -prefactor * real2{Ms, Ms2} * dot(m, h));
+  }
 }
 
 Field evalEnergyDensity(const Ferromagnet* magnet,
                         const Field& h,
                         real prefactor) {
-  Field edens(magnet->system(), 1);
-  if (magnet->msat.assuredZero()) {
+  int comp = magnet->magnetization()->ncomp();
+  Field edens(magnet->system(), comp / 3);
+  if (magnet->msat.assuredZero() && magnet->msat2.assuredZero()) {
     edens.makeZero();
     return edens;
   }
 
   cudaLaunch(edens.grid().ncells(), k_energyDensity, edens.cu(),
              magnet->magnetization()->field().cu(), h.cu(), magnet->msat.cu(),
-             prefactor);
+             magnet->msat2.cu(), prefactor, comp);
   return edens;
 }
 
 Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
-  Field edens = evalDemagEnergyDensity(magnet);
-  edens += evalAnisotropyEnergyDensity(magnet);
+  Field edens = evalAnisotropyEnergyDensity(magnet);
   edens += evalExchangeEnergyDensity(magnet);
   edens += evalZeemanEnergyDensity(magnet);
   edens += evalDmiEnergyDensity(magnet);
+  if (magnet->magnetization()->ncomp() == 3)
+    edens += evalDemagEnergyDensity(magnet); //ignore for now in case of AFM
   return edens;
 }
 
-real evalTotalEnergy(const Ferromagnet* magnet) {
+real evalTotalEnergy(const Ferromagnet* magnet, const bool sub2) {
   int ncells = magnet->grid().ncells();
-  real edensAverage = totalEnergyDensityQuantity(magnet).average()[0];
+  real edensAverage;
+  if (!sub2) 
+    edensAverage = totalEnergyDensityQuantity(magnet).average()[0];
+  else if (sub2)
+    edensAverage = totalEnergyDensityQuantity(magnet).average()[1];
+  
   real cellVolume = magnet->world()->cellVolume();
   return ncells * edensAverage * cellVolume;
 }
 
 FM_FieldQuantity totalEnergyDensityQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalTotalEnergyDensity, 1,
+  return FM_FieldQuantity(magnet, evalTotalEnergyDensity, magnet->magnetization()->ncomp() / 3,
                           "total_energy_density", "J/m3");
 }
 
-FM_ScalarQuantity totalEnergyQuantity(const Ferromagnet* magnet) {
-  return FM_ScalarQuantity(magnet, evalTotalEnergy, "total_energy", "J");
+FM_ScalarQuantity totalEnergyQuantity(const Ferromagnet* magnet, const bool sub2) {
+  std::string name = (sub2) ? "total_energy2" : "total_energy";
+  return FM_ScalarQuantity(magnet, evalTotalEnergy, sub2, name, "J");
 }

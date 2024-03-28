@@ -10,15 +10,17 @@
 #include "zeeman.hpp"
 
 Field evalEffectiveField(const Ferromagnet* magnet) {
-  Field h = evalDemagField(magnet);
-  h += evalAnisotropyField(magnet);
+  Field h = evalAnisotropyField(magnet);
   h += evalExchangeField(magnet);
   h += evalExternalField(magnet);
   h += evalDmiField(magnet);
+  if (h.ncomp() == 3)
+    h += evalDemagField(magnet); //ignore (for now) in case of AFM
   return h;
 }
 
 FM_FieldQuantity effectiveFieldQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalEffectiveField, 3, "effective_field",
-                          "T");
+  int comp = magnet->magnetization()->ncomp();
+  return FM_FieldQuantity(magnet, evalEffectiveField, comp,
+                            "effective_field", "T");
 }

@@ -3,7 +3,7 @@
 #include "cudaerror.hpp"
 #include "cudastream.hpp"
 
-const int BLOCKDIM = 512;
+const int BLOCKDIM = 256;
 
 // Source: https://devblogs.nvidia.com/cplusplus-11-in-cuda-variadic-templates/
 template <typename... Arguments>

@@ -11,7 +11,7 @@ def simple_bench(grid, nsteps=100):
 
     world = World((4e-9, 4e-9, 4e-9))
 
-    magnet = Ferromagnet(world, grid)
+    magnet = Ferromagnet(world, grid,3)
     magnet.msat = 800e3
     magnet.aex = 13e-12
     magnet.alpha = 0.5
@@ -47,8 +47,12 @@ if __name__ == "__main__":
         throughputs.append(throughput)
 
     print()
+    
+    print(ncells)
+    print(throughputs)
 
     plt.loglog(ncells, throughputs, "-o")
     plt.xlabel("Number of cells")
     plt.ylabel("Throughput")
     plt.show()
+

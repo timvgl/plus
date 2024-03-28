@@ -35,7 +35,7 @@ Field evalDmiField(const Ferromagnet*);
 Field evalDmiEnergyDensity(const Ferromagnet*);
 
 /** Integrate the DMI energy density field over the ferromagnet. */
-real evalDmiEnergy(const Ferromagnet*);
+real evalDmiEnergy(const Ferromagnet*, const bool sub2);
 
 /** Construct FM_FieldQuantity around evalDmiField(const * Ferromagnet). */
 FM_FieldQuantity dmiFieldQuantity(const Ferromagnet*);
@@ -44,4 +44,4 @@ FM_FieldQuantity dmiFieldQuantity(const Ferromagnet*);
 FM_FieldQuantity dmiEnergyDensityQuantity(const Ferromagnet*);
 
 /** Construct FM_FieldQuantity around evalDmiEnergy(const * Ferromagnet).*/
-FM_ScalarQuantity dmiEnergyQuantity(const Ferromagnet*);
+FM_ScalarQuantity dmiEnergyQuantity(const Ferromagnet*, const bool sub2);

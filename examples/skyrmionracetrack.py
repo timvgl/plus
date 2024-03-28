@@ -1,5 +1,6 @@
 from mumax5 import Ferromagnet, Grid, World
 from mumax5.util import neelskyrmion, show_field
+import matplotlib.pyplot as plt
 
 # create the world
 cellsize = (1e-9, 1e-9, 0.4e-9)
@@ -26,6 +27,9 @@ magnet.xi = 0.3
 magnet.jcur = (1e12, 0, 0)
 magnet.pol = 0.4
 
-world.timesolver.run(2e-10)
+for i in range(30):
+    world.timesolver.run(1e-10)
 
-show_field(magnet.magnetization)
+    show_field(magnet.magnetization)
+    plt.savefig("racetrackclosed" + str(i))
+    

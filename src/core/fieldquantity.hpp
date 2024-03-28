@@ -20,7 +20,7 @@ class FieldQuantity {
   /***** PURE VIRTUAL FUNCTIONS *****/
 
   /// Returns the number of components of the quantity. In most cases this
-  /// would be either 1 (scalar field) or 3 (vector fields)
+  /// would be either 1 (scalar field) or 3/6 (vector fields)
   virtual int ncomp() const = 0;
 
   /// Returns the system of the field quantity

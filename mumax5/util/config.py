@@ -2,8 +2,47 @@
 
 import numpy as _np
 
+def twodomain(m1, m2, mw, wallposition, wallthickness=0.):
+    """ Return a two-domain state magnetization configuration
+    with a domain wall which is perpendicular to one of the
+    three principal axes.
 
-def vortex(position, diameter, circulation, polarization):
+    Parameters
+    ----------
+    m1: tuple of three or six floats
+        The magnetization of the first domain.
+    m2: tuple of three or six floats
+        The magnetization of the second domain.
+    mw: tuple of three or six floats
+        The magnetization inside the wall.
+    wallposition: float
+        The position of the domain wall.
+    wallthickness: float
+        The thickness of the wall.
+        If given, wallposition corresponds to the center
+        of the domain wall.
+    """
+    wallidx = int(_np.nonzero(wallposition)[0][0])
+    '''
+    def func(x, y, z):
+         coo = (x, y, z)
+         if coo[wallidx] < wallposition[wallidx] - wallthickness:
+             return m1
+         elif coo[wallidx] > wallposition[wallidx] + wallthickness:
+             return m2
+         return mw
+    '''
+    def func(x, y, z):
+        if x < wallposition - wallthickness:
+            return m1
+        elif x > wallposition + wallthickness:
+            return m2
+        else:
+            return mw
+    return func
+
+
+def vortex(position, diameter, circulation, polarization, comp=3):
     """Return a vortex magnetization configuration.
 
     Parameters
@@ -40,12 +79,14 @@ def vortex(position, diameter, circulation, polarization):
         mz = 2 * polarization * _np.exp(-r2 / diameter ** 2)
         nrm = _np.sqrt(mx ** 2 + my ** 2 + mz ** 2)
 
+        if comp == 6:
+            return (mx / nrm, my / nrm, mz / nrm, -mx / nrm, -my / nrm, -mz / nrm)
         return (mx / nrm, my / nrm, mz / nrm)
 
     return func
 
 
-def antivortex(position, diameter, circulation, polarization):
+def antivortex(position, diameter, circulation, polarization, comp=3):
     """Return a antivortex magnetization configuration.
 
     Parameters
@@ -82,6 +123,8 @@ def antivortex(position, diameter, circulation, polarization):
         mz = 2 * polarization * _np.exp(-r2 / diameter ** 2)
         nrm = _np.sqrt(mx ** 2 + my ** 2 + mz ** 2)
 
+        if comp == 6:
+            return (mx / nrm, my / nrm, mz / nrm, -mx / nrm, -my / nrm, -mz / nrm)    
         return (mx / nrm, my / nrm, mz / nrm)
 
     return func

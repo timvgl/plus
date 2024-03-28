@@ -60,7 +60,7 @@ class Parameter(FieldQuantity):
             be an array of 0s and 1s. The number of components of the Parameter
             instance and the shape of mask should conform. Default value is None.
         """
-        if isinstance(self._impl, _cpp.VectorParameter):
+        if isinstance(self._impl, _cpp.FM_VectorParameter):
             # The VectorParameter value should be a sequence of size 3
             # here we convert that sequence to a numpy array
             original_term = term
@@ -165,7 +165,7 @@ class Parameter(FieldQuantity):
     def _reset_fields_default(self):
         if isinstance(self._impl, _cpp.Parameter):
             self._impl.set(0)
-        elif isinstance(self._impl, _cpp.VectorParameter):
+        elif isinstance(self._impl, _cpp.FM_VectorParameter):
             self._impl.set((0, 0, 0))
 
         self.remove_time_terms()

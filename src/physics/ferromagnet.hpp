@@ -25,6 +25,7 @@ class Ferromagnet {
  public:
   Ferromagnet(MumaxWorld* world,
               Grid grid,
+              int ncomp,
               std::string name,
               GpuBuffer<bool> geometry = GpuBuffer<bool>());
   ~Ferromagnet();
@@ -32,6 +33,7 @@ class Ferromagnet {
 
   std::string name() const;
   std::shared_ptr<const System> system() const;
+  int ncomp() const;
   const World* world() const;
   Grid grid() const;
   real3 cellsize() const;
@@ -58,29 +60,52 @@ class Ferromagnet {
   NormalizedVariable magnetization_;
   std::map<const Ferromagnet*, StrayField*> strayFields_;
   std::string name_;
+  int ncomp_;
 
  public:
   mutable PoissonSystem poissonSystem;
 
   bool enableDemag;
-  VectorParameter anisU;
-  VectorParameter jcur;
+  bool enableOpenBC;
+  FM_VectorParameter anisU;
+  FM_VectorParameter anisC1;
+  FM_VectorParameter anisC2;
+  FM_VectorParameter jcur;
+  FM_VectorParameter FixedLayer;
   /** Uniform bias magnetic field which will affect a ferromagnet.
    * Measured in Teslas.
    */
-  VectorParameter biasMagneticField;
+  FM_VectorParameter biasMagneticField;
   Parameter msat;
+  Parameter msat2;
   Parameter aex;
+  Parameter aex2;
+  Parameter afmex_cell;
+  Parameter afmex_nn;
   Parameter ku1;
+  Parameter ku12;
   Parameter ku2;
+  Parameter ku22;
+  Parameter kc1;
+  Parameter kc2;
+  Parameter kc3;
+  Parameter kc12;
+  Parameter kc22;
+  Parameter kc32;
   Parameter alpha;
   Parameter temperature;
   Parameter idmi;
+  Parameter latcon;
+  Parameter Lambda;
+  Parameter FreeLayerThickness;
+  Parameter eps_prime;
   Parameter xi;
   Parameter pol;
   Parameter appliedPotential;
   Parameter conductivity;
+  Parameter conductivity2;
   Parameter amrRatio;
+  Parameter amrRatio2;
 
   curandGenerator_t randomGenerator;
 

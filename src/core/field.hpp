@@ -78,6 +78,7 @@ class Field : public FieldQuantity {
   void setUniformComponent(int comp, real value);
   void setUniformValue(real value);
   void setUniformValue(real3 value);
+  void setUniformValue(real6 value);
 
   void makeZero();
 
@@ -114,11 +115,15 @@ struct CuField {
   __device__ real valueAt(int idx, int comp = 0) const;
   __device__ real valueAt(int3 coo, int comp = 0) const;
 
-  __device__ real3 vectorAt(int idx) const;
-  __device__ real3 vectorAt(int3 coo) const;
+  __device__ real3 FM_vectorAt(int idx) const;
+  __device__ real3 FM_vectorAt(int3 coo) const;
+  __device__ real6 AFM_vectorAt(int idx) const;
+  __device__ real6 AFM_vectorAt(int3 coo) const;
 
   __device__ void setValueInCell(int idx, int comp, real value);
+  __device__ void setValueInCell(int idx, real2 value);
   __device__ void setVectorInCell(int idx, real3 vec);
+  __device__ void setVectorInCell(int idx, real6 vec);
 };
 
 __device__ inline bool CuField::cellInGrid(int idx) const {
@@ -145,20 +150,43 @@ __device__ inline real CuField::valueAt(int3 coo, int comp) const {
   return valueAt(system.grid.coord2index(coo), comp);
 }
 
-__device__ inline real3 CuField::vectorAt(int idx) const {
+__device__ inline real3 CuField::FM_vectorAt(int idx) const {
   return real3{ptrs[0][idx], ptrs[1][idx], ptrs[2][idx]};
 }
 
-__device__ inline real3 CuField::vectorAt(int3 coo) const {
-  return vectorAt(system.grid.coord2index(coo));
+__device__ inline real3 CuField::FM_vectorAt(int3 coo) const {
+  return FM_vectorAt(system.grid.coord2index(coo));
+}
+
+__device__ inline real6 CuField::AFM_vectorAt(int idx) const {
+  return real6{ptrs[0][idx], ptrs[1][idx], ptrs[2][idx],
+               ptrs[3][idx], ptrs[4][idx], ptrs[5][idx]};
+}
+
+__device__ inline real6 CuField::AFM_vectorAt(int3 coo) const {
+  return AFM_vectorAt(system.grid.coord2index(coo));
 }
 
 __device__ inline void CuField::setValueInCell(int idx, int comp, real value) {
   ptrs[comp][idx] = value;
 }
 
+__device__ inline void CuField::setValueInCell(int idx, real2 value) {
+  ptrs[0][idx] = value.x;
+  ptrs[1][idx] = value.y;
+}
+
 __device__ inline void CuField::setVectorInCell(int idx, real3 vec) {
   ptrs[0][idx] = vec.x;
   ptrs[1][idx] = vec.y;
   ptrs[2][idx] = vec.z;
+}
+
+__device__ inline void CuField::setVectorInCell(int idx, real6 vec) {
+  ptrs[0][idx] = vec.x1;
+  ptrs[1][idx] = vec.y1;
+  ptrs[2][idx] = vec.z1;
+  ptrs[3][idx] = vec.x2;
+  ptrs[4][idx] = vec.y2;
+  ptrs[5][idx] = vec.z2;
 }

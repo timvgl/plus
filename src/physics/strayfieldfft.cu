@@ -28,7 +28,8 @@ const auto& ifftExec = cufftExecZ2D;
 
 #define __CUDAOP__ inline __device__ __host__
 
-__CUDAOP__ complex operator+(complex a, complex b) {
+// No simpel operator overloading due to definition of real2.
+__CUDAOP__ complex sum(complex a, complex b) {
 #if FP_PRECISION == SINGLE
   return cuCaddf(a, b);
 #elif FP_PRECISION == DOUBLE
@@ -36,7 +37,7 @@ __CUDAOP__ complex operator+(complex a, complex b) {
 #endif
 }
 
-__CUDAOP__ complex operator*(complex a, complex b) {
+__CUDAOP__ complex prod(complex a, complex b) {
 #if FP_PRECISION == SINGLE
   return cuCmulf(a, b);
 #elif FP_PRECISION == DOUBLE
@@ -44,7 +45,7 @@ __CUDAOP__ complex operator*(complex a, complex b) {
 #endif
 }
 
-__global__ void k_pad(CuField out, CuField in, CuParameter msat) {
+__global__ void k_pad(CuField out, CuField in, CuParameter msat, CuParameter msat2, int ncomp) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
   Grid outgrid = out.system.grid;
@@ -58,9 +59,17 @@ __global__ void k_pad(CuField out, CuField in, CuParameter msat) {
   int inIdx = ingrid.coord2index(inCoo);
 
   if (in.cellInGeometry(inCoo)) {
-    real Ms = msat.valueAt(inIdx);
-    for (int c = 0; c < out.ncomp; c++)
-      out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
+    if (ncomp == 3) {
+      real Ms = msat.valueAt(inIdx);
+      for (int c = 0; c < out.ncomp; c++)
+        out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
+    }
+    else if (ncomp == 6) {
+      real Ms1 = msat.valueAt(inIdx);
+      real Ms2 = msat2.valueAt(inIdx);
+      for (int c = 0; c < out.ncomp; c++)
+        out.setValueInCell(outIdx, c, Ms1 * in.valueAt(inIdx, c) + Ms2 * in.valueAt(inIdx, c + 3));
+    }
   } else {
     for (int c = 0; c < out.ncomp; c++)
       out.setValueInCell(outIdx, c, 0.0);
@@ -74,7 +83,7 @@ __global__ void k_unpad(CuField out, CuField in) {
   // early
   if (!out.cellInGeometry(outIdx)) {
     if (out.cellInGrid(outIdx))
-      out.setVectorInCell(outIdx, {0, 0, 0});
+        out.setVectorInCell(outIdx, real3{0, 0, 0});
     return;
   }
 
@@ -116,9 +125,9 @@ __global__ void k_apply_kernel_3d(complex* hx,
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= n)
     return;
-  hx[i] = preFactor * (kxx[i] * mx[i] + kxy[i] * my[i] + kxz[i] * mz[i]);
-  hy[i] = preFactor * (kxy[i] * mx[i] + kyy[i] * my[i] + kyz[i] * mz[i]);
-  hz[i] = preFactor * (kxz[i] * mx[i] + kyz[i] * my[i] + kzz[i] * mz[i]);
+  hx[i] = prod(preFactor, (sum(sum(prod(kxx[i], mx[i]), prod(kxy[i], my[i])), prod(kxz[i], mz[i]))));
+  hy[i] = prod(preFactor, (sum(sum(prod(kxy[i], mx[i]), prod(kyy[i], my[i])), prod(kyz[i], mz[i]))));
+  hz[i] = prod(preFactor, (sum(sum(prod(kxz[i], mx[i]), prod(kyz[i], my[i])), prod(kzz[i], mz[i]))));
 }
 
 __global__ void k_apply_kernel_2d(complex* hx,
@@ -136,9 +145,9 @@ __global__ void k_apply_kernel_2d(complex* hx,
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i >= n)
     return;
-  hx[i] = preFactor * (kxx[i] * mx[i] + kxy[i] * my[i]);
-  hy[i] = preFactor * (kxy[i] * mx[i] + kyy[i] * my[i]);
-  hz[i] = preFactor * (kzz[i] * mz[i]);
+  hx[i] = prod(preFactor, (sum(prod(kxx[i], mx[i]), prod(kxy[i], my[i]))));
+  hy[i] = prod(preFactor, (sum(prod(kxy[i], mx[i]), prod(kyy[i], my[i]))));
+  hz[i] = prod(preFactor, prod(kzz[i], mz[i]));
 }
 
 StrayFieldFFTExecutor::StrayFieldFFTExecutor(
@@ -178,26 +187,26 @@ StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
     cudaFree(p);
   for (auto p : hfft)
     cudaFree(p);
-
+  
   checkCufftResult(cufftDestroy(forwardPlan));
   checkCufftResult(cufftDestroy(backwardPlan));
 }
 
 Field StrayFieldFFTExecutor::exec() const {
   const Field& m = magnet_->magnetization()->field();
-
+  int ncomp = m.cu().ncomp;
   // pad m, and multiply with msat
   std::shared_ptr<System> kernelSystem =
       std::make_shared<System>(m.system()->world(), kernel_.grid());
   std::unique_ptr<Field> mpad(new Field(kernelSystem, 3));
   cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m.cu(),
-             magnet_->msat.cu());
+             magnet_->msat.cu(), magnet_->msat2.cu(), ncomp);
 
   // Forward fourier transforms
   for (int comp = 0; comp < 3; comp++)
     checkCufftResult(
         fftExec(forwardPlan, mpad->device_ptr(comp), mfft.at(comp)));
-
+  
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
   complex preFactor{-MU0 / kernel_.grid().ncells(), 0};
@@ -218,7 +227,7 @@ Field StrayFieldFFTExecutor::exec() const {
   // backward fourier transfrom
   for (int comp = 0; comp < 3; comp++)
     checkCufftResult(
-        ifftExec(backwardPlan, hfft.at(comp), mpad->device_ptr(comp)));
+      ifftExec(backwardPlan, hfft.at(comp), mpad->device_ptr(comp)));
 
   // unpad
   Field h(system_, 3);

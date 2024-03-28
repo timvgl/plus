@@ -25,7 +25,7 @@ n_magnets = 4
 magnets = []
 for i in range(n_magnets):
     grid = Grid(gridsize, origin=(i * offset, 0, 0))
-    magnet = Ferromagnet(world, grid, name=f"magnet_{i}")
+    magnet = Ferromagnet(world, grid,  name=f"magnet_{i}")
     magnet.aex = 13e-12
     magnet.alpha = 0.5
     magnet.msat = 800e3
@@ -33,6 +33,5 @@ for i in range(n_magnets):
     magnets.append(magnet)
 
 world.timesolver.run(1e-10)
-
 for magnet in magnets:
     show_field(magnet.magnetization)

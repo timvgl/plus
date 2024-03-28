@@ -64,19 +64,7 @@ def _quantity_img_xy_extent(quantity):
     ]
     return extent
 
-
-def show_field(quantity, layer=0):
-    """Plot a mumax5.FieldQuantity with 3 components using the mumax3 colorscheme."""
-    if not isinstance(quantity, _m5.FieldQuantity):
-        raise TypeError("The first argument should be a FieldQuantity")
-
-    if quantity.ncomp != 3:
-        raise ValueError(
-            "Can not create a vector field image because the field quantity "
-            + "does not have 3 components."
-        )
-
-    field = quantity.eval()
+def get_rgba(field, quantity, layer=0):
     field = field[:, layer]  # select the layer
     field /= _np.max(_np.linalg.norm(field, axis=0))  # rescale to make maximum norm 1
 
@@ -89,15 +77,60 @@ def show_field(quantity, layer=0):
 
     # Set alpha channel to one inside the geometry, and zero outside
     rgba[:, :, 3] = quantity._impl.system.geometry[layer]
+    return rgba
 
+
+def show_field(quantity, layer=0):
+    """Plot a mumax5.FieldQuantity with 3 or 6 components using the mumax3 colorscheme."""
+    if not isinstance(quantity, _m5.FieldQuantity):
+        raise TypeError("The first argument should be a FieldQuantity")
+    
+    if (quantity.ncomp != 3 and quantity.ncomp != 6):
+        raise ValueError(
+            "Can not create a vector field image because the field quantity "
+            + "does not have 3 or 6 components."
+        )
+
+    field = quantity.eval()
+    rgba = []
+    if quantity.ncomp == 6:
+        rgba = [get_rgba(field[0:3], quantity, layer), get_rgba(field[3:6], quantity, layer)]
+        name = ['\n' + " (Sublattice 1)", '\n' + " (Sublattice 2)"]
+    else:
+        rgba = [get_rgba(field, quantity, layer)]
+        name = [""]
+    plotter(quantity, rgba, name)
+
+
+def show_neel(quantity, layer=0):
+    """Plot The Neel vector of an AFM using the mumax3 colorscheme."""
+    if not isinstance(quantity, _m5.FieldQuantity):
+        raise TypeError("The first argument should be a FieldQuantity")
+    
+    if (quantity.ncomp != 6):
+        raise ValueError(
+            "Can not create a Neel vector field image because the field quantity "
+            + "does not have 6 components."
+        )
+
+    field = quantity.eval()
+    neel_field = 0.5 * _np.subtract(field[0:3], field[3:6])
+
+    rgba = [get_rgba(neel_field, quantity, layer)]
+
+    plotter(quantity, rgba, [" (Neel vector field)"])
+
+def plotter(quantity, rgba, name=[]):
     fig = _plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_title(quantity.name)
-    ax.set_facecolor("gray")
-    ax.imshow(rgba, origin="lower", extent=_quantity_img_xy_extent(quantity))
-    ax.set_xlabel("$x$ (m)")
-    ax.set_ylabel("$y$ (m)")
+    for i in range(len(rgba)):
+        ax = fig.add_subplot(1, len(rgba), i+1)
+        ax.set_title(quantity.name + name[i])
+        ax.set_facecolor("gray")
+        ax.imshow(rgba[i], origin="lower", extent=_quantity_img_xy_extent(quantity))
+        ax.set_xlabel("$x$ (m)")
+        ax.set_ylabel("$y$ (m)")
     _plt.show()
+
 
 
 def show_layer(quantity, component=0, layer=0):
@@ -123,4 +156,39 @@ def show_layer(quantity, component=0, layer=0):
     )
     ax.set_xlabel("$x$ (m)")
     ax.set_ylabel("$y$ (m)")
+    _plt.show()
+
+def show_neel_quiver(quantity, title=''):
+    
+    # Still needs some fudging...
+
+    field = quantity.eval()
+    m1, m2 = field[0:3], field[3:6]
+    mx1, my1, mz1 = m1[0][0], m1[1][0], m1[2][0]
+    mx2, my2, mz2 = m2[0][0], m2[1][0], m2[2][0]
+
+    mx = mx1 + mx2
+    my = my1 + my2
+    mz = mz1 + mz2
+
+    # Normalizing to [-1, +1]
+    if mx.max() > 1 or mx.min() < 1:
+        mxx = 2 * (mx - mx.min()) / (mx.max() - mx.min()) - 1
+    if my.max() > 1 or my.min() < 1:
+        myy = 2 * (my - my.min()) / (my.max() - my.min()) - 1
+    if mz.max() > 1 or mz.min() < 1:
+        mzz = 2 * (mz - mz.min()) / (mz.max() - mz.min()) - 1
+    
+    #Plotting
+    cmap = _plt.get_cmap('jet')
+    norm = _plt.Normalize(mzz.min(), mzz.max())
+    fig, ax = _plt.subplots()
+    ax.quiver(mxx, myy)
+
+    cax = ax.imshow(mzz, cmap=cmap, interpolation='none')
+    cbar = _plt.colorbar(_plt.cm.ScalarMappable(cmap=cmap, norm=norm), ax=ax)
+
+    cbar.set_label('z-comp')
+    if title:
+        ax.set_title(title)
     _plt.show()

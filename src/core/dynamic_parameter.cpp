@@ -74,3 +74,4 @@ bool DynamicParameter<T>::isUniform() const {
 
 template class DynamicParameter<real>;
 template class DynamicParameter<real3>;
+template class DynamicParameter<real6>;

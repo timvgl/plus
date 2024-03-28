@@ -12,18 +12,28 @@
 __global__ void k_demagfield(CuField hField,
                              const CuField mField,
                              const CuField kernel,
-                             const CuParameter msat) {
+                             const CuParameter msat,
+                             const CuParameter msat2,
+                             bool afm) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry of destiny field, set to zero and return
   // early
   if (!hField.cellInGeometry(idx)) {
-    if (hField.cellInGrid(idx))
-      hField.setVectorInCell(idx, {0, 0, 0});
+    if (hField.cellInGrid(idx)) {
+      if (!afm) {
+        hField.setVectorInCell(idx, real3{0, 0, 0});
+      }
+      else {
+        hField.setVectorInCell(idx, real6{0, 0, 0, 0, 0, 0});
+      }
+    }
     return;
   }
 
-  real3 h{0, 0, 0};
+  // Treat 6d case and strip 3 zeros at the end in case of FM.
+  real6 h{0, 0, 0, 0, 0, 0};
+  real6 M{0, 0, 0, 0, 0, 0};
 
   int3 dstcoo = hField.system.grid.index2coord(idx);
 
@@ -39,15 +49,28 @@ __global__ void k_demagfield(CuField hField,
     real nxy = kernel.valueAt(r, 3);
     real nxz = kernel.valueAt(r, 4);
     real nyz = kernel.valueAt(r, 5);
+    
+    if (!afm) {
+      real3 mag = msat.valueAt(i) * mField.FM_vectorAt(i);
+      M = {mag.x, mag.y, mag.z, 0, 0, 0};
+    }
+    else {
+      M = real2{msat.valueAt(i), msat2.valueAt(i)} * mField.AFM_vectorAt(i);
+    }
 
-    real3 M = msat.valueAt(i) * mField.vectorAt(i);
-
-    h.x -= nxx * M.x + nxy * M.y + nxz * M.z;
-    h.y -= nxy * M.x + nyy * M.y + nyz * M.z;
-    h.z -= nxz * M.x + nyz * M.y + nzz * M.z;
+    h.x1 -= nxx * M.x1 + nxy * M.y1 + nxz * M.z1;
+    h.y1 -= nxy * M.x1 + nyy * M.y1 + nyz * M.z1;
+    h.z1 -= nxz * M.x1 + nyz * M.y1 + nzz * M.z1;
+    h.x2 -= nxx * M.x2 + nxy * M.y2 + nxz * M.z2;
+    h.y2 -= nxy * M.x2 + nyy * M.y2 + nyz * M.z2;
+    h.z2 -= nxz * M.x2 + nyz * M.y2 + nzz * M.z2;
   }
-
-  hField.setVectorInCell(idx, MU0 * h);
+  if (!afm) {
+    hField.setVectorInCell(idx, MU0 * real3{h.x1, h.y1, h.z1});
+  }
+  else {
+    hField.setVectorInCell(idx, MU0 * h);
+  }
 }
 
 StrayFieldBruteExecutor::StrayFieldBruteExecutor(
@@ -57,10 +80,11 @@ StrayFieldBruteExecutor::StrayFieldBruteExecutor(
       kernel_(system->grid(), magnet_->grid(), magnet_->world()) {}
 
 Field StrayFieldBruteExecutor::exec() const {
-  Field h(system_, 3);
+   auto m = magnet_->magnetization()->field().cu();
+  Field h(system_, m.ncomp);
   int ncells = h.grid().ncells();
-  cudaLaunch(ncells, k_demagfield, h.cu(),
-             magnet_->magnetization()->field().cu(), kernel_.field().cu(),
-             magnet_->msat.cu());
+  bool afm = m.ncomp == 6;
+  cudaLaunch(ncells, k_demagfield, h.cu(), m, kernel_.field().cu(),
+             magnet_->msat.cu(), magnet_->msat2.cu(), afm);
   return h;
 }

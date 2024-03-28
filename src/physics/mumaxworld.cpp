@@ -19,11 +19,12 @@ MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
 
 MumaxWorld::~MumaxWorld() {}
 
-Ferromagnet* MumaxWorld::addFerromagnet(Grid grid, std::string name) {
-  return addFerromagnet(grid, GpuBuffer<bool>(), name);
+Ferromagnet* MumaxWorld::addFerromagnet(Grid grid, int comp, std::string name) {
+  return addFerromagnet(grid, comp, GpuBuffer<bool>(), name);
 }
 
 Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
+                                        int comp,
                                         GpuBuffer<bool> geometry,
                                         std::string name) {
   if (!inMastergrid(grid)) {
@@ -50,12 +51,12 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
     throw std::runtime_error("A ferromagnet with the name '" + name +
                              "' already exists");
   }
-
+  
   // Create the magnet and add it to this world
   ferromagnets_[name] =
-      std::make_unique<Ferromagnet>(this, grid, name, geometry);
+      std::make_unique<Ferromagnet>(this, grid, comp, name, geometry);
   Ferromagnet* newMagnet = ferromagnets_[name].get();
-
+  
   // Add the magnetic field of the other magnets in this magnet, and vice versa
   for (const auto& namedMagnet : ferromagnets_) {
     Ferromagnet* otherMagnet = namedMagnet.second.get();
@@ -67,7 +68,6 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
       }
     }
   }
-
   resetTimeSolverEquations();
   return newMagnet;
 }

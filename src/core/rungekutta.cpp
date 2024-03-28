@@ -28,7 +28,6 @@ void RungeKuttaStepper::step() {
     solver_->setTime(solver_->time() + solver_->timestep());
     return;
   }
-
   // construct a Runge Kutta stage executor for every equation
   std::vector<RungeKuttaStepper::RungeKuttaStageExecutor> equations;
   for (auto eq : solver_->equations())
@@ -102,7 +101,6 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setStageK(int stage) {
   k[stage] = eq_.rhs->eval();
 
   auto dt = stepper.solver_->timestep();
-
   if (noise)
     addTo(k[stage], 1 / sqrt(dt), noise.value());
 }
@@ -113,7 +111,6 @@ void RungeKuttaStepper::RungeKuttaStageExecutor::setStageX(int stage) {
 
   Field xstage = x0;
   auto dt = stepper.solver_->timestep();
-
   for (int i = 0; i < stage; i++)
     addTo(xstage, dt * butcher.rkMatrix[stage][i], k[i]);
 

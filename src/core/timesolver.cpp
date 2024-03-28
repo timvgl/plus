@@ -28,12 +28,10 @@ void TimeSolver::setRungeKuttaMethod(RKmethod method) {
 real TimeSolver::sensibleTimeStep() const {
   if (eqs_.empty())
     return 0.0;  // Timestep is irrelevant if there are no equations to solve
-
   real globalMaxNorm = 0;
   for (auto eq : eqs_)
     if (real maxNorm = maxVecNorm(eq.rhs->eval()); maxNorm > globalMaxNorm)
       globalMaxNorm = maxNorm;
-
   return 0.01 / globalMaxNorm;
 }
 
@@ -68,8 +66,9 @@ void TimeSolver::step() {
 }
 
 void TimeSolver::steps(unsigned int nSteps) {
-  for (int i = 0; i < nSteps; i++)
+  for (int i = 0; i < nSteps; i++) {
     step();
+  }
 }
 
 void TimeSolver::runwhile(std::function<bool(void)> runcondition) {
@@ -81,7 +80,6 @@ void TimeSolver::runwhile(std::function<bool(void)> runcondition) {
 void TimeSolver::run(real duration) {
   if (duration <= 0)
     return;
-
   real stoptime = time_ + duration;
   auto runcondition = [this, stoptime]() {
     return this->time() < stoptime - this->timestep();

@@ -80,5 +80,5 @@ std::string StrayField::unit() const {
 }
 
 bool StrayField::assuredZero() const {
-  return magnet_->msat.assuredZero();
+  return magnet_->msat.assuredZero() && magnet_->msat2.assuredZero();
 }

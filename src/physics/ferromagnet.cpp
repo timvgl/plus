@@ -4,6 +4,8 @@
 
 #include <memory>
 #include <random>
+#include <math.h>
+#include <cfloat>
 
 #include "fieldquantity.hpp"
 #include "gpubuffer.hpp"
@@ -15,37 +17,59 @@
 
 Ferromagnet::Ferromagnet(MumaxWorld* world,
                          Grid grid,
+                         int ncomp,
                          std::string name,
                          GpuBuffer<bool> geometry)
     : system_(new System(world, grid, geometry)),
-      magnetization_(name + ":magnetization", "", system_, 3),
+      magnetization_(name + ":magnetization", "", system_, ncomp),
       aex(system_, 0.0),
+      aex2(system_, 0.0),
+      afmex_cell(system_, 0.0),
+      afmex_nn(system_, 0.0),
       msat(system_, 1.0),
+      msat2(system_, 1.0),
       ku1(system_, 0.0),
+      ku12(system_, 0.0),
       ku2(system_, 0.0),
+      ku22(system_, 0.0),
+      kc1(system_, 0.0),
+      kc2(system_, 0.0),
+      kc3(system_, 0.0),
+      kc12(system_, 0.0),
+      kc22(system_, 0.0),
+      kc32(system_, 0.0),
       alpha(system_, 0.0),
       temperature(system_, 0.0),
       idmi(system_, 0.0),
+      latcon(system_, 0.35e-9),
       xi(system_, 0.0),
+      Lambda(system_, 0.0),
+      FreeLayerThickness(system_, grid.size().z * cellsize().z),
+      eps_prime(system_, 0.0),
+      FixedLayer(system_, {0, 0, 0}),
       pol(system_, 0.0),
       anisU(system_, {0, 0, 0}),
+      anisC1(system_, {0, 0, 0}),
+      anisC2(system_, {0, 0, 0}),
       jcur(system_, {0, 0, 0}),
       biasMagneticField(system_, {0, 0, 0}),
       dmiTensor(system_),
       enableDemag(true),
+      enableOpenBC(false),
       appliedPotential(system_, std::nanf("0")),
       conductivity(system_, 0.0),
+      conductivity2(system_, 0.0),
       amrRatio(system_, 0.0),
+      amrRatio2(system_, 0.0),
       poissonSystem(this) {
   {
     // TODO: this can be done much more efficient somewhere else
-    int ncomp = 3;
     int nvalues = ncomp * this->grid().ncells();
     std::vector<real> randomValues(nvalues);
-    std::uniform_real_distribution<real> unif(-1, 1);
+    std::normal_distribution<real> dist(0.0, 1.0);
     std::default_random_engine randomEngine;
     for (auto& v : randomValues) {
-      v = unif(randomEngine);
+      v = dist(randomEngine);
     }
     Field randomField(system(), ncomp);
     randomField.setData(&randomValues[0]);
@@ -65,6 +89,10 @@ Ferromagnet::~Ferromagnet() {
 
 std::string Ferromagnet::name() const {
   return name_;
+}
+
+int Ferromagnet::ncomp() const {
+  return ncomp_;
 }
 
 std::shared_ptr<const System> Ferromagnet::system() const {
@@ -126,7 +154,6 @@ void Ferromagnet::addStrayField(const Ferromagnet* magnet,
     it->second->setMethod(method);
     return;
   }
-
   // Stray field of magnet (parameter) on this magnet (the object)
   strayFields_[magnet] = new StrayField(magnet, system(), method);
 }

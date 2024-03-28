@@ -28,10 +28,11 @@ class MumaxWorld : public World {
   real3 biasMagneticField;
 
   /** Add a ferromagnet to the world. */
-  Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
+  Ferromagnet* addFerromagnet(Grid grid, int comp, std::string name = "");
 
   /** Add a ferromagnet to the world with a non-trivial geometry. */
   Ferromagnet* addFerromagnet(Grid grid,
+                              int comp,
                               GpuBuffer<bool> geometry,
                               std::string name = "");
 

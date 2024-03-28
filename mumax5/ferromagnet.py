@@ -34,9 +34,11 @@ class Ferromagnet:
         ferromagnet will be created.
     """
 
-    def __init__(self, world, grid, name="", geometry=None):
+    def __init__(self, world, grid, comp=3, name="", geometry=None):
+        if comp not in (3, 6):
+            raise ValueError("The magnet must have 3 or 6 components.")
         if geometry is None:
-            self._impl = world._impl.add_ferromagnet(grid._impl, name)
+            self._impl = world._impl.add_ferromagnet(grid._impl, comp, name)
             return
 
         if callable(geometry):
@@ -59,7 +61,7 @@ class Ferromagnet:
                     + "of the grid."
                 )
 
-        self._impl = world._impl.add_ferromagnet(grid._impl, geometry_array, name)
+        self._impl = world._impl.add_ferromagnet(grid._impl, comp, geometry_array, name)
 
     def __repr__(self):
         """Return Ferromagnet string representation."""
@@ -74,6 +76,11 @@ class Ferromagnet:
     def grid(self):
         """Return the underlying grid of the ferromagnet."""
         return Grid._from_impl(self._impl.system.grid)
+    
+    @property
+    def comp(self):
+        """Return the number of magnetization components."""
+        return self._impl.comp
 
     @property
     def cellsize(self):
@@ -107,12 +114,27 @@ class Ferromagnet:
 
     @property
     def enable_demag(self):
-        """Enable/disable demagnetization switch."""
+        """Enable/disable demagnetization switch.
+        
+        Default = True.
+        """
         return self._impl.enable_demag
 
     @enable_demag.setter
     def enable_demag(self, value):
         self._impl.enable_demag = value
+
+    @property
+    def enable_openbc(self):
+        """Enable/disable open boundary conditions (affects DMI calculation).
+        
+        Default = False.
+        """
+        return self._impl.enable_openbc
+    
+    @enable_openbc.setter
+    def enable_openbc(self, value):
+        self._impl.enable_openbc = value
 
     @property
     def bias_magnetic_field(self):
@@ -142,6 +164,15 @@ class Ferromagnet:
         self.msat.set(value)
 
     @property
+    def msat2(self):
+        """Saturation magnetization of second sublattice."""
+        return Parameter(self._impl.msat2)
+
+    @msat2.setter
+    def msat2(self, value):
+        self.msat2.set(value)
+
+    @property
     def alpha(self):
         """LLG damping parameter."""
         return Parameter(self._impl.alpha)
@@ -160,6 +191,35 @@ class Ferromagnet:
         self.aex.set(value)
 
     @property
+    def aex2(self):
+        """Exchange constant of second sublattice."""
+        return Parameter(self._impl.aex2)
+
+    @aex2.setter
+    def aex2(self, value):
+        self.aex2.set(value)
+
+    @property
+    def afmex_cell(self):
+        """Intercell antiferromagnetic exchange constant."""
+        return Parameter(self._impl.afmex_cell)
+
+    @afmex_cell.setter
+    def afmex_cell(self, value):
+        assert value <= 0, "The antiferromagnetic exchange constant afmex_cell should be negative (or zero)."
+        self.afmex_cell.set(value)
+
+    @property
+    def afmex_nn(self):
+        """Intracell antiferromagnetic exchange constant."""
+        return Parameter(self._impl.afmex_nn)
+
+    @afmex_nn.setter
+    def afmex_nn(self, value):
+        assert value <= 0, "The antiferromagnetic exchange constant afmex_nn should be negative (or zero)."
+        self.afmex_nn.set(value)
+
+    @property
     def ku1(self):
         """Uniaxial anisotropy parameter Ku1."""
         return Parameter(self._impl.ku1)
@@ -167,6 +227,15 @@ class Ferromagnet:
     @ku1.setter
     def ku1(self, value):
         self.ku1.set(value)
+    
+    @property
+    def ku12(self):
+        """Uniaxial anisotropy parameter Ku1 of second sublattice."""
+        return Parameter(self._impl.ku12)
+
+    @ku12.setter
+    def ku12(self, value):
+        self.ku12.set(value)
 
     @property
     def ku2(self):
@@ -178,6 +247,15 @@ class Ferromagnet:
         self.ku2.set(value)
 
     @property
+    def ku22(self):
+        """Uniaxial anisotropy parameter Ku2 of second sublattice."""
+        return Parameter(self._impl.ku22)
+
+    @ku22.setter
+    def ku22(self, value):
+        self.ku22.set(value)
+
+    @property
     def anisU(self):
         """Uniaxial anisotropy direction (the easy axis)."""
         return Parameter(self._impl.anisU)
@@ -187,8 +265,129 @@ class Ferromagnet:
         self.anisU.set(value)
 
     @property
+    def kc1(self):
+        """Cubic anisotropy parameter Kc1."""
+        return Parameter(self._impl.kc1)
+    
+    @kc1.setter
+    def kc1(self, value):
+        self.kc1.set(value)
+
+    @property
+    def kc2(self):
+        """Cubic anisotropy parameter Kc2."""
+        return Parameter(self._impl.kc2)
+    
+    @kc2.setter
+    def kc2(self, value):
+        self.kc2.set(value)
+        
+    @property
+    def kc3(self):
+        """Cubic anisotropy parameter Kc3."""
+        return Parameter(self._impl.kc3)
+    
+    @kc3.setter
+    def kc3(self, value):
+        self.kc3.set(value)
+
+    @property
+    def kc12(self):
+        """Cubic anisotropy parameter Kc1 of second sublattice."""
+        return Parameter(self._impl.kc12)
+    
+    @kc12.setter
+    def kc12(self, value):
+        self.kc12.set(value)
+
+    @property
+    def kc22(self):
+        """Cubic anisotropy parameter Kc2 of second sublattice."""
+        return Parameter(self._impl.kc22)
+    
+    @kc22.setter
+    def kc22(self, value):
+        self.kc22.set(value)
+
+    @property
+    def kc32(self):
+        """Cubic anisotropy parameter Kc3 of second sublattice."""
+        return Parameter(self._impl.kc32)
+    
+    @kc32.setter
+    def kc32(self, value):
+        self.kc32.set(value)
+
+    @ property
+    def anisC1(self):
+        """First cubic anisotropy direction"""
+        return Parameter(self._impl.anisC1)
+    
+    @anisC1.setter
+    def anisC1(self, value):
+        self.anisC1.set(value)
+
+    @ property
+    def anisC2(self):
+        """Second cubic anisotropy direction"""
+        return Parameter(self._impl.anisC2)
+    
+    @anisC2.setter
+    def anisC2(self, value):
+        self.anisC2.set(value)
+
+    @property
+    def latcon(self):
+        """Lattice constant.
+        Default = 0.35 nm.
+        """
+        return Parameter(self._impl.latcon)
+    
+    @latcon.setter
+    def latcon(self, value):
+        self.latcon.set(value)
+
+    @property
+    def Lambda(self):
+        """Slonczewski \Lambda parameter."""
+        return Parameter(self._impl.Lambda)
+    
+    @Lambda.setter
+    def Lambda(self, value):
+        self.Lambda.set(value)
+    
+    @property
+    def FreeLayerThickness(self):
+        """Slonczewski free layer thickness. If set to zero (default),
+        then the thickness will be deduced from the mesh size."""
+        return Parameter(self._impl.FreeLayerThickness)
+    
+    @FreeLayerThickness.setter
+    def FreeLayerThickness(self, value):
+        self.FreeLayerThickness.set(value)
+
+    @property
+    def eps_prime(self):
+        """Slonczewski secondary STT term \epsilon'."""
+        return Parameter(self._impl.eps_prime)
+    
+    @eps_prime.setter
+    def eps_prime(self, value):
+        self.eps_prime.set(value)
+
+    @property
+    def FixedLayer(self):
+        """Slonczewski fixed layer polarization."""
+        return Parameter(self._impl.FixedLayer)
+    
+    @FixedLayer.setter
+    def FixedLayer(self, value):
+        self.FixedLayer.set(value)
+
+
+    @property
     def xi(self):
-        """Non-adiabaticity of the spin-transfer torque."""
+        """Non-adiabaticity of the Zhang-Li spin-transfer torque."""
         return Parameter(self._impl.xi)
 
     @xi.setter
@@ -267,6 +466,15 @@ class Ferromagnet:
     def amr_ratio(self, value):
         self.amr_ratio.set(value)
 
+    @property
+    def amr_ratio2(self):
+        """Anisotropic magneto resistance ratio of second sublattice."""
+        return Parameter(self._impl.amr_ratio2)
+
+    @amr_ratio2.setter
+    def amr_ratio2(self, value):
+        self.amr_ratio2.set(value)
+
     # ----- POISSON SYSTEM ----------------------
 
     @property
@@ -304,7 +512,7 @@ class Ferromagnet:
     @property
     def demag_energy(self):
         """Energy related to the demag field."""
-        return ScalarQuantity(_cpp.demag_energy(self._impl))
+        return ScalarQuantity(_cpp.demag_energy(self._impl, False))
 
     @property
     def anisotropy_field(self):
@@ -319,7 +527,12 @@ class Ferromagnet:
     @property
     def anisotropy_energy(self):
         """Energy related to the magnetic anisotropy."""
-        return ScalarQuantity(_cpp.anisotropy_energy(self._impl))
+        return ScalarQuantity(_cpp.anisotropy_energy(self._impl, False))
+    
+    @property
+    def anisotropy_energy2(self):
+        """Energy related to the magnetic anisotropy."""
+        return ScalarQuantity(_cpp.anisotropy_energy2(self._impl, True))
 
     @property
     def exchange_field(self):
@@ -334,13 +547,18 @@ class Ferromagnet:
     @property
     def exchange_energy(self):
         """Energy related to the exchange interaction."""
-        return ScalarQuantity(_cpp.exchange_energy(self._impl))
+        return ScalarQuantity(_cpp.exchange_energy(self._impl, False))
+
+    @property
+    def exchange_energy2(self):
+        """Energy related to the exchange interaction."""
+        return ScalarQuantity(_cpp.exchange_energy2(self._impl, True))
 
     @property
     def max_angle(self):
         """Maximal angle difference of the magnetization between exchange\
          coupled cells."""
-        return ScalarQuantity(_cpp.max_angle(self._impl))
+        return ScalarQuantity(_cpp.max_angle(self._impl, True))
 
     @property
     def dmi_field(self):
@@ -379,7 +597,17 @@ class Ferromagnet:
         -------
         dmi_energy_density : float
         """
-        return ScalarQuantity(_cpp.dmi_energy(self._impl))
+        return ScalarQuantity(_cpp.dmi_energy(self._impl, False))
+    
+    @property
+    def dmi_energy2(self):
+        """Energy related to the Dzyaloshinskii-Moriya interaction.
+
+        Returns
+        -------
+        dmi_energy_density : float
+        """
+        return ScalarQuantity(_cpp.dmi_energy2(self._impl, True))
 
     @property
     def external_field(self):
@@ -394,7 +622,12 @@ class Ferromagnet:
     @property
     def zeeman_energy(self):
         """Energy related to external fields."""
-        return ScalarQuantity(_cpp.zeeman_energy(self._impl))
+        return ScalarQuantity(_cpp.zeeman_energy(self._impl, False))
+    
+    @property
+    def zeeman_energy2(self):
+        """Energy related to external fields."""
+        return ScalarQuantity(_cpp.zeeman_energy2(self._impl, True))
 
     @property
     def effective_field(self):
@@ -409,7 +642,12 @@ class Ferromagnet:
     @property
     def total_energy(self):
         """Energy related to the total effective field."""
-        return ScalarQuantity(_cpp.total_energy(self._impl))
+        return ScalarQuantity(_cpp.total_energy(self._impl, False))
+
+    @property
+    def total_energy2(self):
+        """Energy related to the total effective field."""
+        return ScalarQuantity(_cpp.total_energy2(self._impl, True))
 
     @property
     def electrical_potential(self):
