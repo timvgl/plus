@@ -141,7 +141,7 @@ real fieldComponentAverage(const Field& f, int comp) {
                              std::to_string(f.ncomp()) + " components");
   }
   std::vector<bool> v = f.system()->geometry().getData();
-  int ncells = std::count(v.begin(), v.end(), true);
+  int ncells = f.system()->grid().ncells() - std::count(v.begin(), v.end(), false);
   real result;
   GpuBuffer<real> d_result(1);
   cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp, ncells);
