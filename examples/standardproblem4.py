@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import show_field
 
 length, width, thickness = 500e-9, 125e-9, 3e-9
 nx, ny, nz = 128, 32, 1
@@ -19,10 +18,9 @@ magnet.aex = 13e-12
 magnet.alpha = 0.02
 
 magnet.magnetization = (1, 0.1, 0)
-
 magnet.minimize()
 
-B1 = (-24.6e-2, 4.3e-2, 0)
+B1 = (-24.6e-3, 4.3e-3, 0)
 B2 = (-35.5e-3, -6.3e-3, 0)
 world.bias_magnetic_field = B1  # choose B1 or B2 here
 
@@ -44,7 +42,6 @@ outputquantities = {
 output = world.timesolver.solve(timepoints, outputquantities)
 
 # --- PLOT THE OUTPUT DATA ---
-
 plt.subplot(211)
 for key in ["mx", "my", "mz"]:
     plt.plot(output["time"], output[key], label=key)
