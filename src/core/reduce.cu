@@ -105,7 +105,7 @@ real maxVecNorm(const Field& f) {
   return result;
 }
 
-__global__ void k_average(real* result, CuField f, int comp) {
+__global__ void k_average(real* result, CuField f, int comp, int cellsingeo) {
   __shared__ real sdata[BLOCKDIM];
   int tid = threadIdx.x;
   int ncells = f.system.grid.ncells();
@@ -130,7 +130,7 @@ __global__ void k_average(real* result, CuField f, int comp) {
 
   // Set the result
   if (tid == 0)
-    *result = sdata[0] / ncells;
+    *result = sdata[0] / cellsingeo;
 }
 
 real fieldComponentAverage(const Field& f, int comp) {
@@ -140,9 +140,11 @@ real fieldComponentAverage(const Field& f, int comp) {
                              " of a field which has only " +
                              std::to_string(f.ncomp()) + " components");
   }
+  std::vector<bool> v = f.system()->geometry().getData();
+  int ncells = std::count(v.begin(), v.end(), true);
   real result;
   GpuBuffer<real> d_result(1);
-  cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp);
+  cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp, ncells);
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
   return result;
