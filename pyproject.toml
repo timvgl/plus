@@ -16,3 +16,5 @@ force-exclude = '''
 minversion = '6.0'
 addopts = '-ra -q --verbose'
 testpaths = ['test']
+[build-system]
+requires = ["setuptools", "cmake"]

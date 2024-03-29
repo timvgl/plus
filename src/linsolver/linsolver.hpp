@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <stdexcept>
 
 #include "gpubuffer.hpp"
 #include "linsystem.hpp"
