@@ -8,6 +8,7 @@ dependencies:
   - pytest
   - matplotlib
   - numpy
+  - cmake=3.16.3
 
   # code checks
   - black
