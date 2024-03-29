@@ -51,5 +51,5 @@ plt.subplot(212)
 for key in ["e_total", "e_exchange", "e_zeeman", "e_demag"]:
     plt.plot(timepoints, output[key], label=key)
 plt.legend()
-plt.savefig("sp4test")
+
 plt.show()
