@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(mumax5 LANGUAGES CUDA CXX)
 
-set(CMAKE_CUDA_COMPILER "/usr/local/cuda/bin/nvcc")
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(CMAKE_CUDA_ARCHITECTURES 61)
-
-
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -20,14 +15,15 @@ if (WIN32)
     set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS TRUE)
 endif()
 
-# if environment variable CUDA_CC is set, then compile for this architecture,
-# otherwise compile for 3.0 (lowest supported architecture for cuda10.0).
-# CUDA_CC can be a space-delimited list of architectures
-# if ($ENV{CUDA_CC})
-#     set(CMAKE_CUDA_ARCHITECTURES $ENV{CUDA_CC})
-# else()
-#     set(CMAKE_CUDA_ARCHITECTURES 30)
-# endif()
+# automatically detect best CUDA architecture
+# this is bad undocumented code which works
+# https://stackoverflow.com/a/68223399
+include(FindCUDA/select_compute_arch)
+CUDA_DETECT_INSTALLED_GPUS(INSTALLED_GPU_CCS_1)
+string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
+string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
+string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
+SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
 
 add_definitions(-DFP_PRECISION=SINGLE) # FP_PRECISION should be SINGLE or DOUBLE
 add_definitions(-D_USE_MATH_DEFINES) # Needed for cmath constants on Windows
