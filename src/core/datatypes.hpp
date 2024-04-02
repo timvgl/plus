@@ -5,6 +5,25 @@
 
 #include <iostream>
 
+// --------------------------------------------------
+// new 6D types
+struct int6 {
+    int x1, y1, z1, x2, y2, z2;
+};
+
+struct float6 {
+    float x1, y1, z1, x2, y2, z2;
+};
+
+struct double6 {
+    double x1, y1, z1, x2, y2, z2;
+};
+
+typedef struct int6 int6;
+typedef struct float6 float6;
+typedef struct double6 double6;
+// --------------------------------------------------
+
 #define SINGLE 1
 #define DOUBLE 2
 
