@@ -20,6 +20,14 @@ Make sure that the following applications and build tools are installed:
 * cmake *(version 3.18 or later)*. This can be installed using pip.
 * git
 
+Make especially sure that everything CUDA-related (especially `nvcc`) can be found inside your path. This can be done by editing your `~/.bashrc` file and adding the following lines.
+```bash
+# add CUDA
+export PATH="/usr/local/cuda/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+```
+The paths might differ if CUDA Toolkit has been installed in a different location.
+
 Clone the mumax5 git repository. The `--recursive` flag is used here to get the pybind11 submodule which is needed to build mumax5.
 ```
 git clone --recursive https://github.ugent.be/mumax/mumax5 && cd mumax5
