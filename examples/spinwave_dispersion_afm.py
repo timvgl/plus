@@ -6,28 +6,6 @@ from mumax5.util import show_field
 
 # Antiferromagnetic spinwave dispersion relation
 
-'''
-Met deze waarden zijn we er!
-# Numerical parameters
-fmax = 6E13          # maximum frequency (in Hz) of the sinc pulse
-T = 1E-11             # simulation time (longer -> better frequency resolution)
-dt = 1 / (2 * fmax)  # the sample time
-dx = 1E-9           # cellsize
-nx = 512*2            # number of cells
-
-# Material/system parameters
-Bz = 0.2           # bias field along the z direction
-A = 10E-12         # exchange constant
-A_nn = -5E-12
-A_c = -100E-12
-Ms = 400e3         # saturation magnetization
-alpha = 0.001      # damping parameter
-gamma = 1.76E11    # gyromagnetic ratio
-K = 1e3
-'''
-
-
-
 # Numerical parameters
 fmax = 6E13          # maximum frequency (in Hz) of the sinc pulse
 T = 2E-12             # simulation time (longer -> better frequency resolution)
@@ -45,14 +23,6 @@ alpha = 0.001      # damping parameter
 gamma = 1.76E11    # gyromagnetic ratio
 K = 1e3
 a = 0.35e-9
-mu0 = 1.256637062E-6
-
-i = "fit"
-'''
-i=2, 3, 4 was met T = 1e-10
-i=5 is met T = 1e-8
-i=6 is met T = 1e-11
-'''
 
 # Create the world
 grid_size = (nx, 1, 1)
@@ -116,6 +86,5 @@ plt.ylim([0, fmax])
 plt.ylabel("$f$ (Hz)")
 plt.xlabel("$k$ (1/m)")
 plt.colorbar()
-plt.title('Antiferromagnetic Spinwave Dispersion Relation (Python)')
-plt.savefig("Spinwave-dispersion-afm")
+plt.title('Antiferromagnetic Spinwave Dispersion Relation')
 plt.show()
