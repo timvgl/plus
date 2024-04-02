@@ -2,27 +2,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import show_field
 
 # Antiferromagnetic spinwave dispersion relation
 
 # Numerical parameters
-fmax = 6E13          # maximum frequency (in Hz) of the sinc pulse
-T = 2E-12             # simulation time (longer -> better frequency resolution)
+fmax = 5E13          # maximum frequency (in Hz) of the sinc pulse
+T = 2E-12            # simulation time (longer -> better frequency resolution)
 dt = 1 / (2 * fmax)  # the sample time
-dx = 1E-9           # cellsize
-nx = 512            # number of cells
+dx = 1E-9            # cellsize
+nx = 512             # number of cells
 
 # Material/system parameters
 Bz = 0.2           # bias field along the z direction
 A = 10E-12         # exchange constant
 A_nn = -5E-12
-A_c = -100E-12
+A_c = -400E-12
 Ms = 400e3         # saturation magnetization
-alpha = 0.001      # damping parameter
+alpha = 0.005      # damping parameter
 gamma = 1.76E11    # gyromagnetic ratio
 K = 1e3
-a = 0.35e-9
+mu0 = 1.256637062E-6
 
 # Create the world
 grid_size = (nx, 1, 1)
@@ -40,6 +39,7 @@ magnet.aex2 = A
 magnet.afmex_nn = A_nn
 magnet.afmex_cell = A_c
 magnet.alpha = alpha
+magnet.latcon = dx
 
 magnet.ku1 = K
 magnet.ku12 = K
@@ -77,12 +77,18 @@ plt.imshow(np.abs(mx_fft)**2, extent=extent,
            aspect='auto', origin='lower', cmap="inferno")
 
 # Plot the analytical derived dispersion relation
-k = np.linspace(-3e9, 3e9, 10000)
-freq_theory = (2/(a*a)) * (2*A - A_nn) * gamma * np.abs(np.sin(k*dx/2)) / (np.pi * Ms) + gamma * Bz / (2 * np.pi)
-plt.plot(k, freq_theory, 'g--', lw=1)
+k = np.linspace(-np.pi/dx, np.pi/dx, 250)
+mu0Ms = mu0 * Ms
+He = -4 * A_c / (dx*dx*mu0Ms)
+Ha = 2 * K / mu0Ms
+Hint = (2*A - A_nn) / mu0Ms
+freq_theory = mu0 * gamma / (2*np.pi) * np.sqrt((2*He + Ha + Hint * k**2) * (Ha + Hint * k**2)) + Bz * gamma/(2*np.pi)
+plt.plot(k, freq_theory, '--', lw=1)
 
-plt.xlim([-3e9, 3e9])
+plt.axhline(gamma * Bz / (2 * np.pi), c='g', ls='--', lw=1)
+plt.xlim([-np.pi/dx, np.pi/dx])
 plt.ylim([0, fmax])
+plt.vlines([-1/dx, 1/dx], 0, fmax, 'r', '--', lw=1)
 plt.ylabel("$f$ (Hz)")
 plt.xlabel("$k$ (1/m)")
 plt.colorbar()
