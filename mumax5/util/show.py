@@ -8,39 +8,28 @@ import mumax5 as _m5
 
 def hsl_to_rgb(H, S, L):
     """Convert color from HSL to RGB."""
-    Hp = H / (_np.pi / 3)
-    if Hp < 0:
-        Hp += 6.0
-    elif Hp > 6.0:
-        Hp -= 6.0
-    if L <= 0.5:
-        C = 2 * L * S
-    else:
-        C = 2 * (1 - L) * S
-
+    Hp = _np.mod(H/(_np.pi/3.0), 6.0)
+    C = _np.where(L<=0.5, 2*L*S, 2*(1-L)*S)
     X = C * (1 - _np.abs(_np.mod(Hp, 2.0) - 1.0))
     m = L - C / 2.0
-    rgb = _np.array([m, m, m])
-    if Hp >= 0 and Hp < 1:
-        rgb += _np.array([C, X, 0])
-    elif Hp < 2:
-        rgb += _np.array([X, C, 0])
-    elif Hp < 3:
-        rgb += _np.array([0, C, X])
-    elif Hp < 4:
-        rgb += _np.array([0, X, C])
-    elif Hp < 5:
-        rgb += _np.array([X, 0, C])
-    elif Hp < 6:
-        rgb += _np.array([C, 0, X])
-    else:
-        rgb = _np.array([0, 0, 0])
+
+    # R = m + X for 1<=Hp<2 or 4<=Hp<5
+    # R = m + C for 0<=Hp<1 or 5<=Hp<6
+    R = m + _np.select([((1<=Hp)&(Hp<2)) | ((4<=Hp)&(Hp<5)),
+                        (Hp<1) | (5<=Hp)], [X, C], 0.)
+    # G = m + X for 0<=Hp<1 or 3<=Hp<4
+    # G = m + C for 1<=Hp<3
+    G = m + _np.select([(Hp<1) | ((3<=Hp)&(Hp<4)),
+                        (1<=Hp)&(Hp<3)], [X, C], 0.)
+    # B = m + X for 2<=Hp<3 or 5<=Hp<6
+    # B = m + C for 3<=Hp<5
+    B = m + _np.select([((2<=Hp)&(Hp<3)) | (5<=Hp),
+                        (3<=Hp)&(Hp<5)], [X, C], 0.)
 
     # clip rgb values to be in [0,1]
-    for i in range(3):
-        rgb[i] = min(max(rgb[i], 0.0), 1.0)
+    R, G, B = _np.clip(R,0.,1.), _np.clip(G,0.,1.), _np.clip(B,0.,1.)
 
-    return rgb
+    return R, G, B
 
 
 def vector_to_rgb(x, y, z):
@@ -65,15 +54,14 @@ def _quantity_img_xy_extent(quantity):
     return extent
 
 def get_rgba(field, quantity, layer=0):
+    # TODO also CUDAfy this function. This is exactly what GPUs are made for.
     field = field[:, layer]  # select the layer
     field /= _np.max(_np.linalg.norm(field, axis=0))  # rescale to make maximum norm 1
 
     # Create rgba image from the vector data
     _, ny, nx = field.shape  # image size
     rgba = _np.ones((ny, nx, 4))  # last index for R,G,B, and alpha channel
-    for ix in range(nx):
-        for iy in range(ny):
-            rgba[iy, ix, 0:3] = vector_to_rgb(*field[:, iy, ix])
+    rgba[:,:,0], rgba[:,:,1], rgba[:,:,2] = vector_to_rgb(field[0,:,:], field[1,:,:], field[2,:,:])
 
     # Set alpha channel to one inside the geometry, and zero outside
     rgba[:, :, 3] = quantity._impl.system.geometry[layer]
