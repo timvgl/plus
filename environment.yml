@@ -24,6 +24,7 @@ dependencies:
   # optional
   - ipython
   - jupyter
+  - scipy
 
   # documentation generation
   - sphinx
