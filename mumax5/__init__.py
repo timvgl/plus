@@ -13,6 +13,7 @@ from .strayfield import StrayField
 from .timesolver import TimeSolver
 from .variable import Variable
 from .world import World
+from . import util
 
 __all__ = [
     "_cpp",
@@ -27,4 +28,5 @@ __all__ = [
     "Variable",
     "World",
     "PoissonSystem",
+    "util",
 ]
