@@ -53,7 +53,7 @@ def _quantity_img_xy_extent(quantity):
     ]
     return extent
 
-def get_rgba(field, quantity, layer=0):
+def get_rgba(field, quantity=None, layer=0):
     # TODO also CUDAfy this function. This is exactly what GPUs are made for.
     field = field[:, layer]  # select the layer
     field /= _np.max(_np.linalg.norm(field, axis=0))  # rescale to make maximum norm 1
@@ -64,7 +64,7 @@ def get_rgba(field, quantity, layer=0):
     rgba[:,:,0], rgba[:,:,1], rgba[:,:,2] = vector_to_rgb(field[0,:,:], field[1,:,:], field[2,:,:])
 
     # Set alpha channel to one inside the geometry, and zero outside
-    rgba[:, :, 3] = quantity._impl.system.geometry[layer]
+    if quantity is not None: rgba[:, :, 3] = quantity._impl.system.geometry[layer]
     return rgba
 
 
