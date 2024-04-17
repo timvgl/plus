@@ -1,5 +1,6 @@
 """Classes for solving differential equations in the time domain."""
 
+from typing import Callable
 
 class TimeSolverOutput:
     """Collect values of a list of quantities on specified timepoints.
@@ -69,6 +70,17 @@ class TimeSolver:
         # Make sure we start stepping with a sensible timestep
         self._assure_sensible_timestep()
         self._impl.steps(nsteps)
+
+    def run_while(self, condition: Callable[[], bool]):
+        """Run the solver while the evaluation of the condition is True.
+
+        Parameters
+        ----------
+        condition : Callable[[], bool]
+            Callable condition returning a boolean.
+        """
+        self._assure_sensible_timestep()
+        self._impl.run_while(condition)
 
     def run(self, duration):
         """Run the solver for a given duration.

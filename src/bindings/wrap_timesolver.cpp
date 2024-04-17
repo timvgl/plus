@@ -10,6 +10,7 @@
 #include "timesolver.hpp"
 #include "variable.hpp"
 #include "wrappers.hpp"
+#include <pybind11/functional.h>  // for run_while
 
 void wrap_timesolver(py::module& m) {
   py::class_<TimeSolver>(m, "TimeSolver")
@@ -31,5 +32,6 @@ void wrap_timesolver(py::module& m) {
                         solver.disableAdaptiveTimeStep();
                       }
                     })
-      .def("run", &TimeSolver::run);
+      .def("run", &TimeSolver::run)
+      .def("run_while", &TimeSolver::runwhile);
 }
