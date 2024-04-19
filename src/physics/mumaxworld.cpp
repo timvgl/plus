@@ -79,6 +79,14 @@ Ferromagnet* MumaxWorld::getFerromagnet(std::string name) const {
   return namedMagnet->second.get();
 }
 
+const std::map<std::string, Ferromagnet*> MumaxWorld::ferromagnets() const {
+  std::map<std::string, Ferromagnet*> sharedFerromagnets;
+  for (const auto& pair : ferromagnets_) {
+    sharedFerromagnets[pair.first] = pair.second.get();
+  }
+  return sharedFerromagnets;
+}
+
 void MumaxWorld::resetTimeSolverEquations() {
   std::vector<DynamicEquation> equations;
   for (const auto& namedMagnet : ferromagnets_) {

@@ -51,6 +51,9 @@ void wrap_world(py::module& m) {
            "get a reference to a magnet by name",
            py::return_value_policy::reference)
 
+      .def_property_readonly("ferromagnets", &MumaxWorld::ferromagnets,
+           "get a map of all ferromagnets in this world")
+
       .def_property_readonly("timesolver", &MumaxWorld::timesolver,
                              py::return_value_policy::reference);
 }

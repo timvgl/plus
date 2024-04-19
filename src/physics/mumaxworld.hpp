@@ -42,8 +42,7 @@ class MumaxWorld : public World {
   Ferromagnet* getFerromagnet(std::string name) const;
 
   /** Get map of all Ferromagnets in this world. */
-  const std::map<std::string, std::shared_ptr<Ferromagnet>>& ferromagnets()
-      const;
+  const std::map<std::string, Ferromagnet*> ferromagnets() const;
 
  private:
   void resetTimeSolverEquations();

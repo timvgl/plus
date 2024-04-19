@@ -36,6 +36,12 @@ class World:
         return Ferromagnet._from_impl(self._impl.get_ferromagnet(name))
 
     @property
+    def ferromagnets(self):
+        """Get a dictionairy of ferromagnets by name."""
+        return {key: Ferromagnet._from_impl(impl) for key, impl in
+                self._impl.ferromagnets.items()}
+
+    @property
     def cellsize(self):
         """Return the cell size of the world.
 
