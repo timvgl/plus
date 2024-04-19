@@ -4,6 +4,7 @@ import _mumax5cpp as _cpp
 
 from .timesolver import TimeSolver
 from .grid import Grid
+from .ferromagnet import Ferromagnet
 
 class World:
     """Construct a world with a given cell size.
@@ -32,7 +33,7 @@ class World:
 
     def get_ferromagnet(self, name):
         """Get a ferromagnet by its name."""
-        return self._impl.get_ferromagnet(name)
+        return Ferromagnet._from_impl(self._impl.get_ferromagnet(name))
 
     @property
     def cellsize(self):

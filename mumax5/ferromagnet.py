@@ -67,6 +67,12 @@ class Ferromagnet:
         """Return Ferromagnet string representation."""
         return f"Ferromagnet(grid={self.grid}, name='{self.name}')"
 
+    @classmethod
+    def _from_impl(cls, impl):
+        ferromagnet = cls.__new__(cls)
+        ferromagnet._impl = impl
+        return ferromagnet
+
     @property
     def name(self):
         """Name of the ferromagnet."""
