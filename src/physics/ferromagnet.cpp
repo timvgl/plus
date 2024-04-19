@@ -22,6 +22,7 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
                          GpuBuffer<bool> geometry)
     : system_(new System(world, grid, geometry)),
       magnetization_(name + ":magnetization", "", system_, ncomp),
+      name_(name),
       aex(system_, 0.0),
       aex2(system_, 0.0),
       afmex_cell(system_, 0.0),
