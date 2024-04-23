@@ -32,8 +32,12 @@ class World:
         return TimeSolver(self._impl.timesolver)
 
     def get_ferromagnet(self, name):
-        """Get a ferromagnet by its name."""
-        return Ferromagnet._from_impl(self._impl.get_ferromagnet(name))
+        """Get a ferromagnet by its name.
+        Returns None if there is no magnet with the given name."""
+        magnet_impl = self._impl.get_ferromagnet(name)
+        if magnet_impl is None:
+            return None
+        return Ferromagnet._from_impl(magnet_impl)
 
     @property
     def ferromagnets(self):
