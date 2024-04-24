@@ -33,10 +33,10 @@ class World:
 
     def get_ferromagnet(self, name):
         """Get a ferromagnet by its name.
-        Returns None if there is no magnet with the given name."""
+        Raises KeyError if there is no magnet with the given name."""
         magnet_impl = self._impl.get_ferromagnet(name)
         if magnet_impl is None:
-            return None
+            raise KeyError(f"No magnet named {name}")
         return Ferromagnet._from_impl(magnet_impl)
 
     @property
