@@ -140,11 +140,11 @@ real fieldComponentAverage(const Field& f, int comp) {
                              " of a field which has only " +
                              std::to_string(f.ncomp()) + " components");
   }
-  std::vector<bool> v = f.system()->geometry().getData();
-  int ncells = f.system()->grid().ncells() - std::count(v.begin(), v.end(), false);
+  
   real result;
+  int cellsingeo = f.system()->cellsingeo();
   GpuBuffer<real> d_result(1);
-  cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp, ncells);
+  cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp, cellsingeo);
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
   return result;

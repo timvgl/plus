@@ -45,6 +45,11 @@ const GpuBuffer<bool>& System::geometry() const {
   return geometry_;
 }
 
+int System::cellsingeo() const {
+  std::vector<bool> v = geometry_.getData();
+  return grid_.ncells() - std::count(v.begin(), v.end(), false);
+}
+
 CuSystem System::cu() const {
   return CuSystem(this);
 }
