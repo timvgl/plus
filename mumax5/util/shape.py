@@ -1,4 +1,4 @@
-"""Functions and classes for common shapes and their manipulation."""
+"""Classes for common shapes and their manipulation."""
 
 import numpy as _np
 
@@ -11,16 +11,30 @@ class Shape:
     Parameters
     ----------
     shape_func : Callable[[x,y,z], bool]
-        Function returning True if (x,y,z) is within the base shape.
+        Function returning True if (x,y,z) is within the base shape,
+        without any transformation.
+    transform_matrix : 4x4 ndarray (default=identity(4))
+        4x4 matrix representing the transformation of this shape,
+        usually of the form [[R, T],[0, 1]], with R a 3x3 rotation matrix
+        and T a 3x1 translation vector.
     """
-    def __init__(self, shape_func=(lambda x,y,z: False)):
+    def __init__(self, shape_func=(lambda x,y,z: False),
+                 transform_matrix=_np.identity(4)):
         self.shape_func = shape_func
-        self.transform_matrix = _np.diag([1]*4)  # 4x4 diagonal unit matrix
+        self.transform_matrix = transform_matrix
 
-    def __call__(self, x, y, z):
+    def at(self, x, y, z):
+        """Returns True if (x,y,z) is within this transformed shape.
+        Calling shape.at(x,y,z) or shape(x,y,z) is the same."""
         coord_vec = _np.array([x, y, z, _np.ones_like(x)])
         x_,y_,z_,_ = _np.tensordot(self.transform_matrix, coord_vec, axes=1)
         return self.shape_func(x_, y_, z_)
+
+    def __call__(self, x, y, z):
+        """Returns True if (x,y,z) is within this transformed shape.
+        Calling shape.at(x,y,z) or shape(x,y,z) is the same."""
+        return self.at(x, y, z)
+        
 
     # -------------------------
     # operations on itself
@@ -60,6 +74,38 @@ class Shape:
                             [-_np.sin(theta), _np.cos(theta), 0],
                             [0, 0, 1]])
         return self.rotate_matrix(rotmat)
+
+    def translate(self, dx, dy, dz):
+        """Translate this shape by the vector (dx,dy,dz)."""
+        mat = _np.identity(4)
+        mat[0:3,3] = (-dx,-dy,-dz)
+        return self.transform(mat)
+
+    def translate_x(self, dx):
+        """Translate this shape by dx along the x-axis."""
+        return self.translate(dx, 0, 0)
+    
+    def translate_y(self, dy):
+        """Translate this shape by dy along the y-axis."""
+        return self.translate(0, dy, 0)
+    
+    def translate_z(self, dz):
+        """Translate this shape by dz along the z-axis."""
+        return self.translate(0, 0, dz)
+
+    def scale(self, sx, sy=None, sz=1):
+        """Scale this shape, using (0,0,0) as the origin.
+        Takes 1, 2 or 3 arguments:
+            1. (s): scale by s in all directions.
+            2. (sx, sy): scale by sx and sy in the xy-plane, but do not scale z.
+            3. (sx, sy, sz): scale by sx, sy and sz in the x-, y- and
+            z-direction respectively.
+        """
+        if sy is None:
+            sy = sz = sx
+        mat = _np.diag((1/sx, 1/sy, 1/sz, 1))
+        return self.transform(mat)
+
     
     # -------------------------
     # operations between shapes
@@ -68,9 +114,7 @@ class Shape:
 # ==================================================
 # TODO List of Mumax3 manipulations to add
 
-# Transl
 # Repeat
-# Scale
 
 # Add / Union (logical OR)
 # Intersection (logical AND)
@@ -142,9 +186,8 @@ if __name__=="__main__":
     import matplotlib.pyplot as plt
 
     shape = Ellipsoid(2, 1, 0.5)
-    shape.rotate_y(90*_np.pi/180.)
-    shape.rotate_x(25*_np.pi/180.)
-    shape.rotate_z(25*_np.pi/180.)
+    shape.scale(0.5, 1, 2)
+    shape.translate(0.5, -0.8, 0.2)
 
 
     x = _np.linspace(-1, 1, 25)
