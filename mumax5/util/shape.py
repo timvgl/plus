@@ -15,7 +15,7 @@ class Shape:
         without any transformation.
     transform_matrix : 4x4 ndarray (default=identity(4))
         4x4 matrix representing the transformation of this shape,
-        usually of the form [[R, T],[0, 1]], with R a 3x3 rotation matrix
+        usually of the form [[R, T], [0, 1]], with R a 3x3 rotation matrix
         and T a 3x1 translation vector.
     """
     def __init__(self, shape_func=(lambda x,y,z: False),
@@ -35,9 +35,8 @@ class Shape:
         Calling shape.at(x,y,z) or shape(x,y,z) is the same."""
         return self.at(x, y, z)
         
-
     # -------------------------
-    # operations on itself
+    # transformations on itself
 
     def transform(self, mat):
         """Transform this shape according to a given 4x4 matrix,
@@ -106,21 +105,75 @@ class Shape:
         mat = _np.diag((1/sx, 1/sy, 1/sz, 1))
         return self.transform(mat)
 
+    # -------------------------
+    # operations on single shape returning shape
+    # TODO I don't like that these return a new shape instance,
+    # but others mutate self
+
+    def get_inverse(self):
+        """Returns a new shape as the inverse of this shape (logical NOT).
+        shape.get_inverse() and -shape is the same."""
+        return Shape(lambda x, y, z: _np.logical_not(self(x, y, z)))
+
+    def __neg__(self):
+        """Returns a new shape as the inverse of this shape (logical NOT).
+        shape.get_inverse() and -shape is the same."""
+        return self.get_inverse()
+
+    def get_repeat(self, px, py, pz):
+        """Returns a new Shape which repeats everything of this shape between
+        points (0,0,0) to (px,py,pz) infinitely, while everything outside this
+        box is ignored.
+
+        Parameters
+        ----------
+        px, py, pz : floats
+        Period of repitition in each direction.
+        Setting p_i to None will not repeat the shape in this direction.
+        """
+        nm = lambda x, p: x if p is None else x%p  # nm for None Modulo
+
+        return Shape(lambda x,y,z: self(nm(x,px), nm(y,py), nm(z,pz)))
+        
+
+    def __mod__(self, periods):
+        """Calling shape % p is the same as shape.get_repeat(p,p,p).
+        Calling shape % (px,py,pz) is the same as shape.get_repeat(px,py,pz).
+        """
+        if hasattr(periods, "__iter__"):
+            px, py, pz = periods
+        else:  # single number
+            px = py = pz = periods
+
+        return self.get_repeat(px, py, pz)
+        
     
     # -------------------------
     # operations between shapes
 
+    def __add__(self, other: "Shape"):
+        """Returns new shape as union of given shapes (logical OR)."""
+        return Shape(lambda x, y, z: self(x, y, z) | other(x, y, z))
 
-# ==================================================
-# TODO List of Mumax3 manipulations to add
+    def __sub__(self, other: "Shape"):
+        """Returns new shape as the first shape with the second shape removed
+        (logical AND NOT)."""
+        return Shape(lambda x,y,z: self(x,y,z) & _np.logical_not(other(x,y,z)))
 
-# Repeat
+    def __and__(self, other: "Shape"):
+        """Returns new shape as intersection of given shapes (logical AND).
+        a&b and a/b are the same."""
+        return Shape(lambda x, y, z: self(x, y, z) & other(x, y, z))
 
-# Add / Union (logical OR)
-# Intersection (logical AND)
-# Inverse (logical NOT)
-# Sub (logical AND NOT)
-# XOR
+    def __truediv__(self, other: "Shape"):
+        """Returns new shape as intersection of given shapes (logical AND).
+        a&b and a/b are the same."""
+        return self & other
+
+    def __xor__(self, other: "Shape"):
+        """Returns a new shape which is everything from both shapes, except
+        their intersection (logical XOR)."""
+        return Shape(lambda x, y, z: self(x, y, z) ^ other(x, y, z))
 
 
 # ==================================================
@@ -185,14 +238,15 @@ if __name__=="__main__":
 
     import matplotlib.pyplot as plt
 
-    shape = Ellipsoid(2, 1, 0.5)
-    shape.scale(0.5, 1, 2)
-    shape.translate(0.5, -0.8, 0.2)
+    shape = Ellipsoid(1, 0.75, 0.5).translate(0.5, 0.75/2, 0.25)
+    shape = shape.get_repeat(1, 1, 1)
 
 
-    x = _np.linspace(-1, 1, 25)
-    y = _np.linspace(-1, 1, 25)
-    z = _np.linspace(-1, 1, 25)
+    res = 50
+    a = 2
+    x = _np.linspace(-a, a, res)
+    y = _np.linspace(-a, a, res)
+    z = _np.linspace(-a, a, res)
     X, Y, Z = _np.meshgrid(x, y, z, indexing="ij")
 
     geom = shape(X, Y, Z)
