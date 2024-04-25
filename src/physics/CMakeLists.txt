@@ -28,6 +28,8 @@ add_library(physics STATIC
     minimizer.hpp
     mumaxworld.cpp
     mumaxworld.hpp
+    neel.cu
+    neel.hpp
     newell.cu
     newell.hpp
     poissonsystem.hpp
