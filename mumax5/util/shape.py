@@ -6,79 +6,88 @@ import numpy as _np
 # Parent Shape class
 
 class Shape:
-    """Base class for all shapes.
+    """Base class for all shapes using constructive solid geometry (CSG).
+    This mutable class holds and manipulates a given shape function.
 
     Parameters
     ----------
     shape_func : Callable[[x,y,z], bool]
-        Function returning True if (x,y,z) is within the base shape,
-        without any transformation.
-    transform_matrix : 4x4 ndarray (default=identity(4))
-        4x4 matrix representing the transformation of this shape,
-        usually of the form [[R, T], [0, 1]], with R a 3x3 rotation matrix
-        and T a 3x1 translation vector.
+        Function returning True if (x,y,z) is within this shape.
     """
-    def __init__(self, shape_func=(lambda x,y,z: False),
-                 transform_matrix=_np.identity(4)):
+    def __init__(self, shape_func=(lambda x,y,z: False)):
         self.shape_func = shape_func
-        self.transform_matrix = transform_matrix
-
-    def at(self, x, y, z):
-        """Returns True if (x,y,z) is within this transformed shape.
-        Calling shape.at(x,y,z) or shape(x,y,z) is the same."""
-        coord_vec = _np.array([x, y, z, _np.ones_like(x)])
-        x_,y_,z_,_ = _np.tensordot(self.transform_matrix, coord_vec, axes=1)
-        return self.shape_func(x_, y_, z_)
 
     def __call__(self, x, y, z):
-        """Returns True if (x,y,z) is within this transformed shape.
-        Calling shape.at(x,y,z) or shape(x,y,z) is the same."""
-        return self.at(x, y, z)
-        
-    # -------------------------
-    # transformations on itself
+        """Returns True if (x,y,z) is within this shape.
+        Calling shape.shape_func(x,y,z) or shape(x,y,z) is the same."""
+        return self.shape_func(x, y, z)
 
-    def transform(self, mat):
+    # -------------------------
+    # transformations on this shape
+
+    def transform4(self, transform_matrix):
         """Transform this shape according to a given 4x4 matrix,
-        usually of the form [[R, T],[0, 1]], with R a 3x3 rotation matrix
-        and T a 3x1 translation vector.
-        Returns transformed self."""
-        self.transform_matrix = self.transform_matrix @ mat
+        which can represent any affine transformation (rotate, scale, shear,
+        translate). It is usually of the form [[R, T], [0, 1]], with R a
+        3x3 rotation matrix and T a 3x1 translation vector.
+        Returns transformed self.
+        """
+        old_func = self.shape_func  # copy old version of self
+        def new_func(x,y,z):
+            coord_vec = _np.array([x, y, z, _np.ones_like(x)])
+            x_,y_,z_,_ = _np.tensordot(transform_matrix, coord_vec, axes=1)
+            return old_func(x_,y_,z_)
+        self.shape_func = new_func
         return self
 
-    def rotate_matrix(self, rotmat):
-        """Rotate this shape according to the given 3x3 rotation matrix."""
-        if rotmat.shape == (3,3):
-            rotmat = _np.pad(rotmat, (0,1))  # 3x3 to 4x4        
-            rotmat[3,3] = 1
-        return self.transform(rotmat)
+    def transform3(self, transform_matrix):
+        """Transform this shape according to a given 3x3 matrix (rotate, scale,
+        shear).
+        Returns transformed self.
+        """
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(*_np.tensordot(transform_matrix,
+                                                  _np.array([x, y, z]), axes=1))
+        return self
+        
+
+    def transform(self, transform_matrix):
+        """Transform this shape according to a given 3x3 matrix (rotate, scale,
+        shear) or 4x4 matrix (like 3x3 plus translations). It is usually of the
+        form [[R, T], [0, 1]], with R a 3x3 rotation matrix and T a 3x1
+        translation vector.
+        Returns transformed self.
+        """
+        if transform_matrix.shape == (4, 4):
+            return self.transform4(transform_matrix)
+        return self.transform3(transform_matrix)
 
     def rotate_x(self, theta):
         """Rotate this shape theta radians counter-clockwise around the x-axis."""
         rotmat = _np.array([[1, 0, 0],
                             [0, _np.cos(theta), _np.sin(theta)],
                             [0, -_np.sin(theta), _np.cos(theta)]])
-        return self.rotate_matrix(rotmat)
+        return self.transform3(rotmat)
 
     def rotate_y(self, theta):
         """Rotate this shape theta radians counter-clockwise around the y-axis."""
         rotmat = _np.array([[_np.cos(theta), 0, -_np.sin(theta)],
                             [0, 1, 0],
                             [_np.sin(theta), 0, _np.cos(theta)]])
-        return self.rotate_matrix(rotmat)
+        return self.transform3(rotmat)
 
     def rotate_z(self, theta):
         """Rotate this shape theta radians counter-clockwise around the z-axis."""
         rotmat = _np.array([[_np.cos(theta), _np.sin(theta), 0],
                             [-_np.sin(theta), _np.cos(theta), 0],
                             [0, 0, 1]])
-        return self.rotate_matrix(rotmat)
+        return self.transform3(rotmat)
 
     def translate(self, dx, dy, dz):
         """Translate this shape by the vector (dx,dy,dz)."""
-        mat = _np.identity(4)
-        mat[0:3,3] = (-dx,-dy,-dz)
-        return self.transform(mat)
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(x-dx, y-dy, z-dz)
+        return self
 
     def translate_x(self, dx):
         """Translate this shape by dx along the x-axis."""
@@ -102,28 +111,22 @@ class Shape:
         """
         if sy is None:
             sy = sz = sx
-        mat = _np.diag((1/sx, 1/sy, 1/sz, 1))
-        return self.transform(mat)
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(x/sx, y/sy, z/sz)
+        return self
 
     # -------------------------
-    # operations on single shape returning shape
-    # TODO I don't like that these return a new shape instance,
-    # but others mutate self
+    # operations on this shape
 
-    def get_inverse(self):
-        """Returns a new shape as the inverse of this shape (logical NOT).
-        shape.get_inverse() and -shape is the same."""
-        return Shape(lambda x, y, z: _np.logical_not(self(x, y, z)))
+    def invert(self):
+        """Invert this shape (logical NOT)."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: _np.logical_not(old_func(x, y, z))
+        return self
 
-    def __neg__(self):
-        """Returns a new shape as the inverse of this shape (logical NOT).
-        shape.get_inverse() and -shape is the same."""
-        return self.get_inverse()
-
-    def get_repeat(self, px, py, pz):
-        """Returns a new Shape which repeats everything of this shape between
-        points (0,0,0) to (px,py,pz) infinitely, while everything outside this
-        box is ignored.
+    def repeat(self, px, py, pz):
+        """Repeat everything from this shape between points (0,0,0) to
+        (px,py,pz) infinitely, while everything outside this box is ignored.
 
         Parameters
         ----------
@@ -131,29 +134,100 @@ class Shape:
         Period of repitition in each direction.
         Setting p_i to None will not repeat the shape in this direction.
         """
+        # TODO should this be between (0,0,0) and (px,py,pz) or between
+        # (-px/2,-py/2,-pz/2) to +(px/2,py/2,pz/2) like in MuMax3?
         nm = lambda x, p: x if p is None else x%p  # nm for None Modulo
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(nm(x,px), nm(y,py), nm(z,pz))
+        return self
 
-        return Shape(lambda x,y,z: self(nm(x,px), nm(y,py), nm(z,pz)))
+    # -------------------------
+    # operations on single shape returning new shape
+
+    def __neg__(self):
+        """Returns a new shape as the inverse of given shape (logical NOT)."""
+        return Shape(lambda x,y,z: _np.logical_not(self(x, y, z)))
+
+    def copy(self):
+        """Returns a new shape which is a copy of this shape."""
+        func_copy = self.shape_func
+        return Shape(func_copy)
         
+    # -------------------------
+    # operations between shapes altering this shape
+    
+    def add(self, other: "Shape"):
+        """Add given shape to this shape (logical OR).
+        Calling a.add(b), a+=b or a|=b is the same."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x, y, z: old_func(x, y, z) | other(x, y, z)
+        return self
 
-    def __mod__(self, periods):
-        """Calling shape % p is the same as shape.get_repeat(p,p,p).
-        Calling shape % (px,py,pz) is the same as shape.get_repeat(px,py,pz).
-        """
-        if hasattr(periods, "__iter__"):
-            px, py, pz = periods
-        else:  # single number
-            px = py = pz = periods
+    def __iadd__(self, other: "Shape"):
+        """Add given shape to this shape (logical OR).
+        Calling a.add(b), a+=b or a|=b is the same."""
+        return self.add(other)
 
-        return self.get_repeat(px, py, pz)
-        
+    def __ior__(self, other: "Shape"):
+        """Add given shape to this shape (logical OR).
+        Calling a.add(b), a+=b or a|=b is the same."""
+        return self.add(other)
+
+    def sub(self, other: "Shape"):
+        """Subtract given shape from this shape (logical AND NOT).
+        Calling a.sub(b) or a-=b is the same."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(x,y,z) & _np.logical_not(other(x,y,z))
+        return self
+    
+    def __isub__(self, other: "Shape"):
+        """Subtract given shape from this shape (logical AND NOT).
+        Calling a.sub(b) or a-=b is the same."""
+        return self.sub(other)
+
+    def intersect(self, other: "Shape"):
+        """Intersect given shape with this shape (logical AND).
+        Calling a.intersect(b), a&=b and a/=b are the same."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(x,y,z) & other(x,y,z)
+        return self
+    
+    def __iand__(self, other: "Shape"):
+        """Intersect given shape with this shape (logical AND).
+        Calling a.intersect(b), a&=b and a/=b are the same."""
+        return self.intersect(other)
+
+    def __itruediv__(self, other: "Shape"):
+        """Intersect given shape with this shape (logical AND).
+        Calling a.intersect(b), a&=b and a/=b are the same."""
+        return self.intersect(other)
+
+    def xor(self, other: "Shape"):
+        """Keep everything from this shape and the given shape, except the
+        intersection (logical XOR).
+        Calling a.xor(b) or a^=b is the same."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x, y, z: old_func(x, y, z) ^ other(x, y, z)
+        return self
+
+    def __ixor__(self, other: "Shape"):
+        """Keep everything from this shape and the given shape, except the
+        intersection (logical XOR).
+        Calling a.xor(b) or a^=b is the same."""
+        return self.xor(other)
     
     # -------------------------
-    # operations between shapes
+    # operations between shapes returning new shape
 
     def __add__(self, other: "Shape"):
-        """Returns new shape as union of given shapes (logical OR)."""
+        """Returns new shape as union of given shapes (logical OR).
+        Calling a+b or a|b is the same."""
         return Shape(lambda x, y, z: self(x, y, z) | other(x, y, z))
+
+    def __or__(self, other: "Shape"):
+        """Returns new shape as union of given shapes (logical OR).
+        Calling a+b or a|b is the same."""
+        return a+b
 
     def __sub__(self, other: "Shape"):
         """Returns new shape as the first shape with the second shape removed
@@ -162,12 +236,12 @@ class Shape:
 
     def __and__(self, other: "Shape"):
         """Returns new shape as intersection of given shapes (logical AND).
-        a&b and a/b are the same."""
+        Calling a&b or a/b is the same."""
         return Shape(lambda x, y, z: self(x, y, z) & other(x, y, z))
 
     def __truediv__(self, other: "Shape"):
         """Returns new shape as intersection of given shapes (logical AND).
-        a&b and a/b are the same."""
+        Calling a&b or a/b is the same."""
         return self & other
 
     def __xor__(self, other: "Shape"):
@@ -236,14 +310,16 @@ class Circle(Ellipse):
 
 if __name__=="__main__":
 
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
+    import plotly.graph_objects as go
 
-    shape = Ellipsoid(1, 0.75, 0.5).translate(0.5, 0.75/2, 0.25)
-    shape = shape.get_repeat(1, 1, 1)
+    shape = Sphere(0.5)
+    shape += shape.copy().translate_z(0.5)
 
+    print("Computing geometry...")
 
-    res = 50
-    a = 2
+    res = 100
+    a = 1
     x = _np.linspace(-a, a, res)
     y = _np.linspace(-a, a, res)
     z = _np.linspace(-a, a, res)
@@ -251,9 +327,17 @@ if __name__=="__main__":
 
     geom = shape(X, Y, Z)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.voxels(geom)
-    ax.axis("equal")
-    ax.set_xlabel("x"); ax.set_ylabel("y"); ax.set_zlabel("z")
-    plt.show()
+    print("Done computing geometry.")
+    print("Plotting...")
+
+    data = go.Isosurface(x=X.flatten(),y=Y.flatten(),z=Z.flatten(), value=geom.flatten(),
+                        isomin=0.9, isomax=1.1, showscale=False,
+                        lighting=dict(specular=0.5, roughness=0.2, fresnel=.1))
+    fig = go.Figure(data=data)
+
+    camera = {"center":{"x":0, "y":0, "z":0}, "eye":{"x":-1.25, "y":-1.25, "z":1.25}}
+    fig.update_layout(scene_camera=camera)
+
+    fig.show()
+
+    print("Done plotting.")
