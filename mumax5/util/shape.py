@@ -271,8 +271,10 @@ class Ellipsoid(Shape):
         super().__init__(shape_func)
 
 class Sphere(Ellipsoid):
-    """Sphere with given diameter."""
-    def __init__(self, diam):
+    """Sphere with given diameter or radius."""
+    def __init__(self, diam=None, radius=None):
+        if radius is not None:
+            diam = radius
         super().__init__(diam, diam, diam)
 
 class Ellipse(Shape):
@@ -287,24 +289,93 @@ class Circle(Ellipse):
     def __init__(self, diam):
         super().__init__(diam, diam)
 
+class Cone(Shape):
+    """3D cone with the vertex down. It has a given diameter at a given height."""
+    def __init__(self, diam, height):
+        def shape_func(x, y, z):
+            return (z >= 0) & ((x/diam)**2 + (y/diam)**2 <= 0.25*(z/height)**2)
+        super().__init__(shape_func)
+
+class Cylinder(Shape):
+    """Cylinder along z with given diameter and height."""
+    def __init__(self, diam, height):
+        def shape_func(x, y, z):
+            return (z <= 0.5*height) & (z >= -0.5*height) & \
+                   ((x/diam)**2+(y/diam)**2<=0.25)
+        super().__init__(shape_func)
+
+class Cuboid(Shape):
+    """3D rectangular slab with given sides, including minimum, excluding maximum."""
+    def __init__(self, sidex, sidey, sidez):
+        def shape_func(x, y, z):
+            rx, ry, rz = 0.5*sidex, 0.5*sidey, 0.5*sidez
+            return (-rx <= x)&(x < rx) & (-ry <= y)&(y < ry) & (-rz <= z)&(z < rz)
+        super().__init__(shape_func)
+
+class Cube(Cuboid):
+    """Cube with given side length."""
+    def __init__(self, side):
+        super().__init__(side, side, side)
+
+class Rectangle(Shape):
+    """2D Rectangle in the xy-plane with given sides."""
+    def __init__(self, sidex, sidey):
+        def shape_func(x, y, z):
+            rx, ry = 0.5*sidex, 0.5*sidey
+            return (-rx <= x)&(x < rx) & (-ry <= y)&(y < ry)
+        super().__init__(shape_func)
+
+class Square(Rectangle):
+    """Square with given side length."""
+    def __init__(self, side):
+        super().__init__(side, side)
+
+
+class XRange(Shape):
+    """Range of x-values: xmin <= x < xmax"""
+    def __init__(self, xmin, xmax):
+        super().__init__(lambda x,y,z: (xmin <= x) & (x < xmax))
+
+class YRange(Shape):
+    """Range of y-values: ymin <= y < ymax"""
+    def __init__(self, ymin, ymax):
+        super().__init__(lambda x,y,z: (ymin <= y) & (y < ymax))
+
+class ZRange(Shape):
+    """Range of z-values: zmin <= z < zmax"""
+    def __init__(self, zmin, zmax):
+        super().__init__(lambda x,y,z: (zmin <= z) & (z < zmax))
+
+class Torus(Shape):
+    """Torus with given major and minor diameters.
+    
+    Parameters
+    ----------
+    major_diam: distance between opposite centers of the tube.
+    minor_diam: diameter of the tube.
+
+    The torus is major_diam + minor_diam wide and minor_diam high.
+    """
+    def __init__(self, major_diam, minor_diam):
+        D, d = major_diam, minor_diam
+        def shape_func(x, y, z):
+            return (x**2 + y**2 + z**2 + 0.25*D**2 - 0.25*d**2)**2 <= D*(x**2 + y**2)
+        super().__init__(shape_func)
+
 
 # ==================================================
 # TODO List of Mumax3 shapes to add
-
-# Cone
-# Cylinder
-# Circle
-# Cuboid
-# Rect
-# Square
-# XRange
-# YRange
-# ZRange
 # Layers
 # Layer
 # Cell
 # ImageShape
 # GrainRoughness
+
+# TODO Bonus shapes
+# Delaunay solids
+# Platonic solids
+# Polygons
+# Regular polygons
 
 # ==================================================
 
@@ -313,8 +384,7 @@ if __name__=="__main__":
     # import matplotlib.pyplot as plt
     import plotly.graph_objects as go
 
-    shape = Sphere(0.5)
-    shape += shape.copy().translate_z(0.5)
+    shape = Torus(1, 0.25)
 
     print("Computing geometry...")
 
