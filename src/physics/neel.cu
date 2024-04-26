@@ -2,7 +2,6 @@
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "neel.hpp"
-#include "world.hpp"
 
 __global__ void k_neelvector(CuField neel,
                              const CuField mag) {
