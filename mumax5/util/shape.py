@@ -1,6 +1,7 @@
 """Classes for common shapes and their manipulation."""
 
 import numpy as _np
+from scipy.spatial import Delaunay as _Delaunay
 
 # ==================================================
 # Parent Shape class
@@ -351,8 +352,10 @@ class Torus(Shape):
     
     Parameters
     ----------
-    major_diam: distance between opposite centers of the tube.
-    minor_diam: diameter of the tube.
+    major_diam : float
+        Distance between opposite centers of the tube.
+    minor_diam : float
+        Diameter of the tube.
 
     The torus is major_diam + minor_diam wide and minor_diam high.
     """
@@ -361,6 +364,82 @@ class Torus(Shape):
         def shape_func(x, y, z):
             return (x**2 + y**2 + z**2 + 0.25*D**2 - 0.25*d**2)**2 <= D*(x**2 + y**2)
         super().__init__(shape_func)
+
+# =========================
+# Convex polyhedra
+
+class DelaunayHull(Shape):
+    """The Delaunay hull of a list of 3D points. These points can serve as the
+    vertices of a convex polyhedron.
+    
+    Parameters
+    ----------
+    points : ndarray of double, shape (npoints, 3)
+    """
+    def __init__(self, points):
+        self.hull = _Delaunay(points)
+        def shape_func(x, y, z):
+            return self.hull.find_simplex(_np.array([z,y,x]).T) >= 0
+        super().__init__(shape_func)
+
+class Tetrahedron(DelaunayHull):
+    """Tetrahedron (4-faced platonic solid) where all vertices lie on a sphere
+    with the given diameter."""
+    def __init__(self, diam):
+        d_circumsphere = 2
+        vertices = diam*_np.asarray([[2*_np.sqrt(2)/3, 0, -1/3],
+                                    [-_np.sqrt(2)/3, _np.sqrt(2/3), -1/3],
+                                    [-_np.sqrt(2)/3, -_np.sqrt(2/3), -1/3],
+                                    [0, 0, 1]])
+        super().__init__(vertices/d_circumsphere)
+
+class Octahedron(Shape):  # Shape, not DelauneyHull, as there is a simple formula
+    """Octahedron (8-faced platonic solid) where all vertices lie on a sphere
+    with the given diameter."""
+    def __init__(self, diam):
+        super().__init__(lambda x,y,z: _np.abs(x)+_np.abs(y)+_np.abs(z) <= 0.5*diam)
+
+class Dodecahedron(DelaunayHull):
+    """Dodecahedron (12-faced platonic solid) where all vertices lie on a sphere
+    with the given diameter."""
+    def __init__(self, diam):
+        phi = (1 + _np.sqrt(5))/2
+        d_circumsphere = 2*_np.sqrt(3)
+        vertices = diam*_np.asarray([[1, 1, 1], [1, 1, -1], [1, -1, 1],
+                                     [1, -1, -1], [-1, 1, 1], [-1, 1, -1],
+                                     [-1, -1, 1], [-1, -1, -1], [0, phi, 1/phi],
+                                     [0, phi, -1/phi], [0, -phi, 1/phi],
+                                     [0, -phi, -1/phi], [1/phi, 0, phi],
+                                     [1/phi, 0, -phi], [-1/phi, 0, phi],
+                                     [-1/phi, 0, -phi], [phi, 1/phi, 0],
+                                     [phi, -1/phi, 0], [-phi, 1/phi, 0],
+                                     [-phi, -1/phi, 0]])
+        super().__init__(vertices/d_circumsphere)
+
+class Icosahedron(DelaunayHull):
+    """Dodecahedron (20-faced platonic solid) where all vertices lie on a sphere
+    with the given diameter."""
+    def __init__(self, diam):
+        phi = (1 + _np.sqrt(5))/2
+        d_circumsphere = 2*_np.sqrt(phi**2 + 1)
+        vertices = diam*_np.asarray([[0, 1, phi], [0, 1, -phi], [0, -1, phi],
+                                     [0, -1, -phi], [phi, 0, 1], [phi, 0, -1],
+                                     [-phi, 0, 1], [-phi, 0, -1], [1, phi, 0],
+                                     [1, -phi, 0], [-1, phi, 0], [-1, -phi, 0]])
+        super().__init__(vertices/d_circumsphere)
+
+class Icosidodecahedron(DelaunayHull):
+    """Icosidodecahedron  where all vertices lie on a sphere with the given
+    diameter."""
+    def __init__(self, diam):
+        phi = (1 + _np.sqrt(5))/2
+        phiSq = phi*phi
+        a = 1
+        d_circumsphere = 4/(_np.sqrt(5) - 1)
+        vertices = [[0, 0, phi], [0, 0, -phi]] + [[i*.5, j*phi/2, k*phiSq/2] \
+                    for i in (-1, 1) for j in (-1, 1) for k in (-1, 1)]
+        vertices += [[y,z,x] for x,y,z in vertices] + [[z, x, y] for x,y,z in vertices]
+        super().__init__(diam*_np.asarray(vertices)/d_circumsphere)
 
 
 # ==================================================
@@ -372,8 +451,6 @@ class Torus(Shape):
 # GrainRoughness
 
 # TODO Bonus shapes
-# Delaunay solids
-# Platonic solids
 # Polygons
 # Regular polygons
 
@@ -384,7 +461,7 @@ if __name__=="__main__":
     # import matplotlib.pyplot as plt
     import plotly.graph_objects as go
 
-    shape = Torus(1, 0.25)
+    shape = Icosidodecahedron(1)
 
     print("Computing geometry...")
 
