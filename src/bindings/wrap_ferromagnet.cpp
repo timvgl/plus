@@ -12,6 +12,7 @@
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
 #include "mumaxworld.hpp"
+#include "neel.hpp"
 #include "parameter.hpp"
 #include "strayfieldkernel.hpp"
 #include "stt.hpp"
@@ -91,6 +92,8 @@ void wrap_ferromagnet(py::module& m) {
   m.def("torque", &torqueQuantity);
   m.def("llg_torque", &llgTorqueQuantity);
   m.def("spin_transfer_torque", &spinTransferTorqueQuantity);
+
+  m.def("neel_vector", &neelVectorQuantity);
 
   m.def("demag_field", &demagFieldQuantity);
   m.def("demag_energy_density", &demagEnergyDensityQuantity);

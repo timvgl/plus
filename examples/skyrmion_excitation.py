@@ -24,7 +24,7 @@ magnet = Ferromagnet(world, Grid(size=grid_size))
 magnet.msat = 1E6
 magnet.aex = 15E-12
 
-magnet.ku1 = lambda t: 1E6 * (1 + 0.01 * np.sinc(2 * fmax * (t - t0)))
+magnet.ku1 = lambda t: 1E5 * (1 + 0.01 * np.sinc(2 * fmax * (t - t0)))
 
 magnet.dmi_tensor.set_interfacial_dmi(3E-3)
 magnet.anisU = (0, 0, 1)

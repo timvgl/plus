@@ -324,7 +324,7 @@ class Ferromagnet:
     def kc32(self, value):
         self.kc32.set(value)
 
-    @ property
+    @property
     def anisC1(self):
         """First cubic anisotropy direction"""
         return Parameter(self._impl.anisC1)
@@ -504,6 +504,11 @@ class Ferromagnet:
     def spin_transfer_torque(self):
         """Spin transfer torque exerted on the magnetization."""
         return FieldQuantity(_cpp.spin_transfer_torque(self._impl))
+    
+    @property
+    def neel_vector(self):
+        """Neel vector of an antiferromagnet instance."""
+        return FieldQuantity(_cpp.neel_vector(self._impl))
 
     @property
     def demag_field(self):

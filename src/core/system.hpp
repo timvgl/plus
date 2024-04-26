@@ -41,6 +41,9 @@ class System {
   /** Get the geometry of the system. */
   const GpuBuffer<bool>& geometry() const;
 
+  /** Return the number of cells which lie within the geometry*/
+  int cellsingeo() const;
+
   /** Return a CuSystem which can be copied to the gpu and be used in cuda
    * kernels. */
   CuSystem cu() const;

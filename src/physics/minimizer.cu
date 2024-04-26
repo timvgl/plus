@@ -98,11 +98,9 @@ void Minimizer::step() {
 bool Minimizer::converged() const {
   if (lastMagDiffs_.size() < nMagDiffSamples_)
     return false;
-  real fac = 1;
-  if (magnet_->magnetization()->ncomp() == 6) {fac *= 1;}
-  
+ 
   for (auto dm : lastMagDiffs_)
-    if (dm > fac * stopMaxMagDiff_)
+    if (dm > stopMaxMagDiff_)
       return false;
 
   return true;
