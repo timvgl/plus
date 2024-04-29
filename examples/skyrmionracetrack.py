@@ -27,9 +27,6 @@ magnet.xi = 0.3
 magnet.jcur = (1e12, 0, 0)
 magnet.pol = 0.4
 
-for i in range(30):
-    world.timesolver.run(1e-10)
+world.timesolver.run(2e-10)
 
-    show_field(magnet.magnetization)
-    plt.savefig("racetrackclosed" + str(i))
-    
+show_field(magnet.magnetization)    
