@@ -25,6 +25,7 @@ dependencies:
   - ipython
   - jupyter
   - scipy
+  - pyvista
 
   # documentation generation
   - sphinx
