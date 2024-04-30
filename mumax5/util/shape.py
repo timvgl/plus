@@ -358,11 +358,12 @@ class Torus(Shape):
         Diameter of the tube.
 
     The torus is major_diam + minor_diam wide and minor_diam high.
+    When major_diam = minor_diam, there will be no hole.
     """
     def __init__(self, major_diam, minor_diam):
         D, d = major_diam, minor_diam
         def shape_func(x, y, z):
-            return (x**2 + y**2 + z**2 + 0.25*D**2 - 0.25*d**2)**2 <= D*(x**2 + y**2)
+            return (x**2 + y**2 + z**2 + 0.25*D**2 - 0.25*d**2)**2 <= D**2*(x**2 + y**2)
         super().__init__(shape_func)
 
 # =========================
