@@ -390,7 +390,7 @@ class DelaunayHull(Shape):
     def __init__(self, points):
         self.hull = _Delaunay(points)
         def shape_func(x, y, z):
-            return self.hull.find_simplex(_np.array([z,y,x]).T) >= 0
+            return self.hull.find_simplex(_np.stack([x,y,z], axis=-1)) >= 0
         super().__init__(shape_func)
 
 class Tetrahedron(DelaunayHull):
@@ -471,9 +471,8 @@ if __name__=="__main__":
 
     import pyvista as pv
 
-    shape = Ellipsoid(0.5, 0.25, 0.25)
-    shape.rotate_y(45*_np.pi/180)
-    shape.repeat((-0.25, -0.125, -0.4), (0.25, None, 0.4))
+    shape = Tetrahedron(1)
+    shape.translate_z(0.5)
 
     res = 101
     a = 1
