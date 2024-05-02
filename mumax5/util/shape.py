@@ -2,6 +2,7 @@
 
 import numpy as _np
 from scipy.spatial import Delaunay as _Delaunay
+from matplotlib.path import Path as _Path
 
 # ==================================================
 # Parent Shape class
@@ -452,6 +453,39 @@ class Icosidodecahedron(DelaunayHull):
         vertices += [[y,z,x] for x,y,z in vertices] + [[z, x, y] for x,y,z in vertices]
         super().__init__(diam*_np.asarray(vertices)/d_circumsphere)
 
+# =========================
+# Polygons
+
+class Polygon(Shape):
+    """A polygon in the xy-plane, with a given list of vertices.
+
+    Parameters
+    ----------
+    vertices : float ndarray of size (N, 2) or (N, 3)
+        If the size is (N, 3), the z-values are simply ignored.
+    """
+    def __init__(self, vertices):
+        vertices = _np.asarray(vertices)
+        if vertices.shape[1] == 3:
+            vertices = vertices[:][:2]  # ignore z-values
+
+        self.path = _Path(vertices)
+        def shape_func(x, y, z):
+            if hasattr(x, "__iter__"):  # ndarray
+                x_, y_ = x.flatten(), y.flatten()
+                bools = self.path.contains_points(_np.stack([x_,y_], axis=-1))
+                return _np.reshape(bools, x.shape)
+            return self.path.contains_point((x,y))  # single value
+        super().__init__(shape_func)
+
+class RegularPolygon(Polygon):
+    """A regular polygon in the xy-plane with N vertices which lie on a circle
+    with given diameter. One point is located at (diam/2, 0)."""
+    def __init__(self, N, diam):
+        vertices = [(diam/2*_np.cos(i/N*2*_np.pi), diam/2*_np.sin(i/N*2*_np.pi))
+                    for i in range(N)]
+        super().__init__(vertices)
+
 
 # ==================================================
 # TODO List of Mumax3 shapes to add
@@ -460,21 +494,16 @@ class Icosidodecahedron(DelaunayHull):
 # Cell
 # ImageShape
 # GrainRoughness
-
-# TODO Bonus shapes
-# Polygons
-# Regular polygons
-
 # ==================================================
 
 if __name__=="__main__":
 
     import pyvista as pv
+    import matplotlib.pyplot as plt
 
-    shape = Tetrahedron(1)
-    shape.translate_z(0.5)
+    shape = RegularPolygon(3, 2)
 
-    res = 101
+    res = 201
     a = 1
     x = y = z = _np.linspace(-a, a, res)
 
@@ -497,5 +526,21 @@ if __name__=="__main__":
         if len(title) > 0: plotter.add_title(title)
         plotter.show()
 
-    plot_shape_3D(shape, x,y,z)
+    def plot_shape_2D(shape, x, y, title="", ax=None):
+        """Show a shape in the xy-plane at z=0, given x and y coordinate arrays.
+        This uses matplotlib."""
+        X, Y = _np.meshgrid(x, y)
+        S = shape(X, Y, _np.zeros_like(X))
+
+        fig, ax = plt.subplots()
+
+        dx, dy = (x[1]-x[0]), (y[1]-y[0])
+        ax.imshow(S, extent=(x[0]-0.5*dx, x[-1]+0.5*dx, y[0]-0.5*dy, y[-1]+0.5*dy),
+                    origin="lower", cmap="binary_r")
+        ax.set_xlabel("x"); ax.set_ylabel("y")
+        ax.set_aspect("equal")
+        if len(title) > 0: ax.set_title(title)
+        plt.show()
+
+    plot_shape_2D(shape, x,y)
 
