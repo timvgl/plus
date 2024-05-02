@@ -125,21 +125,31 @@ class Shape:
         self.shape_func = lambda x,y,z: _np.logical_not(old_func(x, y, z))
         return self
 
-    def repeat(self, px, py, pz):
-        """Repeat everything from this shape between points (0,0,0) to
-        (px,py,pz) infinitely, while everything outside this box is ignored.
+    def repeat(self, min_point, max_point):
+        """Infinitely repeat everything from this shape enclosed in a bounding
+        box defined by the given minimum and maximum points, while everything
+        outside this box is ignored.
 
         Parameters
         ----------
-        px, py, pz : floats
-        Period of repitition in each direction.
-        Setting p_i to None will not repeat the shape in this direction.
+        min_point : tuple[float] of size 3
+            Smallest x, y and z coordinates of the bounding box (inclusive).
+        max_point : tuple[float] of size 3
+            Largest x, y and z coordinates of the bounding box (exclusive).
+        
+        Setting any coordinate to None will not repeat the shape in this direction.
         """
-        # TODO should this be between (0,0,0) and (px,py,pz) or between
-        # (-px/2,-py/2,-pz/2) to +(px/2,py/2,pz/2) like in MuMax3?
-        nm = lambda x, p: x if p is None else x%p  # nm for None Modulo
+        def none_mod(x, x_min, x_max):
+            if x_min is None or x_max is None:
+                return x
+            return (x-x_min)%(x_max-x_min) + x_min
+
+        x0, y0, z0 = min_point
+        x1, y1, z1 = max_point
         old_func = self.shape_func  # copy old version of self
-        self.shape_func = lambda x,y,z: old_func(nm(x,px), nm(y,py), nm(z,pz))
+        self.shape_func = lambda x,y,z: old_func(none_mod(x, x0, x1),
+                                                 none_mod(y, y0, y1),
+                                                 none_mod(z, z0, z1))
         return self
 
     # -------------------------
@@ -459,33 +469,34 @@ class Icosidodecahedron(DelaunayHull):
 
 if __name__=="__main__":
 
-    # import matplotlib.pyplot as plt
-    import plotly.graph_objects as go
+    import pyvista as pv
 
-    shape = Icosidodecahedron(1)
+    shape = Ellipsoid(0.5, 0.25, 0.25)
+    shape.rotate_y(45*_np.pi/180)
+    shape.repeat((-0.25, -0.125, -0.4), (0.25, None, 0.4))
 
-    print("Computing geometry...")
-
-    res = 100
+    res = 101
     a = 1
-    x = _np.linspace(-a, a, res)
-    y = _np.linspace(-a, a, res)
-    z = _np.linspace(-a, a, res)
-    X, Y, Z = _np.meshgrid(x, y, z, indexing="ij")
+    x = y = z = _np.linspace(-a, a, res)
 
-    geom = shape(X, Y, Z)
+    def plot_shape_3D(shape, x, y, z, title=""):
+        """Show a shape given x, y and z coordinate arrays. This uses PyVista."""
+        X, Y, Z = _np.meshgrid(x, y, z, indexing="ij")  # the logical indexing
+        S = shape(X, Y, Z)
+        dx, dy, dz = (x[1]-x[0]), (y[1]-y[0]), (z[1]-z[0])
+                     # [::-1] for [x,y,z] not [z,y,x] and +1 for cells, not points
+        image_data = pv.ImageData(dimensions=(len(x)+1, len(y)+1, len(z)+1),  
+                     spacing=(dx,dy,dz), origin=(x[0]-0.5*dx, y[0]-0.5*dy, z[0]-0.5*dz))
+        image_data.cell_data["values"] = _np.float32(S.flatten("F"))
+        threshed = image_data.threshold_percent(0.5)  # only show True
 
-    print("Done computing geometry.")
-    print("Plotting...")
+        plotter = pv.Plotter()
+        plotter.add_mesh(threshed, color="white", show_edges=True,
+                         show_scalar_bar=False, smooth_shading=True)
+        plotter.show_axes()
+        plotter.show_bounds()
+        if len(title) > 0: plotter.add_title(title)
+        plotter.show()
 
-    data = go.Isosurface(x=X.flatten(),y=Y.flatten(),z=Z.flatten(), value=geom.flatten(),
-                        isomin=0.9, isomax=1.1, showscale=False,
-                        lighting=dict(specular=0.5, roughness=0.2, fresnel=.1))
-    fig = go.Figure(data=data)
+    plot_shape_3D(shape, x,y,z)
 
-    camera = {"center":{"x":0, "y":0, "z":0}, "eye":{"x":-1.25, "y":-1.25, "z":1.25}}
-    fig.update_layout(scene_camera=camera)
-
-    fig.show()
-
-    print("Done plotting.")
