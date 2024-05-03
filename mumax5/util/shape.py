@@ -118,6 +118,25 @@ class Shape:
         self.shape_func = lambda x,y,z: old_func(x/sx, y/sy, z/sz)
         return self
 
+
+    def mirror_xy(self):
+        """Mirror this shape with respect to the xy-plane."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(x, y, -z)
+        return self
+
+    def mirror_yz(self):
+        """Mirror this shape with respect to the yz-plane."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(-x, y, z)
+        return self
+
+    def mirror_zx(self):
+        """Mirror this shape with respect to the zx-plane."""
+        old_func = self.shape_func  # copy old version of self
+        self.shape_func = lambda x,y,z: old_func(x, -y, z)
+        return self
+
     # -------------------------
     # operations on this shape
 
@@ -539,16 +558,10 @@ class ImageShape(Shape):
 # ==================================================
 
 if __name__=="__main__":
+    # Code for testing purposes
 
     import pyvista as pv
     import matplotlib.pyplot as plt
-
-    shape = ImageShape("/home/ian/mumax5/sandbox/test_smile.png", (-0.5, -0.5),
-                       (0.5, 0.5))
-
-    res = 201
-    a = 1
-    x = y = z = _np.linspace(-a, a, res)
 
     def plot_shape_3D(shape, x, y, z, title=""):
         """Show a shape given x, y and z coordinate arrays. This uses PyVista."""
@@ -585,5 +598,13 @@ if __name__=="__main__":
         if len(title) > 0: ax.set_title(title)
         plt.show()
 
-    plot_shape_2D(shape, x,y)
+
+    shape = Tetrahedron(1)
+    shape.mirror_xy()
+
+    res = 201
+    a = 1
+    x = y = z = _np.linspace(-a, a, res)
+
+    plot_shape_3D(shape, x,y,z)
 
