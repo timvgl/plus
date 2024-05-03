@@ -3,6 +3,7 @@
 import numpy as _np
 from scipy.spatial import Delaunay as _Delaunay
 from matplotlib.path import Path as _Path
+from PIL import Image as _Image
 
 # ==================================================
 # Parent Shape class
@@ -389,9 +390,9 @@ class DelaunayHull(Shape):
     points : ndarray of double, shape (npoints, 3)
     """
     def __init__(self, points):
-        self.hull = _Delaunay(points)
+        hull = _Delaunay(points)
         def shape_func(x, y, z):
-            return self.hull.find_simplex(_np.stack([x,y,z], axis=-1)) >= 0
+            return hull.find_simplex(_np.stack([x,y,z], axis=-1)) >= 0
         super().__init__(shape_func)
 
 class Tetrahedron(DelaunayHull):
@@ -469,13 +470,13 @@ class Polygon(Shape):
         if vertices.shape[1] == 3:
             vertices = vertices[:][:2]  # ignore z-values
 
-        self.path = _Path(vertices)
+        path = _Path(vertices)
         def shape_func(x, y, z):
             if hasattr(x, "__iter__"):  # ndarray
                 x_, y_ = x.flatten(), y.flatten()
-                bools = self.path.contains_points(_np.stack([x_,y_], axis=-1))
+                bools = path.contains_points(_np.stack([x_,y_], axis=-1))
                 return _np.reshape(bools, x.shape)
-            return self.path.contains_point((x,y))  # single value
+            return path.contains_point((x,y))  # single value
         super().__init__(shape_func)
 
 class RegularPolygon(Polygon):
@@ -486,13 +487,54 @@ class RegularPolygon(Polygon):
                     for i in range(N)]
         super().__init__(vertices)
 
+# =========================
+# ImageShape
+
+class ImageShape(Shape):
+    """Use a black and white image as a shape in the xy-plane. The given image
+    file is stretched to the given coordinates. Black is inside the shape
+    (True), white outside (False). Coordinates inside the stretched image assume
+    the value of the nearest pixel. Coordinate outside the edges of the
+    stretched image are treated as outside of the shape (False).
+
+    Parameters
+    ----------
+    fname : string
+        Filename of the image to use.
+    min_point : tuple of length 2 or 3
+        x and y world coordinates to be mapped to the center of the bottom left
+        pixel of the image. z-coordinate can be given but is ignored.
+    max_point : tuple of length 2 or 3
+        x and y world coordinates to be mapped to the center of the top right
+        pixel of the image. z-coordinate can be given but is ignored.
+    """
+    def __init__(self, fname: str, min_point: tuple, max_point: tuple):
+        img = _Image.open(fname).convert("RGBA")
+        img_arr = _np.array(img)  # like matrix: [row, col, rgba]
+        # pretty opaque and pretty dark
+        img_bools = (img_arr[:, :, 3] >= 128) & \
+                    (_np.sum(img_arr[:,:,0:3], axis=2) < 256*3/2)
+
+        w, h = img.width, img.height
+        x0, y0, x1, y1 = min_point[0], min_point[1], max_point[0], max_point[1]
+        dx, dy = (x1-x0)/(w-1), (y1-y0)/(h-1)  # pixel width and height in world
+         
+        def shape_func(x, y, z):
+            inside = (x >= x0 - 0.5*dx) & (x < x1 + 0.5*dx) & \
+            (y >= y0 - 0.5*dy) & (y < y1 + 0.5*dy)
+            
+            col = _np.int32(_np.clip(_np.rint((x-x0)/dx), 0, w-1))
+            row = _np.int32(_np.clip(_np.rint((y1-y)/dy), 0, h-1))
+
+            return inside & img_bools[row, col]
+
+        super().__init__(shape_func)
 
 # ==================================================
 # TODO List of Mumax3 shapes to add
 # Layers
 # Layer
 # Cell
-# ImageShape
 # GrainRoughness
 # ==================================================
 
@@ -501,7 +543,8 @@ if __name__=="__main__":
     import pyvista as pv
     import matplotlib.pyplot as plt
 
-    shape = RegularPolygon(3, 2)
+    shape = ImageShape("/home/ian/mumax5/sandbox/test_smile.png", (-0.5, -0.5),
+                       (0.5, 0.5))
 
     res = 201
     a = 1
