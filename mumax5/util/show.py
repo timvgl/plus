@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as _plt
 import numpy as _np
+import pyvista as _pv
 
 import mumax5 as _m5
 
@@ -180,3 +181,25 @@ def show_neel_quiver(quantity, title=''):
     if title:
         ax.set_title(title)
     _plt.show()
+
+
+def show_magnet_geometry(magnet):
+    """Show the geometry of a mumax5.ferromagnet."""
+    geom = magnet.geometry
+
+                 # [::-1] for [x,y,z] not [z,y,x] and +1 for cells, not points
+    image_data = _pv.ImageData(dimensions=_np.array(geom.shape[::-1])+1,  
+                 spacing=magnet.cellsize,
+                 origin=_np.array(magnet.origin) - 0.5*_np.array(magnet.cellsize))
+    image_data.cell_data["values"] = _np.float32(geom.flatten("C"))  # "C" because [z,y,x]
+    threshed = image_data.threshold_percent(0.5)  # only show True
+
+    plotter = _pv.Plotter()
+    plotter.add_mesh(threshed, color="white",
+                     show_edges=True, show_scalar_bar=False, smooth_shading=True)
+    plotter.add_title(f"{magnet.name} geometry")
+    plotter.show_axes()
+    plotter.view_xy()
+    # TODO plotter.show_bounds() ?
+    plotter.show()
+
