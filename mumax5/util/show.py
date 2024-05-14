@@ -54,18 +54,35 @@ def _quantity_img_xy_extent(quantity):
     ]
     return extent
 
-def get_rgba(field, quantity=None, layer=0):
+def get_rgba(field, quantity=None, layer=None):
+    """Get rgba values of given field.
+
+    Parameters
+    ----------
+    quantity : FieldQuantity (default None)
+        Used to set alpha value to 0 where geometry is False.
+    layer : int (default None)
+        z-layer of which to get rgba. Calculates rgba for all layers if None.
+
+    Returns
+    -------
+    rgba : ndarray
+        shape (ny, nx, 4) if layer is given, otherwise (nz, ny, nx, 4).
+    """
     # TODO also CUDAfy this function. This is exactly what GPUs are made for.
-    field = field[:, layer]  # select the layer
+    if layer is not None:
+        field = field[:, layer]  # select the layer
     field /= _np.max(_np.linalg.norm(field, axis=0))  # rescale to make maximum norm 1
 
     # Create rgba image from the vector data
-    _, ny, nx = field.shape  # image size
-    rgba = _np.ones((ny, nx, 4))  # last index for R,G,B, and alpha channel
-    rgba[:,:,0], rgba[:,:,1], rgba[:,:,2] = vector_to_rgb(field[0,:,:], field[1,:,:], field[2,:,:])
+    rgba = _np.ones((*(field.shape[1:]), 4))  # last index for R,G,B, and alpha channel
+    rgba[...,0], rgba[...,1], rgba[...,2] = vector_to_rgb(field[0], field[1], field[2])
 
     # Set alpha channel to one inside the geometry, and zero outside
-    if quantity is not None: rgba[:, :, 3] = quantity._impl.system.geometry[layer]
+    if quantity is not None:
+        geom = quantity._impl.system.geometry
+        rgba[..., 3] = geom[layer] if layer is not None else geom
+
     return rgba
 
 
