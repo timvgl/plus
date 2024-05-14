@@ -220,3 +220,71 @@ def show_magnet_geometry(magnet):
     # TODO plotter.show_bounds() ?
     plotter.show()
 
+
+def show_field_3D(quantity, cmap="mumax3"):
+    """Plot a mumax5.FieldQuantity with 3 components as a vectorfield.
+
+    Parameters
+    ----------
+    quantity : mumax5.FieldQuantity (3 components)
+        The fieldquantity to plot as a vectorfield.
+    cmap : string, optional, default: "mumax3"
+        A colormap to use. By default the mumax3 colormap is used.
+        Any matplotlib colormap can also be given to color the vectors according
+        to their z-component. It's best to use diverging colormaps, like "bwr".
+    """
+
+    if not isinstance(quantity, _m5.FieldQuantity):
+        raise TypeError("The first argument should be a FieldQuantity")
+
+    if (quantity.ncomp != 3):  # TODO support 6 components somehow
+        raise ValueError("Can not create a vector field image because the field"
+                         + " quantity does not have 3 components.")
+
+    # make pyvista grid
+    shape = quantity.shape[-1:0:-1]  # xyz not 3zyx
+    cell_size = quantity._impl.system.cellsize
+    image_data = _pv.ImageData(dimensions=_np.asarray(shape)+1,  # cells, not points
+                 spacing=cell_size,
+                 origin=_np.asarray(quantity._impl.system.origin)
+                                    - 0.5*_np.asarray(cell_size))
+    image_data.cell_data["field"] = quantity.eval().reshape((3, -1)).T  # cell data
+
+    # don't show cells without geometry
+    image_data.cell_data["geom"] = _np.float32(quantity._impl.system.geometry).flatten("C")
+    threshed = image_data.threshold_percent(0.5, scalars="geom")
+
+    # use cones to display direction
+    cres = 6  # number of vertices in cone base
+    cone = _pv.Cone(center=(1/4, 0, 0), radius=0.32, height=1, resolution=cres)
+    factor = min(cell_size[0:2]) if shape[2]==1 else min(cell_size)
+    factor *= 0.9  # no touching
+    quiver = threshed.glyph(orient="field", scale=False, factor=factor, geom=cone)
+
+    # set global theme, because individual plotter instance themes are broken
+    _pv.global_theme = _pv.themes.DarkTheme()
+    # the plotter
+    plotter = _pv.Plotter()
+
+    # color
+    if "mumax" in cmap.lower():  # Use the mumax3 colorscheme
+        # don't need quantity to set opacity for geometry, threshold did this
+        rgba = get_rgba(threshed["field"].T, quantity=None, layer=None)
+        # we need to color every quiver vertex individually, each cone has cres+1
+        quiver.point_data["rgba"] = _np.repeat(rgba, cres+1, axis=0)
+        plotter.add_mesh(quiver, scalars="rgba", rgba=True, lighting=False)
+    else:  # matplotlib colormap
+        quiver.point_data["z-component"] = _np.repeat(threshed["field"][:,2], 7, axis=0)
+        plotter.add_mesh(quiver, scalars="z-component", cmap=cmap, clim=(-1,1),
+                         lighting=False)
+
+
+    # final touches
+    plotter.add_mesh(image_data.outline(), color="white", lighting=False)
+    plotter.add_title(quantity.name)
+    plotter.show_axes()
+    plotter.view_xy()
+    plotter.set_background((0.3, 0.3, 0.3))  # otherwise black or white is invisible
+    plotter.show()
+    _pv.global_theme = _pv.themes.Theme()  # reset theme
+
