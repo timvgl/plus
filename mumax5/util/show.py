@@ -279,11 +279,10 @@ def show_field_3D(quantity, cmap="mumax3", quiver=True):
             quiver.point_data["rgba"] = _np.repeat(rgba, cres+1, axis=0)
             plotter.add_mesh(quiver, scalars="rgba", rgba=True, lighting=False)
         else:  # matplotlib colormap
-            quiver.point_data["z-component"] = _np.repeat(threshed["field"][:,2], 7, axis=0)
+            quiver.point_data["z-component"] = _np.repeat(threshed["field"][:,2], cres+1, axis=0)
             plotter.add_mesh(quiver, scalars="z-component", cmap=cmap,
                              clim=(-1,1), lighting=False)
-    else:
-        # use colored voxels
+    else:  # use colored voxels
         if "mumax" in cmap.lower():  # Use the mumax3 colorscheme
             # don't need quantity to set opacity for geometry, threshold did this
             threshed.cell_data["rgba"] = get_rgba(threshed["field"].T,
