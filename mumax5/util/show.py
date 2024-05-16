@@ -56,6 +56,8 @@ def _quantity_img_xy_extent(quantity):
 
 def get_rgba(field, quantity=None, layer=None):
     """Get rgba values of given field.
+    There is also a CUDA version of this function which utilizes the GPU.
+    Use `quantity.get_rgb()`, but it has a different shape.
 
     Parameters
     ----------
@@ -69,7 +71,6 @@ def get_rgba(field, quantity=None, layer=None):
     rgba : ndarray
         shape (ny, nx, 4) if layer is given, otherwise (nz, ny, nx, 4).
     """
-    # TODO also CUDAfy this function. This is exactly what GPUs are made for.
     if layer is not None:
         field = field[:, layer]  # select the layer
     field /= _np.max(_np.linalg.norm(field, axis=0))  # rescale to make maximum norm 1

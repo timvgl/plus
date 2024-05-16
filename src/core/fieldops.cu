@@ -4,6 +4,7 @@
 #include "cudalaunch.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
+#include "reduce.hpp"
 
 __global__ void k_addFields(CuField y,
                             real a1,
@@ -220,4 +221,73 @@ Field operator*(real6 a, const Field& x) {
   real6 a0 = real6{0, 0, 0, 0, 0, 0};
   add(y, a0, x, a, x);
   return y;
+}
+
+__global__ void k_fieldGetRGB3(CuField dst, const CuField src) {
+  // Map vector (with norm<=1) to RGB
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!dst.cellInGeometry(idx)) {
+    // not in geometry, so make grey instead
+    dst.setVectorInCell(idx, real3{0.5, 0.5, 0.5});
+  } else {
+    real3 vec = src.FM_vectorAt(idx);
+
+    // HSL
+    float H = atan2f(vec.y, vec.x);  // use floats or reals?
+    float S = norm(vec);
+    float L = 0.5 + 0.5 * vec.z;
+
+    // HSL to RGB
+    float pi = 3.1415926535897931;
+    float Hp = 3.0 * H/pi;
+    if (Hp < 0) {Hp += 6.0;}  // in [0, 6)
+    else if (Hp >= 6.0) {Hp -= 6.0;}
+    float C = (L<=0.5) ? 2*L*S : 2*(1-L)*S;
+    float X = C * (1 - fabs(fmodf(Hp, 2.0) - 1.0));  // fmodf for float, fmod for double
+    float m = L - C / 2.0;
+
+    float R = m, G = m, B = m;
+    if (Hp < 1.) {
+        R += C;
+        G += X;
+    } else if (Hp < 2.) {
+        R += X;
+        G += C;
+    } else if (Hp < 3.) {
+        G += C;
+        B += X;
+    } else if (Hp < 4.) {
+        G += X;
+        B += C;
+    } else if (Hp < 5.) {
+        R += X;
+        B += C;
+    } else {  // Hp < 6
+        R += C;
+        B += X;
+    }
+
+    // clip RGB values to be in [0,1]
+    R = fminf(fmaxf(R, 0.0), 1.0);  // fmaxf for float, fmaxf for double
+    G = fminf(fmaxf(G, 0.0), 1.0);
+    B = fminf(fmaxf(B, 0.0), 1.0);
+
+    dst.setVectorInCell(idx, real3{R, G, B});  // convert to real3 for Field
+  }
+}
+
+
+Field fieldGetRGB(const Field& src) {
+  if (src.ncomp() == 3) {
+    Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
+    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB3, dst.cu(), src.cu());
+    return dst;
+  } else if (src.ncomp() == 6) {
+    // TODO AFM implementation
+    throw std::invalid_argument(
+            "getRGB is not yet implemented for fields with 6 components.");
+  } else {
+    throw std::invalid_argument(
+            "getRGB can only operate on vector fields with 3 components.");
+  }
 }
