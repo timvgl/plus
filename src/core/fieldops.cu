@@ -308,11 +308,11 @@ __global__ void k_fieldGetRGB6(CuField dst, const CuField src) {
 Field fieldGetRGB(const Field& src) {
   if (src.ncomp() == 3) {  // 3D
     Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
-    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB3, dst.cu(), src.cu());
+    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB3, dst.cu(), dst.cu());  // src is dst
     return dst;
   } else if (src.ncomp() == 6) {  // 6D
     Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
-    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB6, dst.cu(), src.cu());
+    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB6, dst.cu(), dst.cu());  // src is dst
     return dst;
   } else {
     throw std::invalid_argument(
