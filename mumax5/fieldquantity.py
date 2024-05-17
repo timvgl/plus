@@ -87,12 +87,9 @@ class FieldQuantity:
 
     def get_rgb(self):
         """Evaluate the vector field quantity and return its rgb representation
-        as a numpy ndarray of the same shape (3, nz, ny, nx)."""
+        as a numpy ndarray of the same shape (ncomp, nz, ny, nx)."""
         assert self.ncomp == 3 or self.ncomp == 6, \
             "The rgb representation can only be calculated for vector fields."
-        if self.ncomp == 6:  # TODO
-            raise NotImplementedError("The rgb representation for"
-                    + "6 component fields is not implemented yet.")
         return self._impl.get_rgb().get()  # Field to ndarray
 
     @property
