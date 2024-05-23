@@ -213,12 +213,12 @@ def show_magnet_geometry(magnet):
     threshed = image_data.threshold_percent(0.5)  # only show True
 
     plotter = _pv.Plotter()
-    plotter.add_mesh(threshed, color="white",
-                     show_edges=True, show_scalar_bar=False, smooth_shading=True)
+    plotter.add_mesh(threshed, color="lightgrey",
+                     show_edges=True, show_scalar_bar=False, lighting=False)
     plotter.add_title(f"{magnet.name} geometry")
     plotter.show_axes()
     plotter.view_xy()
-    # TODO plotter.show_bounds() ?
+    plotter.add_mesh(image_data.outline(), color="black", lighting=False)
     plotter.show()
 
 
