@@ -26,7 +26,6 @@ void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
       .def_property_readonly("name", &Ferromagnet::name)
       .def_property_readonly("system", &Ferromagnet::system)
-      .def_property_readonly("comp", &Ferromagnet::ncomp)
 
       // TODO: implement the world property which returns the MumaxWorld to
       // which the ferromagnet belongs

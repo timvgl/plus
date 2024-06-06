@@ -54,7 +54,7 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
   
   // Create the magnet and add it to this world
   ferromagnets_[name] =
-      std::make_unique<Ferromagnet>(this, grid, comp, name, geometry);
+      std::make_unique<Ferromagnet>(this, grid, name, geometry);
   Ferromagnet* newMagnet = ferromagnets_[name].get();
   
   // Add the magnetic field of the other magnets in this magnet, and vice versa
