@@ -1,20 +1,14 @@
 #pragma once
 
-#include <curand.h>
-
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "dmitensor.hpp"
 #include "field.hpp"
 #include "gpubuffer.hpp"
 #include "grid.hpp"
-#include "parameter.hpp"
-#include "poissonsystem.hpp"
 #include "strayfield.hpp"
-#include "variable.hpp"
 #include "world.hpp"
 
 class FieldQuantity;
@@ -23,11 +17,12 @@ class System;
 
 class Magnet {
  public:
-  Magnet(MumaxWorld* world,
-         Grid grid,
-         std::string name,
-         GpuBuffer<bool> geometry = GpuBuffer<bool>());
-  Magnet(Magnet&&) = default;  // TODO: check if default is ok
+  explicit Magnet(MumaxWorld* world,
+                  Grid grid,
+                  std::string name,
+                  GpuBuffer<bool> geometry = GpuBuffer<bool>());
+
+  virtual ~Magnet() = default; // default destructor, replace later (remove strayfield)
 
   std::string name() const;
   std::shared_ptr<const System> system() const;
@@ -41,14 +36,31 @@ class Magnet {
   std::shared_ptr<System> system_;  // the system_ has to be initialized first,
                                     // hence its listed as the first datamember here
   std::string name_;
-  int ncomp_;
 
- private:
-  Magnet(const Magnet&);
-  Magnet& operator=(const Magnet&);
+  // Delete copy constructor and copy assignment operator to prevent shallow copies
+  Magnet(const Magnet&) = delete;
+  Magnet& operator=(const Magnet&) = delete;
+
+  Magnet(Magnet&& other) noexcept : system_(other.system_), name_(other.name_) {
+        other.system_ = nullptr;
+        other.name_ = "";
+    }
+
+  // Provide move constructor and move assignment operator
+  Magnet& operator=(Magnet&& other) noexcept {
+        if (this != &other) {
+            system_ = other.system_;
+            name_ = other.name_;
+            other.system_ = nullptr;
+            other.name_ = "";
+        }
+        return *this;
+    }
+};
 
 /* TO DO - global properties / parameters / ...
 * Poissonsystem?
 * STT-parameters?
+* Check if "includes" in ferromagnet.* are still needed
+* Delete int comp in Magnet construction
 */
-};

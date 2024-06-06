@@ -9,17 +9,15 @@
 
 #include "fieldquantity.hpp"
 #include "gpubuffer.hpp"
-#include "minimizer.hpp"
 #include "mumaxworld.hpp"
-#include "poissonsystem.hpp"
-#include "strayfield.hpp"
 #include "system.hpp"
 
 Magnet::Magnet(MumaxWorld* world,
-                         Grid grid,
-                         std::string name,
-                         GpuBuffer<bool> geometry)
-    : system_(new System(world, grid, geometry)) {}
+               Grid grid,
+               std::string name,
+               GpuBuffer<bool> geometry)
+    :   system_(new System(world, grid, geometry)),
+        name_(name) {}
 
 std::string Magnet::name() const {
   return name_;
@@ -44,5 +42,3 @@ real3 Magnet::cellsize() const {
 const GpuBuffer<bool>& Magnet::getGeometry() const {
   return system_->geometry();
 }
-
-
