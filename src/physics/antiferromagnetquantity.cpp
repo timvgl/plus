@@ -1,0 +1,1 @@
+#include "antiferromagnetquantity.hpp"
