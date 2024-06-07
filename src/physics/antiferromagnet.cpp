@@ -1,5 +1,6 @@
 #include "antiferromagnet.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <math.h>
 #include <cfloat>
@@ -28,6 +29,12 @@ Ferromagnet* Antiferromagnet::sub1() {
 
 Ferromagnet* Antiferromagnet::sub2() {
   return &sub2_;
+}
+
+Ferromagnet* Antiferromagnet::getOtherSublattice(Ferromagnet* sub) {
+  if (std::find(sublattices_.begin(), sublattices_.end(), sub) == sublattices_.end())
+    throw std::out_of_range("Sublattice not found in Antiferromagnet.");
+  return sublattices_[0] == sub ? sublattices_[1] : sublattices_[0];
 }
 
 std::vector<Ferromagnet*> Antiferromagnet::sublattices() const {

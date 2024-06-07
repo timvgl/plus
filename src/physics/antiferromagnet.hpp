@@ -24,6 +24,7 @@ class Antiferromagnet : public Magnet {
  std::vector<Ferromagnet*> sublattices() const;
  Ferromagnet* sub1();
  Ferromagnet* sub2();
+ Ferromagnet* getOtherSublattice(Ferromagnet* sub);
 
  public:
   Parameter afmex_cell;
