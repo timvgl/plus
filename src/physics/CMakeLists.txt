@@ -3,6 +3,8 @@
 add_library(physics STATIC 
     anisotropy.cu 
     anisotropy.hpp 
+    antiferromagnet.cpp
+    antiferromagnet.hpp
     conductivitytensor.cu
     conductivitytensor.hpp
     constants.hpp

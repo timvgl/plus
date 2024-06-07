@@ -29,22 +29,22 @@ void wrap_world(py::module& m) {
 
       .def(
           "add_ferromagnet",
-          [](MumaxWorld* world, Grid grid, int comp, std::string name) {
-            return world->addFerromagnet(grid, comp, name);
+          [](MumaxWorld* world, Grid grid, std::string name) {
+            return world->addFerromagnet(grid, name);
           },
-          py::arg("grid"), py::arg("comp"), py::arg("name") = std::string(""),
+          py::arg("grid"), py::arg("name") = std::string(""),
           py::return_value_policy::reference)
 
       .def(
           "add_ferromagnet",
-          [](MumaxWorld* world, Grid grid, int comp, py::array_t<bool> geometryArray,
+          [](MumaxWorld* world, Grid grid, py::array_t<bool> geometryArray,
              std::string name) {
             py::buffer_info buf = geometryArray.request();
             GpuBuffer<bool> geometry(buf.size,
                                      reinterpret_cast<bool*>(buf.ptr));
-            return world->addFerromagnet(grid, comp, geometry, name);
+            return world->addFerromagnet(grid, geometry, name);
           },
-          py::arg("grid"), py::arg("comp"), py::arg("geometry"),
+          py::arg("grid"), py::arg("geometry"),
           py::arg("name") = std::string(""), py::return_value_policy::reference)
 
       .def("get_ferromagnet", &MumaxWorld::getFerromagnet, py::arg("name"),

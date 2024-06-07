@@ -34,11 +34,10 @@ class Ferromagnet:
         ferromagnet will be created.
     """
 
-    def __init__(self, world, grid, comp=3, name="", geometry=None):
-        if comp not in (3, 6):
-            raise ValueError("The magnet must have 3 or 6 components.")
+    def __init__(self, world, grid, name="", geometry=None):
+
         if geometry is None:
-            self._impl = world._impl.add_ferromagnet(grid._impl, comp, name)
+            self._impl = world._impl.add_ferromagnet(grid._impl, name)
             return
 
         if callable(geometry):
@@ -61,7 +60,7 @@ class Ferromagnet:
                     + "of the grid."
                 )
 
-        self._impl = world._impl.add_ferromagnet(grid._impl, comp, geometry_array, name)
+        self._impl = world._impl.add_ferromagnet(grid._impl, geometry_array, name)
 
     def __repr__(self):
         """Return Ferromagnet string representation."""
@@ -82,11 +81,6 @@ class Ferromagnet:
     def grid(self):
         """Return the underlying grid of the ferromagnet."""
         return Grid._from_impl(self._impl.system.grid)
-    
-    @property
-    def comp(self):
-        """Return the number of magnetization components."""
-        return self._impl.comp
 
     @property
     def cellsize(self):
