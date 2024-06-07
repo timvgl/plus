@@ -1,6 +1,7 @@
 #include "wrappers.hpp"
 
 PYBIND11_MODULE(_mumax5cpp, m) {
+  wrap_antiferromagnet(m);
   wrap_fieldquantity(m);
   wrap_ferromagnetfieldquantity(m);
   wrap_scalarquantity(m);

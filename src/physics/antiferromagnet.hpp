@@ -22,14 +22,16 @@ class Antiferromagnet : public Magnet {
   ~Antiferromagnet() override = default;
   
  std::vector<Ferromagnet*> sublattices() const;
+ Ferromagnet* sub1();
+ Ferromagnet* sub2();
 
  public:
   Parameter afmex_cell;
   Parameter afmex_nn;
   Parameter latcon;
-  Ferromagnet sub1;
-  Ferromagnet sub2;
+  Ferromagnet sub1_;
+  Ferromagnet sub2_;
  
  private:
-  std::vector<Ferromagnet*> sublattices_ = {&sub1, &sub2};
+  std::vector<Ferromagnet*> sublattices_ = {&sub1_, &sub2_};
 };

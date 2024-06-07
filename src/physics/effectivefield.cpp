@@ -14,8 +14,8 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
   h += evalExchangeField(magnet);
   h += evalExternalField(magnet);
   h += evalDmiField(magnet);
-  if (h.ncomp() == 3)
-    h += evalDemagField(magnet); //ignore (for now) in case of AFM
+  /*if (h.ncomp() == 3)
+    h += evalDemagField(magnet); //ignore (for now) in case of AFM*/
   return h;
 }
 

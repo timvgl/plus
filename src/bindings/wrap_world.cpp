@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "antiferromagnet.hpp"
 #include "ferromagnet.hpp"
 #include "gpubuffer.hpp"
 #include "grid.hpp"
@@ -43,6 +44,26 @@ void wrap_world(py::module& m) {
             GpuBuffer<bool> geometry(buf.size,
                                      reinterpret_cast<bool*>(buf.ptr));
             return world->addFerromagnet(grid, geometry, name);
+          },
+          py::arg("grid"), py::arg("geometry"),
+          py::arg("name") = std::string(""), py::return_value_policy::reference)
+
+      .def(
+          "add_antiferromagnet",
+          [](MumaxWorld* world, Grid grid, std::string name) {
+            return world->addAntiferromagnet(grid, name);
+          },
+          py::arg("grid"), py::arg("name") = std::string(""),
+          py::return_value_policy::reference)
+
+      .def(
+          "add_antiferromagnet",
+          [](MumaxWorld* world, Grid grid, py::array_t<bool> geometryArray,
+             std::string name) {
+            py::buffer_info buf = geometryArray.request();
+            GpuBuffer<bool> geometry(buf.size,
+                                     reinterpret_cast<bool*>(buf.ptr));
+            return world->addAntiferromagnet(grid, geometry, name);
           },
           py::arg("grid"), py::arg("geometry"),
           py::arg("name") = std::string(""), py::return_value_policy::reference)

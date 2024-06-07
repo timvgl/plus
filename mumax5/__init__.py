@@ -2,6 +2,7 @@
 
 import _mumax5cpp as _cpp
 
+from .antiferromagnet import Antiferromagnet
 from .dmitensor import DmiTensor
 from .ferromagnet import Ferromagnet
 from .fieldquantity import FieldQuantity
@@ -17,6 +18,7 @@ from . import util
 
 __all__ = [
     "_cpp",
+    "Antiferromagnet",
     "DmiTensor",
     "Ferromagnet",
     "FieldQuantity",

@@ -3,7 +3,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "antiferromagnet.hpp"
 #include "datatypes.hpp"
@@ -171,7 +170,6 @@ const std::map<std::string, Antiferromagnet*> MumaxWorld::antiferromagnets() con
 void MumaxWorld::resetTimeSolverEquations() {
   std::vector<DynamicEquation> equations;
   for (const auto& namedMagnet : ferromagnets_) {
-    std::cout << "add ferro";
     Ferromagnet* magnet = namedMagnet.second.get();
     DynamicEquation eq(
         magnet->magnetization(),
@@ -181,7 +179,6 @@ void MumaxWorld::resetTimeSolverEquations() {
   }
 
   for (const auto& namedMagnet : antiferromagnets_) {
-    std::cout << "add anti";
     Antiferromagnet* magnet = namedMagnet.second.get();
     for (Ferromagnet* sub : magnet->sublattices()) {
       DynamicEquation eq(
