@@ -16,7 +16,7 @@
 class Antiferromagnet : public Magnet {
  public:
   Antiferromagnet(MumaxWorld* world,
-        Grid grid,
+         Grid grid,
          std::string name,
          GpuBuffer<bool> geometry);
   ~Antiferromagnet() override = default;

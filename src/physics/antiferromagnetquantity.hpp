@@ -35,7 +35,7 @@ class AFM_FieldQuantity : public FieldQuantity {
   }
   int ncomp() const { return ncomp_; }
   std::shared_ptr<const System> system() const {
-    return antiferromagnet_->system();
+    return sublattice_->system();
   }
   std::string name() const { return name_; }
   std::string unit() const { return unit_; }
