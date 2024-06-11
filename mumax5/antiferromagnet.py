@@ -6,6 +6,7 @@ import _mumax5cpp as _cpp
 
 from .fieldquantity import FieldQuantity
 from .ferromagnet import Ferromagnet
+from .grid import Grid
 from .parameter import Parameter
 
 
@@ -34,6 +35,8 @@ class Antiferromagnet:
 
         if geometry is None:
             self._impl = world._impl.add_antiferromagnet(grid._impl, name)
+            self._sub1 = Ferromagnet(world, grid, name, geometry)
+            self._sub2 = Ferromagnet(world, grid, name, geometry)
             return
 
         if callable(geometry):
@@ -57,6 +60,8 @@ class Antiferromagnet:
                 )
 
         self._impl = world._impl.add_antiferromagnet(grid._impl, geometry_array, name)
+        self._sub1 = Ferromagnet(world, grid, name, geometry)
+        self._sub2 = Ferromagnet(world, grid, name, geometry)
 
     def __repr__(self):
         """Return Antiferromagnet string representation."""
@@ -72,16 +77,25 @@ class Antiferromagnet:
     def name(self):
         """Name of the antiferromagnet."""
         return self._impl.name
-
+    
+    @property
+    def grid(self):
+        """Return the underlying grid of the ferromagnet."""
+        return Grid._from_impl(self._impl.system.grid)
+    
     @property
     def sub1(self):
         """First sublattice instance."""
-        return Ferromagnet(self._impl.sub1)
+        return self._sub1
     
     @property
     def sub2(self):
         """Second sublattice instance."""
-        return Ferromagnet(self._impl.sub2)
+        return self._sub2
+    
+    @property
+    def sublattices(self):
+        return (self.sub1, self.sub2)
     
     # ----- MATERIAL PARAMETERS -----------
 
