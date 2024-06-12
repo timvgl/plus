@@ -1,6 +1,8 @@
 #project(mumax5)
 
 add_library(physics STATIC 
+    afmexchange.cu
+    afmexchange.hpp
     anisotropy.cu 
     anisotropy.hpp 
     antiferromagnet.cpp

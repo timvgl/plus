@@ -21,10 +21,10 @@ class Antiferromagnet : public Magnet {
          GpuBuffer<bool> geometry);
   ~Antiferromagnet() override = default;
   
- std::vector<Ferromagnet*> sublattices() const;
- Ferromagnet* sub1();
- Ferromagnet* sub2();
- Ferromagnet* getOtherSublattice(Ferromagnet* sub);
+ std::vector<const Ferromagnet*> sublattices() const;
+ const Ferromagnet* sub1() const;
+ const Ferromagnet* sub2() const;
+ const Ferromagnet* getOtherSublattice(const Ferromagnet* sub) const;
 
  public:
   Parameter afmex_cell;
@@ -34,5 +34,5 @@ class Antiferromagnet : public Magnet {
   Ferromagnet sub2_;
  
  private:
-  std::vector<Ferromagnet*> sublattices_ = {&sub1_, &sub2_};
+  std::vector<const Ferromagnet*> sublattices_ = {&sub1_, &sub2_};
 };

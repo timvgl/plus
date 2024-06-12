@@ -23,20 +23,20 @@ Antiferromagnet::Antiferromagnet(MumaxWorld* world,
       sub1_(Ferromagnet(world, grid, name + ":sublattice_1", geometry)),
       sub2_(Ferromagnet(world, grid, name + ":sublattice_2", geometry)) {}
 
-Ferromagnet* Antiferromagnet::sub1() {
+const Ferromagnet* Antiferromagnet::sub1() const {
   return &sub1_;
 }
 
-Ferromagnet* Antiferromagnet::sub2() {
+const Ferromagnet* Antiferromagnet::sub2() const {
   return &sub2_;
 }
 
-Ferromagnet* Antiferromagnet::getOtherSublattice(Ferromagnet* sub) {
+const Ferromagnet* Antiferromagnet::getOtherSublattice(const Ferromagnet* sub) const {
   if (std::find(sublattices_.begin(), sublattices_.end(), sub) == sublattices_.end())
     throw std::out_of_range("Sublattice not found in Antiferromagnet.");
-  return sublattices_[0] == sub ? sublattices_[1] : sublattices_[0];
+  return sublattices_[0] == sub ? &sub2_ : &sub1_;
 }
 
-std::vector<Ferromagnet*> Antiferromagnet::sublattices() const {
+std::vector<const Ferromagnet*> Antiferromagnet::sublattices() const {
   return sublattices_;
 }

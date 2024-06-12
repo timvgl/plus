@@ -37,7 +37,7 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
         "Can not add ferromagnet because the grid does not fit in the "
         "mastergrid ");
   }
-
+  
   for (const auto& namedMagnet : magnets_) {
     Magnet* m = namedMagnet.second.get();
     if (grid.overlaps(m->grid())) {
@@ -46,6 +46,7 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
           "magnet.");
     }
   }
+  
 
   static int idxUnnamed = 1;
   if (name.length() == 0) {
@@ -179,11 +180,11 @@ void MumaxWorld::resetTimeSolverEquations() {
   }
 
   for (const auto& namedMagnet : antiferromagnets_) {
-    Antiferromagnet* magnet = namedMagnet.second.get();
-    for (Ferromagnet* sub : magnet->sublattices()) {
+    const Antiferromagnet* magnet = namedMagnet.second.get();
+    for (const Ferromagnet* sub : magnet->sublattices()) {
       DynamicEquation eq(
         sub->magnetization(),
-        std::shared_ptr<FieldQuantity>(torqueQuantity(sub).clone()),
+        std::shared_ptr<FieldQuantity>(AFM_torqueQuantity(magnet, sub).clone()),
         std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(sub).clone()));
       equations.push_back(eq);
     }

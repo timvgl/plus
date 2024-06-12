@@ -1,5 +1,6 @@
 #include <memory>
 
+#include "antiferromagnet.hpp"
 #include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "effectivefield.hpp"
@@ -16,6 +17,12 @@ Field evalTorque(const Ferromagnet* magnet) {
   return torque;
 }
 
+Field evalAFMTorque(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  Field torque = evalAFMLlgTorque(magnet, sublattice);
+  if (!spinTransferTorqueAssuredZero(sublattice))
+    torque += evalSpinTransferTorque(sublattice);
+  return torque;
+}
 __global__ void k_llgtorque(CuField torque,
                             const CuField mField,
                             const CuField hField,
@@ -65,6 +72,16 @@ Field evalLlgTorque(const Ferromagnet* magnet) {
   return torque;
 }
 
+Field evalAFMLlgTorque(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  const Field& s = sublattice->magnetization()->field();
+  int comp = s.ncomp();
+  Field torque(sublattice->system(), comp);
+  Field h = evalAFMEffectiveField(magnet, sublattice);
+  const Parameter& alpha = sublattice->alpha;
+  int ncells = torque.grid().ncells();
+  cudaLaunch(ncells, k_llgtorque, torque.cu(), s.cu(), h.cu(), alpha.cu(), comp);
+  return torque;
+}
 __global__ void k_dampingtorque(CuField torque,
                                 const CuField mField,
                                 const CuField hField,
@@ -108,9 +125,24 @@ Field evalRelaxTorque(const Ferromagnet* magnet) {
   return torque;
 }
 
+Field evalAFMRelaxTorque(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  const Field& s = sublattice->magnetization()->field();
+  int comp = s.ncomp();
+  Field torque(sublattice->system(), comp);
+  Field h = evalAFMEffectiveField(magnet, sublattice);
+  int ncells = torque.grid().ncells();
+  cudaLaunch(ncells, k_dampingtorque, torque.cu(), s.cu(), h.cu(), comp);
+  return torque;
+}
+
 FM_FieldQuantity torqueQuantity(const Ferromagnet* magnet) {
   int comp = magnet->magnetization()->ncomp();
   return FM_FieldQuantity(magnet, evalTorque, comp, "torque", "1/s");
+}
+
+AFM_FieldQuantity AFM_torqueQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  int comp = sublattice->magnetization()->ncomp();
+  return AFM_FieldQuantity(magnet, sublattice, evalAFMTorque, comp, "torque", "1/s");
 }
 
 FM_FieldQuantity llgTorqueQuantity(const Ferromagnet* magnet) {
@@ -118,7 +150,17 @@ FM_FieldQuantity llgTorqueQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalLlgTorque, comp, "llg_torque", "1/s");
 }
 
+AFM_FieldQuantity AFM_llgTorqueQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  int comp = sublattice->magnetization()->ncomp();
+  return AFM_FieldQuantity(magnet, sublattice, evalAFMLlgTorque, comp, "llg_torque", "1/s");
+}
+
 FM_FieldQuantity relaxTorqueQuantity(const Ferromagnet* magnet) {
   int comp = magnet->magnetization()->ncomp();
   return FM_FieldQuantity(magnet, evalRelaxTorque, comp, "damping_torque", "1/s");
+}
+
+AFM_FieldQuantity AFM_relaxTorqueQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  int comp = sublattice->magnetization()->ncomp();
+  return AFM_FieldQuantity(magnet, sublattice, evalAFMRelaxTorque, comp, "damping_torque", "1/s");
 }
