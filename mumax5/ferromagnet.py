@@ -32,12 +32,19 @@ class Ferromagnet:
     name : str (default="")
         The ferromagnet's identifier. If the name is empty (the default), a name for the
         ferromagnet will be created.
+    isSublattice : mumax5.Ferromagnet (default=None)
+        The Ferromagnet instance which is created by initializing an Antiferromagnet
+        instance (i.e. a sublattice). The ferromagnet is added to World by initializing
+        the host antiferromagnetic lattice.
     """
 
-    def __init__(self, world, grid, name="", geometry=None):
+    def __init__(self, world, grid, name="", geometry=None, isSublattice=None):
 
         if geometry is None:
-            self._impl = world._impl.add_ferromagnet(grid._impl, name)
+            if isSublattice is None:
+                self._impl = world._impl.add_ferromagnet(grid._impl, name)
+            else:
+                self._impl = isSublattice
             return
 
         if callable(geometry):
@@ -59,8 +66,10 @@ class Ferromagnet:
                     "The dimensions of the geometry do not match the dimensions "
                     + "of the grid."
                 )
-
-        self._impl = world._impl.add_ferromagnet(grid._impl, geometry_array, name)
+        if isSublattice is None:
+            self._impl = world._impl.add_ferromagnet(grid._impl, geometry_array, name)
+        else:
+            self._impl = isSublattice
 
     def __repr__(self):
         """Return Ferromagnet string representation."""

@@ -16,27 +16,28 @@ class Antiferromagnet:
     Parameters
     ----------
     world : mumax5.World
-        World in which the ferromagnet lives.
+        World in which the antiferromagnet lives.
     grid : mumax5.Grid
-        The number of cells in x, y, z the ferromagnet should be divided into.
+        The number of cells in x, y, z the antiferromagnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
-        The geometry of the ferromagnet can be set in three ways.
+        The geometry of the antiferromagnet can be set in three ways.
         1. If the geometry contains all cells in the grid, then use None (the default)
         2. Use an ndarray which specifies for each cell wheter or not it is in the
            geometry.
         3. Use a function which takes x, y, and z coordinates as arguments and returns
            true if this position is inside the geometry and false otherwise.
     name : str (default="")
-        The ferromagnet's identifier. If the name is empty (the default), a name for the
-        ferromagnet will be created.
+        The antiferromagnet's identifier. If the name is empty (the default), a name for the
+        antiferromagnet will be created.
     """
 
     def __init__(self, world, grid, name="", geometry=None):
 
         if geometry is None:
             self._impl = world._impl.add_antiferromagnet(grid._impl, name)
-            self._sub1 = Ferromagnet(world, grid, name, geometry)
-            self._sub2 = Ferromagnet(world, grid, name, geometry)
+            self._sub1 = Ferromagnet(world, grid, name, isSublattice=self._impl.sub1())
+            self._sub2 = Ferromagnet(world, grid, name, isSublattice=self._impl.sub2())
+
             return
 
         if callable(geometry):
@@ -59,9 +60,9 @@ class Antiferromagnet:
                     + "of the grid."
                 )
 
-        self._impl = world._impl.add_antiferromagnet(grid._impl, geometry_array, name)
-        self._sub1 = Ferromagnet(world, grid, name, geometry)
-        self._sub2 = Ferromagnet(world, grid, name, geometry)
+        self._impl = world._impl.add_antiferromagnet(grid._impl, name)
+        self._sub1 = Ferromagnet(world, grid, name, geometry, self._impl.sub1())
+        self._sub2 = Ferromagnet(world, grid, name, geometry, self._impl.sub2())
 
     def __repr__(self):
         """Return Antiferromagnet string representation."""
@@ -95,8 +96,8 @@ class Antiferromagnet:
     
     @property
     def sublattices(self):
-        return (self.sub1, self.sub2)
-    
+        return (self._sub1, self._sub2)
+
     # ----- MATERIAL PARAMETERS -----------
 
     @property
