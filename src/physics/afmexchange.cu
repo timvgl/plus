@@ -134,43 +134,37 @@ Field evalAFMExchangeField(const Antiferromagnet* magnet, const Ferromagnet* sub
              afmex_cell, afmex_nn, msat2, latcon, w, sublattice->world()->mastergrid());
   return hField;
 }
-/*
-Field evalExchangeEnergyDensity(const Ferromagnet* magnet) {
-  if (exchangeAssuredZero(magnet))
-    return Field(magnet->system(), magnet->magnetization()->ncomp() / 3, 0.0);
-  return evalEnergyDensity(magnet, evalExchangeField(magnet), 0.5);
+
+Field evalAFMExchangeEnergyDensity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  if (afmExchangeAssuredZero(magnet))
+    return Field(sublattice->system(),1, 0.0);
+  return evalEnergyDensity(sublattice, evalAFMExchangeField(magnet, sublattice), 0.5);
 }
 
-real evalExchangeEnergy(const Ferromagnet* magnet, const bool sub2) {
-  if (exchangeAssuredZero(magnet))
+real evalAFMExchangeEnergy(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  if (afmExchangeAssuredZero(magnet))
     return 0;
     
-  real edens;
-  if (!sub2) 
-    edens = exchangeEnergyDensityQuantity(magnet).average()[0];
-  else 
-    edens = exchangeEnergyDensityQuantity(magnet).average()[1];
+  real edens = AFM_exchangeEnergyDensityQuantity(magnet, sublattice).average()[0];
 
   int ncells = magnet->grid().ncells();
   real cellVolume = magnet->world()->cellVolume();
   return ncells * edens * cellVolume;
 }
-*/
+
 AFM_FieldQuantity AFM_exchangeFieldQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
   return AFM_FieldQuantity(magnet, sublattice, evalAFMExchangeField, 3, "exchange_field", "T");
 }
-/*
-FM_FieldQuantity exchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
-  int comp = magnet->magnetization()->ncomp();
-  return FM_FieldQuantity(magnet, evalExchangeEnergyDensity, comp / 3,
-                          "exchange_energy_density", "J/m3");
+
+AFM_FieldQuantity AFM_exchangeEnergyDensityQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  return AFM_FieldQuantity(magnet, sublattice, evalAFMExchangeEnergyDensity, 1,
+                          "afm_exchange_energy_density", "J/m3");
 }
 
-FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet* magnet, const bool sub2) {
-  std::string name = sub2 ? "exchange_energy2" : "exchange_energy";
-  return FM_ScalarQuantity(magnet, evalExchangeEnergy, sub2, name, "J");
+AFM_ScalarQuantity AFM_exchangeEnergyQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+  return AFM_ScalarQuantity(magnet, sublattice, evalAFMExchangeEnergy, "afm_exchange_energy", "J");
 }
-*/
+
 /*
 __global__ void k_maxangle(CuField maxAngleField,
                            const CuField mField,
