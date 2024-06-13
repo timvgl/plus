@@ -1,5 +1,6 @@
 #include <memory>
 
+#include "antiferromagnetquantity.hpp"
 #include "ferromagnetquantity.hpp"
 #include "field.hpp"
 #include "fieldquantity.hpp"
@@ -23,4 +24,8 @@ void wrap_fieldquantity(py::module& m) {
 
 void wrap_ferromagnetfieldquantity(py::module& m) {
   py::class_<FM_FieldQuantity, FieldQuantity>(m, "FerromagnetFieldQuantity");
+}
+
+void wrap_antiferromagnetfieldquantity(py::module& m) {
+  py::class_<AFM_FieldQuantity, FieldQuantity>(m, "AntiferromagnetFieldQuantity");
 }

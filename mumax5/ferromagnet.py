@@ -520,11 +520,6 @@ class Ferromagnet:
         return FieldQuantity(_cpp.spin_transfer_torque(self._impl))
     
     @property
-    def neel_vector(self):
-        """Neel vector of an antiferromagnet instance."""
-        return FieldQuantity(_cpp.neel_vector(self._impl))
-
-    @property
     def demag_field(self):
         """Demagnetization field."""
         return FieldQuantity(_cpp.demag_field(self._impl))

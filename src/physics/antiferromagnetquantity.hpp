@@ -11,6 +11,7 @@
 #include "system.hpp"
 
 class Antiferromagnet;
+class Ferromagnet;
 
 typedef std::function<Field(const Antiferromagnet*, const Ferromagnet*)> AFM_FieldFunc;
 typedef std::function<real(const Antiferromagnet*, const Ferromagnet*)> AFM_ScalarFunc;

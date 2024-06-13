@@ -1,10 +1,12 @@
+#include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "neel.hpp"
 
 __global__ void k_neelvector(CuField neel,
-                             const CuField mag) {
+                             const CuField mag1,
+                             const CuField mag2) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry, set to zero and return early
@@ -13,25 +15,25 @@ __global__ void k_neelvector(CuField neel,
         neel.setVectorInCell(idx, real3{0, 0, 0});
     return;
   }
-    real6 m = mag.AFM_vectorAt(idx);
-    neel.setVectorInCell(idx, 0.5 * real3{m.x1 - m.x2, m.y1 - m.y2, m.z1 - m.z2}); 
+    real3 m1 = mag1.FM_vectorAt(idx);
+    real3 m2 = mag2.FM_vectorAt(idx);
+    neel.setVectorInCell(idx, 0.5 * (m1 - m2));
 }
 
-Field evalNeelvector(const Ferromagnet* magnet) {
+Field evalNeelvector(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
   Field neel(magnet->system(), 3);
 
-  if (magnet->msat.assuredZero() && magnet->msat2.assuredZero()) {
+  if (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat2.assuredZero()) {
     neel.makeZero();
     return neel;
   }
   cudaLaunch(neel.grid().ncells(), k_neelvector, neel.cu(),
-             magnet->magnetization()->field().cu());
+             magnet->sub1()->magnetization()->field().cu(),
+             magnet->sub2()->magnetization()->field().cu());
   return neel;
 }
 
-FM_FieldQuantity neelVectorQuantity(const Ferromagnet* magnet) {
-    if (magnet->magnetization()->ncomp() != 6)
-        throw std::runtime_error("Cannot compute the Neel vector for a magnetization with"
-                                  + std::to_string(magnet->magnetization()->ncomp()) + "components.");
-    return FM_FieldQuantity(magnet, evalNeelvector, 3, "neel_vector", "A/m");
+AFM_FieldQuantity neelVectorQuantity(const Antiferromagnet* magnet) {
+    // TODO: make sublattice argument optional (nullptr)
+    return AFM_FieldQuantity(magnet, magnet->sub1(), evalNeelvector, 3, "neel_vector", "A/m");
 }

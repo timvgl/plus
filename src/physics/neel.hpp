@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ferromagnetquantity.hpp"
+#include "antiferromagnetquantity.hpp"
 
+class Antiferromagnet;
 class Ferromagnet;
 class Field;
 
-Field evalNeelvector(const Ferromagnet*);
-FM_FieldQuantity neelVectorQuantity(const Ferromagnet*);
+Field evalNeelvector(const Antiferromagnet*, const Ferromagnet*);
+AFM_FieldQuantity neelVectorQuantity(const Antiferromagnet*);
