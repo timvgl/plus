@@ -56,25 +56,15 @@ class Ferromagnet : public Magnet {
    */
   FM_VectorParameter biasMagneticField;
   Parameter msat;
-  Parameter msat2;
   Parameter aex;
-  Parameter aex2;
-  Parameter afmex_cell;
-  Parameter afmex_nn;
   Parameter ku1;
-  Parameter ku12;
   Parameter ku2;
-  Parameter ku22;
   Parameter kc1;
   Parameter kc2;
   Parameter kc3;
-  Parameter kc12;
-  Parameter kc22;
-  Parameter kc32;
   Parameter alpha;
   Parameter temperature;
   Parameter idmi;
-  Parameter latcon;
   Parameter Lambda;
   Parameter FreeLayerThickness;
   Parameter eps_prime;
@@ -82,9 +72,7 @@ class Ferromagnet : public Magnet {
   Parameter pol;
   Parameter appliedPotential;
   Parameter conductivity;
-  Parameter conductivity2;
   Parameter amrRatio;
-  Parameter amrRatio2;
 
   curandGenerator_t randomGenerator;
 
