@@ -135,5 +135,12 @@ class Antiferromagnet:
 
     @property
     def neel_vector(self):
-        """Neel vector of an antiferromagnet instance."""
+        """Neel vector of an antiferromagnet instance.
+        This quantity is defined as L = (M1 - M2) / 2
+        """
         return FieldQuantity(_cpp.neel_vector(self._impl))
+    
+    @property
+    def total_magnetization(self):
+        """Total antiferromagnetic magnetization: M1 + M2."""
+        return FieldQuantity(_cpp.total_magnetization(self._impl))
