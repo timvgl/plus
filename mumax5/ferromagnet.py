@@ -429,7 +429,7 @@ class Ferromagnet:
     @property
     def demag_energy(self):
         """Energy related to the demag field."""
-        return ScalarQuantity(_cpp.demag_energy(self._impl, False))
+        return ScalarQuantity(_cpp.demag_energy(self._impl))
 
     @property
     def anisotropy_field(self):
@@ -444,7 +444,7 @@ class Ferromagnet:
     @property
     def anisotropy_energy(self):
         """Energy related to the magnetic anisotropy."""
-        return ScalarQuantity(_cpp.anisotropy_energy(self._impl, False))
+        return ScalarQuantity(_cpp.anisotropy_energy(self._impl))
 
     @property
     def exchange_field(self):
@@ -459,13 +459,13 @@ class Ferromagnet:
     @property
     def exchange_energy(self):
         """Energy related to the exchange interaction."""
-        return ScalarQuantity(_cpp.exchange_energy(self._impl, False))
+        return ScalarQuantity(_cpp.exchange_energy(self._impl))
 
     @property
     def max_angle(self):
         """Maximal angle difference of the magnetization between exchange\
          coupled cells."""
-        return ScalarQuantity(_cpp.max_angle(self._impl, True))
+        return ScalarQuantity(_cpp.max_angle(self._impl))
 
     @property
     def dmi_field(self):
@@ -504,7 +504,7 @@ class Ferromagnet:
         -------
         dmi_energy_density : float
         """
-        return ScalarQuantity(_cpp.dmi_energy(self._impl, False))
+        return ScalarQuantity(_cpp.dmi_energy(self._impl))
     
     @property
     def external_field(self):
@@ -519,7 +519,7 @@ class Ferromagnet:
     @property
     def zeeman_energy(self):
         """Energy related to external fields."""
-        return ScalarQuantity(_cpp.zeeman_energy(self._impl, False))
+        return ScalarQuantity(_cpp.zeeman_energy(self._impl))
 
     @property
     def effective_field(self):
@@ -534,7 +534,7 @@ class Ferromagnet:
     @property
     def total_energy(self):
         """Energy related to the total effective field."""
-        return ScalarQuantity(_cpp.total_energy(self._impl, False))
+        return ScalarQuantity(_cpp.total_energy(self._impl))
 
     @property
     def electrical_potential(self):

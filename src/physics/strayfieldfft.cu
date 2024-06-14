@@ -45,7 +45,7 @@ __CUDAOP__ complex prod(complex a, complex b) {
 #endif
 }
 
-__global__ void k_pad(CuField out, CuField in, CuParameter msat, CuParameter msat2, int ncomp) {
+__global__ void k_pad(CuField out, CuField in, CuParameter msat) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
   Grid outgrid = out.system.grid;
@@ -59,17 +59,9 @@ __global__ void k_pad(CuField out, CuField in, CuParameter msat, CuParameter msa
   int inIdx = ingrid.coord2index(inCoo);
 
   if (in.cellInGeometry(inCoo)) {
-    if (ncomp == 3) {
-      real Ms = msat.valueAt(inIdx);
-      for (int c = 0; c < out.ncomp; c++)
-        out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
-    }
-    else if (ncomp == 6) {
-      real Ms1 = msat.valueAt(inIdx);
-      real Ms2 = msat2.valueAt(inIdx);
-      for (int c = 0; c < out.ncomp; c++)
-        out.setValueInCell(outIdx, c, Ms1 * in.valueAt(inIdx, c) + Ms2 * in.valueAt(inIdx, c + 3));
-    }
+    real Ms = msat.valueAt(inIdx);
+    for (int c = 0; c < out.ncomp; c++)
+      out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
   } else {
     for (int c = 0; c < out.ncomp; c++)
       out.setValueInCell(outIdx, c, 0.0);
@@ -194,13 +186,12 @@ StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
 
 Field StrayFieldFFTExecutor::exec() const {
   const Field& m = magnet_->magnetization()->field();
-  int ncomp = m.cu().ncomp;
   // pad m, and multiply with msat
   std::shared_ptr<System> kernelSystem =
       std::make_shared<System>(m.system()->world(), kernel_.grid());
   std::unique_ptr<Field> mpad(new Field(kernelSystem, 3));
   cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m.cu(),
-             magnet_->msat.cu(), magnet_->msat2.cu(), ncomp);
+             magnet_->msat.cu());
 
   // Forward fourier transforms
   for (int comp = 0; comp < 3; comp++)

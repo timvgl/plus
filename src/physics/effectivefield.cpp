@@ -31,13 +31,9 @@ Field evalAFMEffectiveField(const Antiferromagnet* magnet, const Ferromagnet* su
 }
 
 FM_FieldQuantity effectiveFieldQuantity(const Ferromagnet* magnet) {
-  int comp = magnet->magnetization()->ncomp();
-  return FM_FieldQuantity(magnet, evalEffectiveField, comp,
-                            "effective_field", "T");
+  return FM_FieldQuantity(magnet, evalEffectiveField, 3, "effective_field", "T");
 }
 
 AFM_FieldQuantity AFM_effectiveFieldQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-  int comp = sublattice->magnetization()->ncomp();
-  return AFM_FieldQuantity(magnet, sublattice, evalAFMEffectiveField, comp,
-                            "effective_field", "T");
+  return AFM_FieldQuantity(magnet, sublattice, evalAFMEffectiveField, 3, "effective_field", "T");
 }

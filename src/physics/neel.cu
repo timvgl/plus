@@ -23,7 +23,7 @@ __global__ void k_neelvector(CuField neel,
 Field evalNeelvector(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
   Field neel(magnet->system(), 3);
 
-  if (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat2.assuredZero()) {
+  if (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat.assuredZero()) {
     neel.makeZero();
     return neel;
   }

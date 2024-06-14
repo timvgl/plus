@@ -11,7 +11,7 @@ bool demagFieldAssuredZero(const Ferromagnet* magnet) {
 
 Field evalDemagField(const Ferromagnet* magnet) {
   if (demagFieldAssuredZero(magnet))
-    return Field(magnet->system(), magnet->magnetization()->ncomp(), 0.0);
+    return Field(magnet->system(), 3, 0.0);
   return magnet->getStrayField(magnet)->eval();
 }
 
@@ -21,7 +21,7 @@ Field evalDemagEnergyDensity(const Ferromagnet* magnet) {
   return evalEnergyDensity(magnet, evalDemagField(magnet), 0.5);
 }
 
-real evalDemagEnergy(const Ferromagnet* magnet, const bool sub2) {
+real evalDemagEnergy(const Ferromagnet* magnet) {
   if (demagFieldAssuredZero(magnet))
     return 0.0;
   int ncells = magnet->grid().ncells();
@@ -31,8 +31,7 @@ real evalDemagEnergy(const Ferromagnet* magnet, const bool sub2) {
 }
 
 FM_FieldQuantity demagFieldQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalDemagField, magnet->magnetization()->ncomp()
-                          , "demag_field", "T");
+  return FM_FieldQuantity(magnet, evalDemagField, 3, "demag_field", "T");
 }
 
 FM_FieldQuantity demagEnergyDensityQuantity(const Ferromagnet* magnet) {
@@ -40,7 +39,6 @@ FM_FieldQuantity demagEnergyDensityQuantity(const Ferromagnet* magnet) {
                           "demag_energy_density", "J/m3");
 }
 
-FM_ScalarQuantity demagEnergyQuantity(const Ferromagnet* magnet, const bool sub2) {
-  std::string name = sub2 ? "demag_energy2" : "demag_energy";
-  return FM_ScalarQuantity(magnet, evalDemagEnergy, sub2, name, "J");
+FM_ScalarQuantity demagEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalDemagEnergy, "demag_energy", "J");
 }
