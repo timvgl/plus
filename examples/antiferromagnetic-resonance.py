@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import rfft, rfftfreq
 from scipy.signal import find_peaks
-from mumax5 import Ferromagnet, Grid, World
+from mumax5 import Antiferromagnet, Grid, World
 
 
 Ms = 200e3
@@ -19,19 +19,16 @@ c = 1e-9
 nx, ny, nz = 1, 1, 1
 world = World(cellsize=(c, c, c))
 
-magnet = Ferromagnet(world, Grid((nx, ny, nz)), 6)
-magnet.msat = Ms
-magnet.msat2 = Ms
-magnet.alpha = alpha
-
-magnet.afmex_cell = A0
-magnet.aex, magnet.aex2 = A, A
+magnet = Antiferromagnet(world, Grid((nx, ny, nz)))
 magnet.afmex_nn = A12
+magnet.afmex_cell = A0
 
-magnet.ku1 = K
-magnet.ku12 = K
-
-magnet.anisU = (0, 0, 1)
+for sub in magnet.sublattices:
+    sub.msat = Ms
+    sub.alpha = alpha
+    sub.aex = A
+    sub.ku1 = K
+    sub.anisU = (0, 0, 1)
 
 freq1, freq2 = [], []
 
@@ -52,9 +49,10 @@ for Hext in H:
     world.bias_magnetic_field = (0, 0, Hext)
 
     # Create some asymmetry
-    magnet.magnetization = (0, 0.1, 0.9, 0, -0.1, -0.9)
+    magnet.sub1.magnetization = (0, 0.1, 0.9)
+    magnet.sub2.magnetization = (0, -0.1, -0.9)
 
-    outputquantities = {"my1": lambda: magnet.magnetization.average()[1]}
+    outputquantities = {"my1": lambda: magnet.sub1.magnetization.average()[1]}
     
     world.timesolver.time = 0
     output = world.timesolver.solve(timepoints, outputquantities)

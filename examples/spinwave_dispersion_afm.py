@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
+from mumax5 import Antiferromagnet, Grid, World
 
 # Antiferromagnetic spinwave dispersion relation
 
@@ -31,32 +31,32 @@ world = World(cell_size)
 world.bias_magnetic_field = (0, 0, Bz)
 
 # Create a ferromagnet
-magnet = Ferromagnet(world, Grid(size=grid_size), 6)
-magnet.msat = Ms
-magnet.msat2 = Ms
-magnet.aex = A
-magnet.aex2 = A
+magnet = Antiferromagnet(world, Grid(size=grid_size))
+for sub in magnet.sublattices:
+    sub.msat = Ms
+    sub.aex = A
+    sub.alpha = alpha
+    sub.ku1 = K
+    sub.anisU = (0, 0, 1)
+
 magnet.afmex_nn = A_nn
 magnet.afmex_cell = A_c
-magnet.alpha = alpha
 magnet.latcon = dx
-
-magnet.ku1 = K
-magnet.ku12 = K
-magnet.anisU = (0, 0, 1)
 
 
 Bt = lambda t: (1e2* np.sinc(2 * fmax * (t - T / 2)), 0, 0)
 mask = np.zeros(shape=(1, 1, nx))
 # Put signal at the center of the simulation box
 mask[:, :, nx // 2 - 1:nx // 2 + 1] = 1
-magnet.bias_magnetic_field.add_time_term(Bt, mask)
+for sub in magnet.sublattices:
+    sub.bias_magnetic_field.add_time_term(Bt, mask)
 
-magnet.magnetization = (0, 0, 1, 0, 0, -1)
-magnet.minimize()
+magnet.sub1.magnetization = (0, 0, 1)
+magnet.sub2.magnetization = (0, 0, -1)
+#magnet.minimize()
 
 timepoints = np.linspace(0, T, 1 + int(T / dt))
-outputquantities = {'m': lambda: magnet.magnetization.eval()}
+outputquantities = {'m': lambda: magnet.sub1.magnetization.eval()}
 
 # Run solver
 output = world.timesolver.solve(timepoints, outputquantities)
