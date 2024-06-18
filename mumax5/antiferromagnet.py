@@ -13,6 +13,9 @@ from .parameter import Parameter
 class Antiferromagnet:
     """Create an antiferromagnet instance.
 
+    This class can also be used to create a Ferrimagnet instance since both sublattices
+    are independently modifiable.
+
     Parameters
     ----------
     world : mumax5.World
@@ -32,12 +35,8 @@ class Antiferromagnet:
     """
 
     def __init__(self, world, grid, name="", geometry=None):
-
         if geometry is None:
             self._impl = world._impl.add_antiferromagnet(grid._impl, name)
-            self._sub1 = Ferromagnet(world, grid, name, isSublattice=self._impl.sub1())
-            self._sub2 = Ferromagnet(world, grid, name, isSublattice=self._impl.sub2())
-
             return
 
         if callable(geometry):
@@ -61,12 +60,32 @@ class Antiferromagnet:
                 )
 
         self._impl = world._impl.add_antiferromagnet(grid._impl, name)
-        self._sub1 = Ferromagnet(world, grid, name, geometry, self._impl.sub1())
-        self._sub2 = Ferromagnet(world, grid, name, geometry, self._impl.sub2())
 
     def __repr__(self):
         """Return Antiferromagnet string representation."""
         return f"Antiferromagnet(grid={self.grid}, name='{self.name}')"
+
+    def __setattr__(self, name, value):
+        """Set AFM or sublattice properties.
+        
+            If the AFM doesn't have the named attribute, than the corresponding
+            attributes of both sublattices are set.
+            e.g. to set the saturation magnetization of both sublattices to the
+            same value, one could use:
+                antiferromagnet.msat = 800e3
+            which is equal to
+                antiferromagnet.sub1.msat = 800e3
+                antiferromagnet.sub2.msat = 800e3
+        """
+        if hasattr(Antiferromagnet, name) or name == "_impl":
+            #TODO: this won't work anymore if there would come a Magnet parent class.
+            super().__setattr__(name, value)
+        elif hasattr(Ferromagnet, name):
+            setattr(self.sub1, name, value)
+            setattr(self.sub2, name, value)
+        else:
+            raise AttributeError(
+                r'Both Antiferromagnet and Ferromagnet have no attribute "{}".'.format(name))
 
     @classmethod
     def _from_impl(cls, impl):
@@ -87,16 +106,16 @@ class Antiferromagnet:
     @property
     def sub1(self):
         """First sublattice instance."""
-        return self._sub1
+        return Ferromagnet._from_impl(self._impl.sub1())
     
     @property
     def sub2(self):
         """Second sublattice instance."""
-        return self._sub2
+        return Ferromagnet._from_impl(self._impl.sub2())
     
     @property
     def sublattices(self):
-        return (self._sub1, self._sub2)
+        return (self.sub1, self.sub2)
 
     # ----- MATERIAL PARAMETERS -----------
 
