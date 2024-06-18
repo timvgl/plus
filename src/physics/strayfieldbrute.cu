@@ -1,13 +1,17 @@
 #include <memory>
 
+#include "antiferromagnet.hpp"
 #include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
+#include "magnet.hpp"
 #include "field.hpp"
+#include "fieldops.hpp"
 #include "grid.hpp"
 #include "parameter.hpp"
 #include "strayfieldbrute.hpp"
 #include "system.hpp"
+#include "totalmag.hpp"
 
 __global__ void k_demagfield(CuField hField,
                              const CuField mField,
@@ -50,16 +54,26 @@ __global__ void k_demagfield(CuField hField,
 }
 
 StrayFieldBruteExecutor::StrayFieldBruteExecutor(
-    const Ferromagnet* magnet,
+    const Magnet* magnet,
     std::shared_ptr<const System> system)
     : StrayFieldExecutor(magnet, system),
       kernel_(system->grid(), magnet_->grid(), magnet_->world()) {}
 
 Field StrayFieldBruteExecutor::exec() const {
-  auto m = magnet_->magnetization()->field().cu();
+  
   Field h(system_, 3);
   int ncells = h.grid().ncells();
-  cudaLaunch(ncells, k_demagfield, h.cu(), m, kernel_.field().cu(),
-             magnet_->msat.cu());
+
+  if(const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_)) {
+    auto m = mag->magnetization()->field().cu();
+    cudaLaunch(ncells, k_demagfield, h.cu(), m, kernel_.field().cu(),
+              mag->msat.cu());
+  }
+  else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_)) {
+    auto m = add(mag->sub1()->magnetization()->field(), mag->sub2()->magnetization()->field());
+
+    cudaLaunch(ncells, k_demagfield, h.cu(), m.cu(), kernel_.field().cu(),
+              mag->sub1()->msat.cu());
+  }
   return h;
 }

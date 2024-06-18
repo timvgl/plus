@@ -12,7 +12,7 @@
 class Parameter;
 class Field;
 class System;
-class Ferromagnet;
+class Magnet;
 
 /** A StraFieldFFTExecutor uses the FFT method to compute stray fields. */
 class StrayFieldFFTExecutor : public StrayFieldExecutor {
@@ -23,12 +23,15 @@ class StrayFieldFFTExecutor : public StrayFieldExecutor {
    * @param magnet the source of the stray field
    * @param system the system in which to compute the stray field
    */
-  StrayFieldFFTExecutor(const Ferromagnet* magnet,
+  StrayFieldFFTExecutor(const Magnet* magnet,
                         std::shared_ptr<const System> system);
 
   /** Destruct the executor. */
   ~StrayFieldFFTExecutor();
 
+  /** Functions used to discriminate between FM and AFM systems. */
+  Field GetMag() const;
+  Parameter GetMsat() const;
   /** Compute and return the stray field. */
   Field exec() const;
 
