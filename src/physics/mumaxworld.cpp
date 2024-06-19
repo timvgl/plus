@@ -21,6 +21,28 @@ MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
 
 MumaxWorld::~MumaxWorld() {}
 
+void MumaxWorld::isAddible(Grid grid, std::string name) {
+  if (!inMastergrid(grid)) {
+      throw std::out_of_range(
+          "Can not add magnet because the grid does not fit in the "
+          "mastergrid ");
+  }
+
+  for (const auto& namedMagnet : magnets_) {
+    Magnet* m = namedMagnet.second;
+    if (grid.overlaps(m->grid())) {
+      throw std::out_of_range(
+          "Can not add magnet because it overlaps with another "
+          "magnet.");
+    }
+  }
+
+  if (magnets_.find(name) != magnets_.end()) {
+    throw std::runtime_error("A magnet with the name '" + name +
+                             "' already exists");
+  }
+}
+
 Ferromagnet* MumaxWorld::addFerromagnet(Grid grid, std::string name) {
   return addFerromagnet(grid, GpuBuffer<bool>(), name);
 }
@@ -32,38 +54,21 @@ Antiferromagnet* MumaxWorld::addAntiferromagnet(Grid grid, std::string name) {
 Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
                                         GpuBuffer<bool> geometry,
                                         std::string name) {
-  if (!inMastergrid(grid)) {
-    throw std::out_of_range(
-        "Can not add ferromagnet because the grid does not fit in the "
-        "mastergrid ");
-  }
-  
-  for (const auto& namedMagnet : magnets_) {
-    Magnet* m = namedMagnet.second.get();
-    if (grid.overlaps(m->grid())) {
-      throw std::out_of_range(
-          "Can not add ferromagnet because it overlaps with another "
-          "magnet.");
-    }
-  }
-  
-
+  // Create name if not given.
   static int idxUnnamed = 1;
   if (name.length() == 0) {
     name = "ferromagnet_" + std::to_string(idxUnnamed++);
   }
 
-  if (ferromagnets_.find(name) != ferromagnets_.end()) {
-    throw std::runtime_error("A ferromagnet with the name '" + name +
-                             "' already exists");
-  }
-  
+  // Check if Ferromagnet can be added to this world.
+  isAddible(grid, name);
+
   // Create the magnet and add it to this world
   ferromagnets_[name] =
       std::make_unique<Ferromagnet>(this, grid, name, geometry);
-  magnets_[name] = 
-      std::make_unique<Ferromagnet>(this, grid, name, geometry);
+      
   Ferromagnet* newMagnet = ferromagnets_[name].get();
+  magnets_[name] = newMagnet;
   
   // Add the magnetic field of the other magnets in this magnet, and vice versa
   for (const auto& namedMagnet : ferromagnets_) {
@@ -83,37 +88,22 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
 Antiferromagnet* MumaxWorld::addAntiferromagnet(Grid grid,
                                                 GpuBuffer<bool> geometry,
                                                 std::string name) {
-  if (!inMastergrid(grid)) {
-    throw std::out_of_range(
-        "Can not add antiferromagnet because the grid does not fit in the "
-        "mastergrid ");
-  }
 
-  for (const auto& namedMagnet : magnets_) {
-    Magnet* m = namedMagnet.second.get();
-    if (grid.overlaps(m->grid())) {
-      throw std::out_of_range(
-          "Can not add antiferromagnet because it overlaps with another "
-          "magnet.");
-    }
-  }
-
+  // Create name if not given.
   static int idxUnnamed = 1;
   if (name.length() == 0) {
     name = "antiferromagnet_" + std::to_string(idxUnnamed++);
-  }
+  }                
 
-  if (antiferromagnets_.find(name) != antiferromagnets_.end()) {
-    throw std::runtime_error("An antiferromagnet with the name '" + name +
-                             "' already exists");
-  }
-  
+  // Check if Antiferromagnet can be added to this world.
+  isAddible(grid, name);
+
   // Create the magnet and add it to this world
   antiferromagnets_[name] =
       std::make_unique<Antiferromagnet>(this, grid, name, geometry);
-  magnets_[name] = 
-      std::make_unique<Antiferromagnet>(this, grid, name, geometry);
+
   Antiferromagnet* newMagnet = antiferromagnets_[name].get();
+  magnets_[name] = newMagnet;
   
   /* TO DO:
   Add the magnetic field of the other magnets in this AFM, and vice versa
@@ -127,7 +117,7 @@ Magnet* MumaxWorld::getMagnet(std::string name) const {
   auto namedMagnet = magnets_.find(name);
   if (namedMagnet == magnets_.end())
     return nullptr;
-  return namedMagnet->second.get();
+  return namedMagnet->second;
 }
 
 Ferromagnet* MumaxWorld::getFerromagnet(std::string name) const {
@@ -147,7 +137,7 @@ Antiferromagnet* MumaxWorld::getAntiferromagnet(std::string name) const {
 const std::map<std::string, Magnet*> MumaxWorld::magnets() const {
   std::map<std::string, Magnet*> sharedMagnets;
   for (const auto& pair : magnets_) {
-    sharedMagnets[pair.first] = pair.second.get();
+    sharedMagnets[pair.first] = pair.second;
   }
   return sharedMagnets;
 }
