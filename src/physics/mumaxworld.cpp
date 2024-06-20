@@ -21,7 +21,7 @@ MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
 
 MumaxWorld::~MumaxWorld() {}
 
-void MumaxWorld::isAddible(Grid grid, std::string name) {
+void MumaxWorld::checkAddibility(Grid grid, std::string name) {
   if (!inMastergrid(grid)) {
       throw std::out_of_range(
           "Can not add magnet because the grid does not fit in the "
@@ -61,26 +61,16 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
   }
 
   // Check if Ferromagnet can be added to this world.
-  isAddible(grid, name);
+  checkAddibility(grid, name);
 
   // Create the magnet and add it to this world
   ferromagnets_[name] =
       std::make_unique<Ferromagnet>(this, grid, name, geometry);
-      
+
   Ferromagnet* newMagnet = ferromagnets_[name].get();
   magnets_[name] = newMagnet;
   
-  // Add the magnetic field of the other magnets in this magnet, and vice versa
-  for (const auto& namedMagnet : ferromagnets_) {
-    Ferromagnet* otherMagnet = namedMagnet.second.get();
-    if (otherMagnet != nullptr) {
-      otherMagnet->addStrayField(newMagnet);
-      // Avoid adding the field on itself twice
-      if (otherMagnet != newMagnet) {
-        newMagnet->addStrayField(otherMagnet);
-      }
-    }
-  }
+  handleStrayfields(newMagnet);
   resetTimeSolverEquations();
   return newMagnet;
 }
@@ -88,7 +78,6 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
 Antiferromagnet* MumaxWorld::addAntiferromagnet(Grid grid,
                                                 GpuBuffer<bool> geometry,
                                                 std::string name) {
-
   // Create name if not given.
   static int idxUnnamed = 1;
   if (name.length() == 0) {
@@ -96,21 +85,29 @@ Antiferromagnet* MumaxWorld::addAntiferromagnet(Grid grid,
   }                
 
   // Check if Antiferromagnet can be added to this world.
-  isAddible(grid, name);
+  checkAddibility(grid, name);
 
   // Create the magnet and add it to this world
   antiferromagnets_[name] =
       std::make_unique<Antiferromagnet>(this, grid, name, geometry);
-
   Antiferromagnet* newMagnet = antiferromagnets_[name].get();
   magnets_[name] = newMagnet;
-  
-  /* TO DO:
-  Add the magnetic field of the other magnets in this AFM, and vice versa
-  */
 
+  handleStrayfields(newMagnet);
   resetTimeSolverEquations();
   return newMagnet;
+}
+
+void MumaxWorld::handleStrayfields(Magnet* newMagnet) {
+  for (const auto& namedMagnet : magnets_) {
+    Magnet* otherMagnet = namedMagnet.second;
+    if (otherMagnet != nullptr) {
+      otherMagnet->addStrayField(newMagnet);
+      // Avoid adding the field on itself twice
+      if (otherMagnet != newMagnet)
+        newMagnet->addStrayField(otherMagnet);
+    }
+  }
 }
 
 Magnet* MumaxWorld::getMagnet(std::string name) const {

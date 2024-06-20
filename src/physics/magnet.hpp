@@ -31,6 +31,15 @@ class Magnet {
   real3 cellsize() const;
   const GpuBuffer<bool>& getGeometry() const;
 
+  const StrayField* getStrayField(const Magnet*) const;
+  std::vector<const StrayField*> getStrayFields() const;
+  void addStrayField(
+      const Magnet*,
+      StrayFieldExecutor::Method method = StrayFieldExecutor::METHOD_AUTO);
+  void removeStrayField(const Magnet*);
+
+  std::map<const Magnet*, StrayField*> strayFields_;
+
 
  public:
   std::shared_ptr<System> system_;  // the system_ has to be initialized first,
@@ -57,10 +66,3 @@ class Magnet {
         return *this;
     }
 };
-
-/* TO DO - global properties / parameters / ...
-* Poissonsystem?
-* STT-parameters?
-* Check if "includes" in ferromagnet.* are still needed
-* Delete int comp in Magnet construction
-*/

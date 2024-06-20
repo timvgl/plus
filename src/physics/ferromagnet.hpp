@@ -14,7 +14,6 @@
 #include "magnet.hpp"
 #include "parameter.hpp"
 #include "poissonsystem.hpp"
-#include "strayfield.hpp"
 #include "variable.hpp"
 #include "world.hpp"
 
@@ -28,19 +27,10 @@ class Ferromagnet : public Magnet {
 
   const Variable* magnetization() const;
 
-  const StrayField* getStrayField(const Ferromagnet*) const;
-  std::vector<const StrayField*> getStrayFields() const;
-  void addStrayField(
-      const Ferromagnet*,
-      StrayFieldExecutor::Method method = StrayFieldExecutor::METHOD_AUTO);
-  void removeStrayField(const Ferromagnet*);
-
   void minimize(real tol = 1e-6, int nSamples = 10);
 
  private:
   NormalizedVariable magnetization_;
-  std::map<const Ferromagnet*, StrayField*> strayFields_;
-
 
  public:
   mutable PoissonSystem poissonSystem;

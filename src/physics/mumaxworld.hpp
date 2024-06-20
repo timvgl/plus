@@ -29,7 +29,7 @@ class MumaxWorld : public World {
   /** Uniform bias magnetic field which will affect all magnets in the world. */
   real3 biasMagneticField;
 
-  void isAddible(Grid grid, std::string name);
+  void checkAddibility(Grid grid, std::string name);
 
   /** Add a ferromagnet to the world. */
   Ferromagnet* addFerromagnet(Grid grid, std::string name = "");
@@ -45,13 +45,17 @@ class MumaxWorld : public World {
                                       GpuBuffer<bool> geometry,
                                       std::string name = "");
 
+    
+  /**Add the magnetic field of the other magnets in the new magnet, and vice versa. */
+  void handleStrayfields(Magnet* newMagnet);
+
   /** Get a magnet by its name.
    *  Return a nullptr if there is no magnet with specified name. */
   Magnet* getMagnet(std::string name) const;
-    /** Get a ferromagnet by its name.
+  /** Get a ferromagnet by its name.
    *  Return a nullptr if there is no ferromagnet with specified name. */
   Ferromagnet* getFerromagnet(std::string name) const;
-    /** Get an antiferromagnet by its name.
+  /** Get an antiferromagnet by its name.
    *  Return a nullptr if there is no antiferromagnet with specified name. */
   Antiferromagnet* getAntiferromagnet(std::string name) const;
 

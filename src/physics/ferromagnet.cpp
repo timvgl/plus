@@ -12,7 +12,6 @@
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
 #include "poissonsystem.hpp"
-#include "strayfield.hpp"
 #include "system.hpp"
 
 Ferromagnet::Ferromagnet(MumaxWorld* world,
@@ -81,46 +80,4 @@ const Variable* Ferromagnet::magnetization() const {
 void Ferromagnet::minimize(real tol, int nSamples) {
   Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
-}
-
-const StrayField* Ferromagnet::getStrayField(const Ferromagnet* magnet) const {
-  auto it = strayFields_.find(magnet);
-  if (it == strayFields_.end())
-    return nullptr;
-  return it->second;
-}
-
-std::vector<const StrayField*> Ferromagnet::getStrayFields() const {
-  std::vector<const StrayField*> strayFields;
-  strayFields.reserve(strayFields_.size());
-  for (const auto& entry : strayFields_) {
-    strayFields.push_back(entry.second);
-  }
-  return strayFields;
-}
-
-void Ferromagnet::addStrayField(const Ferromagnet* magnet,
-                                StrayFieldExecutor::Method method) {
-  if (world() != magnet->world()) {
-    throw std::runtime_error(
-        "Can not define the field of the magnet on this magnet because it is "
-        "not in the same world.");
-  }
-
-  auto it = strayFields_.find(magnet);
-  if (it != strayFields_.end()) {
-    // StrayField is already registered, just need to update the method
-    it->second->setMethod(method);
-    return;
-  }
-  // Stray field of magnet (parameter) on this magnet (the object)
-  strayFields_[magnet] = new StrayField(magnet, system(), method);
-}
-
-void Ferromagnet::removeStrayField(const Ferromagnet* magnet) {
-  auto it = strayFields_.find(magnet);
-  if (it != strayFields_.end()) {
-    delete it->second;
-    strayFields_.erase(it);
-  }
 }
