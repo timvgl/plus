@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, TimeSolver, World
-
+from mumax5 import Ferromagnet, Grid, World
 
 @np.vectorize
 def expectation_mz_langevin(msat, bext, temperature, cellvolume):
@@ -34,23 +33,19 @@ m_simul = []
 for temperature in temperatures:
     magnet.temperature = temperature
 
-    solver = TimeSolver(magnet.magnetization, magnet.torque, magnet.thermal_noise)
-    solver.run(relaxtime)
+    world.timesolver.run(relaxtime)
 
-    # table = Table()
-    # table.add("mz", magnet.magnetization, 2)
-    table = {}
+    timepoints = np.linspace(world.timesolver.time, world.timesolver.time + sampletime, nsamples)
+    outputquantities = {"mz": lambda: magnet.magnetization.average()[2]}
+    output = world.timesolver.solve(timepoints, outputquantities)
 
-    timepoints = np.linspace(solver.time, solver.time + sampletime, nsamples)
-    solver.solve(timepoints, table)
-
-    m_simul.append(np.average(table["mz"]))
+    m_simul.append(np.average(output["mz"]))
 
 m_langevin = expectation_mz_langevin(msat, bext, temperatures, cellvolume)
 
 plt.plot(temperatures, m_simul, "o", label="Simulation")
-plt.plot(temperatures, m_langevin, "k-", label="theory")
+plt.plot(temperatures, m_langevin, "k-", label="Theory")
 plt.xlabel("Temperature (K)")
-plt.ylabel("<m_z>")
+plt.ylabel(r"$<m_z>$")
 plt.legend()
 plt.show()
