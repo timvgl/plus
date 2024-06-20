@@ -117,6 +117,19 @@ class Antiferromagnet:
     def sublattices(self):
         return (self.sub1, self.sub2)
 
+    @property
+    def bias_magnetic_field(self):
+        """Uniform bias magnetic field which will affect an antiferromagnet.
+        This property should not be set for separate sublattices.
+
+        The value should be specifed in Teslas.
+        """
+        return Parameter(self._impl.bias_magnetic_field)
+
+    @bias_magnetic_field.setter
+    def bias_magnetic_field(self, value):
+        self.bias_magnetic_field.set(value)
+
     # ----- MATERIAL PARAMETERS -----------
 
     @property

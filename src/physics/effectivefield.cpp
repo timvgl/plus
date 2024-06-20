@@ -23,10 +23,10 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
 Field evalAFMEffectiveField(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
   Field h = evalAnisotropyField(sublattice);
   h += evalExchangeField(sublattice);
-  h += evalExternalField(sublattice);
+  h += evalAFMExternalField(magnet, sublattice);
   h += evalDmiField(sublattice);
+  h += evalAFMDemagField(magnet, sublattice);
   h += evalAFMExchangeField(magnet, sublattice);
-  //ignore demag (for now) in case of AFM*/
   return h;
 }
 
