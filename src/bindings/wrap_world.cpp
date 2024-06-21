@@ -69,11 +69,18 @@ void wrap_world(py::module& m) {
           py::arg("name") = std::string(""), py::return_value_policy::reference)
 
       .def("get_ferromagnet", &MumaxWorld::getFerromagnet, py::arg("name"),
-           "get a reference to a magnet by name",
+           "get a reference to a ferromagnet by name",
+           py::return_value_policy::reference)
+
+      .def("get_antiferromagnet", &MumaxWorld::getAntiferromagnet, py::arg("name"),
+           "get a reference to an antiferromagnet by name",
            py::return_value_policy::reference)
 
       .def_property_readonly("ferromagnets", &MumaxWorld::ferromagnets,
            "get a map of all ferromagnets in this world")
+
+      .def_property_readonly("antiferromagnets", &MumaxWorld::antiferromagnets,
+           "get a map of all antiferromagnets in this world")
 
       .def_property_readonly("timesolver", &MumaxWorld::timesolver,
                              py::return_value_policy::reference);

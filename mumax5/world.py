@@ -5,6 +5,7 @@ import _mumax5cpp as _cpp
 from .timesolver import TimeSolver
 from .grid import Grid
 from .ferromagnet import Ferromagnet
+from .antiferromagnet import Antiferromagnet
 
 class World:
     """Construct a world with a given cell size.
@@ -38,12 +39,26 @@ class World:
         if magnet_impl is None:
             raise KeyError(f"No magnet named {name}")
         return Ferromagnet._from_impl(magnet_impl)
+    
+    def get_antiferromagnet(self, name):
+        """Get an antiferromagnet by its name.
+        Raises KeyError if there is no magnet with the given name."""
+        magnet_impl = self._impl.get_antiferromagnet(name)
+        if magnet_impl is None:
+            raise KeyError(f"No magnet named {name}")
+        return Antiferromagnet._from_impl(magnet_impl)
 
     @property
     def ferromagnets(self):
         """Get a dictionairy of ferromagnets by name."""
         return {key: Ferromagnet._from_impl(impl) for key, impl in
                 self._impl.ferromagnets.items()}
+    
+    @property
+    def antiferromagnets(self):
+        """Get a dictionairy of antiferromagnets by name."""
+        return {key: Antiferromagnet._from_impl(impl) for key, impl in
+                self._impl.antiferromagnets.items()}
 
     @property
     def cellsize(self):
