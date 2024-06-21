@@ -1,6 +1,7 @@
 #include "ferromagnet.hpp"
 
 #include <curand.h>
+#include <chrono>
 
 #include <memory>
 #include <random>
@@ -54,10 +55,12 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
     std::vector<real> randomValues(nvalues);
     std::normal_distribution<real> dist(0.0, 1.0);
     std::default_random_engine randomEngine;
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    randomEngine.seed (seed);
     for (auto& v : randomValues) {
       v = dist(randomEngine);
     }
-    Field randomField(this->system(), 3);
+    Field randomField(system(), 3);
     randomField.setData(&randomValues[0]);
     magnetization_.set(randomField);
   }
