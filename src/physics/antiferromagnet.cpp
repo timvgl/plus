@@ -20,7 +20,6 @@ Antiferromagnet::Antiferromagnet(MumaxWorld* world,
       afmex_cell(system(), 0.0),
       afmex_nn(system(), 0.0),
       latcon(system(), 0.35e-9),
-      biasMagneticField(system(), {0, 0, 0}),
       sub1_(Ferromagnet(world, grid, name + ":sublattice_1", geometry)),
       sub2_(Ferromagnet(world, grid, name + ":sublattice_2", geometry)) {}
 

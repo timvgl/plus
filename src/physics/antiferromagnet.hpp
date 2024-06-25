@@ -27,10 +27,6 @@ class Antiferromagnet : public Magnet {
  const Ferromagnet* getOtherSublattice(const Ferromagnet* sub) const;
 
  public:
-  /** Uniform bias magnetic field which will affect a ferromagnet.
-   * Measured in Teslas.
-   */
-  FM_VectorParameter biasMagneticField;
   Parameter afmex_cell;
   Parameter afmex_nn;
   Parameter latcon;

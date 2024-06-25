@@ -68,7 +68,7 @@ class Antiferromagnet:
     def __setattr__(self, name, value):
         """Set AFM or sublattice properties.
         
-            If the AFM doesn't have the named attribute, than the corresponding
+            If the AFM doesn't have the named attribute, then the corresponding
             attributes of both sublattices are set.
             e.g. to set the saturation magnetization of both sublattices to the
             same value, one could use:
@@ -120,15 +120,15 @@ class Antiferromagnet:
     @property
     def bias_magnetic_field(self):
         """Uniform bias magnetic field which will affect an antiferromagnet.
-        This property should not be set for separate sublattices.
 
         The value should be specifed in Teslas.
         """
-        return Parameter(self._impl.bias_magnetic_field)
+        return self.sub1.bias_magnetic_field
 
     @bias_magnetic_field.setter
     def bias_magnetic_field(self, value):
-        self.bias_magnetic_field.set(value)
+        self.sub1.bias_magnetic_field.set(value)
+        self.sub2.bias_magnetic_field.set(value)
 
     # ----- MATERIAL PARAMETERS -----------
 

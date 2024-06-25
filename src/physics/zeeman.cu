@@ -24,13 +24,21 @@ bool externalFieldAssuredZero(const Magnet* magnet) {
   return b_ext == real3{0.0, 0.0, 0.0};
 }
 
-Field calcExternalFields(const Magnet* magnet, Field h) {
+Field calcExternalFields(const Magnet* magnet, Field h, const FM_VectorParameter& mbias_field) {
+
+  if (externalFieldAssuredZero(magnet)) {
+    h.makeZero();
+    return h;
+  }
+
   const MumaxWorld* world = static_cast<const MumaxWorld*>(magnet->world());
   real3 wB_bias = world->biasMagneticField; // bias field on world
 
   h.setUniformComponent(0, wB_bias.x);
   h.setUniformComponent(1, wB_bias.y);
   h.setUniformComponent(2, wB_bias.z);
+
+  mbias_field.addToField(h);
     
   auto strayFields = magnet->getStrayFields();
   for (auto strayField : strayFields) {
@@ -43,27 +51,15 @@ Field calcExternalFields(const Magnet* magnet, Field h) {
 }
 
 Field evalExternalField(const Ferromagnet* magnet) {
-
   Field h(magnet->system(), 3);
-  if (externalFieldAssuredZero(magnet)) {
-    h.makeZero();
-    return h;
-  }
   auto& mB_bias = magnet->biasMagneticField; // bias field on individual magnet
-
-  return add(mB_bias.eval(), calcExternalFields(magnet, h));
+  return calcExternalFields(magnet, h, mB_bias);
 }
 
 Field evalAFMExternalField(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-
   Field h(sublattice->system(), 3);
-  if (externalFieldAssuredZero(magnet)) {
-    h.makeZero();
-    return h;
-  }
-  auto& mB_bias = magnet->biasMagneticField; // bias field on individual magnet
-
-  return add(mB_bias.eval(), calcExternalFields(magnet, h));
+  auto& mB_bias = sublattice->biasMagneticField; // bias field on individual magnet
+  return calcExternalFields(magnet, h, mB_bias);
 }
 
 Field evalZeemanEnergyDensity(const Ferromagnet* magnet) {

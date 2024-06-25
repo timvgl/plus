@@ -17,8 +17,6 @@ void wrap_antiferromagnet(py::module& m) {
       .def("sub1", &Antiferromagnet::sub1, py::return_value_policy::reference)
       .def("sub2", &Antiferromagnet::sub2, py::return_value_policy::reference)
       .def("sublattices", &Antiferromagnet::sublattices, py::return_value_policy::reference)
-      .def_readwrite("bias_magnetic_field", &Antiferromagnet::biasMagneticField,
-                     "uniform external magnetic field")
 
       // TODO: implement the world property which returns the MumaxWorld to
       // which the antiferromagnet belongs

@@ -151,9 +151,6 @@ class Ferromagnet:
     def bias_magnetic_field(self):
         """Uniform bias magnetic field which will affect a ferromagnet.
         
-        If the ferromagnet is a sublattice, this property should be set
-        over the whole antiferromagnet.
-
         The value should be specifed in Teslas.
         """
         return Parameter(self._impl.bias_magnetic_field)
