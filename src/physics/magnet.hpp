@@ -10,6 +10,7 @@
 #include "grid.hpp"
 #include "strayfield.hpp"
 #include "world.hpp"
+#include "system.hpp"
 
 class FieldQuantity;
 class MumaxWorld;
@@ -17,6 +18,8 @@ class System;
 
 class Magnet {
  public:
+  explicit Magnet(std::shared_ptr<System> system_ptr,
+                  std::string name);
   explicit Magnet(MumaxWorld* world,
                   Grid grid,
                   std::string name,

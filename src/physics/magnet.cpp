@@ -11,14 +11,17 @@
 #include "gpubuffer.hpp"
 #include "mumaxworld.hpp"
 #include "strayfield.hpp"
-#include "system.hpp"
+
+Magnet::Magnet(std::shared_ptr<System> system_ptr,
+               std::string name)
+    : system_(system_ptr),
+      name_(name) {}
 
 Magnet::Magnet(MumaxWorld* world,
                Grid grid,
                std::string name,
                GpuBuffer<bool> geometry)
-    :   system_(new System(world, grid, geometry)),
-        name_(name) {}
+    : Magnet(std::make_shared<System>(world, grid, geometry), name) {}
 
 std::string Magnet::name() const {
   return name_;

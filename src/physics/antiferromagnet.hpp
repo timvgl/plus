@@ -12,9 +12,12 @@
 #include "magnet.hpp"
 #include "parameter.hpp"
 #include "world.hpp"
+#include "system.hpp"
 
 class Antiferromagnet : public Magnet {
  public:
+  Antiferromagnet(std::shared_ptr<System> system_ptr,
+         std::string name);
   Antiferromagnet(MumaxWorld* world,
          Grid grid,
          std::string name,

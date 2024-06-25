@@ -50,11 +50,11 @@ __global__ void k_addFields(CuField y,
 }
 
 inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
- /* if (x1.system() != y.system() || x2.system() != y.system()) {
+  if (x1.system() != y.system() || x2.system() != y.system()) {
     throw std::invalid_argument(
         "Fields can not be added together because they belong to different "
         "systems)");
-  }*/
+  }
   if ((x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) ) {
     throw std::invalid_argument(
         "Fields can not be added because they do not have the same number of "

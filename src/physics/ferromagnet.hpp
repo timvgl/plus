@@ -16,13 +16,16 @@
 #include "poissonsystem.hpp"
 #include "variable.hpp"
 #include "world.hpp"
+#include "system.hpp"
 
 class Ferromagnet : public Magnet {
  public:
+  Ferromagnet(std::shared_ptr<System> system_ptr,
+              std::string name);
   Ferromagnet(MumaxWorld* world,
-        Grid grid,
-         std::string name,
-         GpuBuffer<bool> geometry);
+              Grid grid,
+              std::string name,
+              GpuBuffer<bool> geometry);
   ~Ferromagnet() override;
 
   const Variable* magnetization() const;

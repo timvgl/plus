@@ -13,13 +13,10 @@
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
 #include "poissonsystem.hpp"
-#include "system.hpp"
 
-Ferromagnet::Ferromagnet(MumaxWorld* world,
-                         Grid grid,
-                         std::string name,
-                         GpuBuffer<bool> geometry)
-    : Magnet(world, grid, name, geometry),
+Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr, 
+                         std::string name)
+    : Magnet(system_ptr, name),
       magnetization_(name + ":magnetization", "", system(), 3),
       msat(system(), 1.0),
       aex(system(), 0.0),
@@ -33,7 +30,7 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
       idmi(system(), 0.0),
       xi(system(), 0.0),
       Lambda(system(), 0.0),
-      FreeLayerThickness(system(), grid.size().z * cellsize().z),
+      FreeLayerThickness(system(), grid().size().z * cellsize().z),
       eps_prime(system(), 0.0),
       FixedLayer(system(), {0, 0, 0}),
       pol(system(), 0.0),
@@ -68,6 +65,11 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
   curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);
   curandSetPseudoRandomGeneratorSeed(randomGenerator, 1234);
   }
+Ferromagnet::Ferromagnet(MumaxWorld* world,
+                         Grid grid,
+                         std::string name,
+                         GpuBuffer<bool> geometry)
+    : Ferromagnet(std::make_shared<System>(world, grid, geometry), name) {}
 
 Ferromagnet::~Ferromagnet() {
   for (auto& entry : strayFields_) {
