@@ -18,10 +18,12 @@
 #include "world.hpp"
 #include "system.hpp"
 
+class Antiferromagnet;
+
 class Ferromagnet : public Magnet {
  public:
   Ferromagnet(std::shared_ptr<System> system_ptr,
-              std::string name);
+              std::string name, Antiferromagnet* hostMagnet_ = nullptr);
   Ferromagnet(MumaxWorld* world,
               Grid grid,
               std::string name,
@@ -30,10 +32,17 @@ class Ferromagnet : public Magnet {
 
   const Variable* magnetization() const;
 
+  bool isSublattice() const;
+  const Antiferromagnet* hostMagnet() const;  // TODO: right amount of const?
+
   void minimize(real tol = 1e-6, int nSamples = 10);
 
  private:
   NormalizedVariable magnetization_;
+
+  // TODO: what type of pointer?
+  // TODO: Magnet or Antiferromagnet?
+  Antiferromagnet* hostMagnet_;
 
  public:
   mutable PoissonSystem poissonSystem;

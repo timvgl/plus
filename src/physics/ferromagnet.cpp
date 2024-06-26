@@ -15,8 +15,9 @@
 #include "poissonsystem.hpp"
 
 Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr, 
-                         std::string name)
+                         std::string name, Antiferromagnet* hostMagnet)
     : Magnet(system_ptr, name),
+      hostMagnet_(hostMagnet),
       magnetization_(name + ":magnetization", "", system(), 3),
       msat(system(), 1.0),
       aex(system(), 0.0),
@@ -80,6 +81,14 @@ Ferromagnet::~Ferromagnet() {
 
 const Variable* Ferromagnet::magnetization() const {
   return &magnetization_;
+}
+
+bool Ferromagnet::isSublattice() const {
+  return !(hostMagnet_ == nullptr);
+}
+
+const Antiferromagnet* Ferromagnet::hostMagnet() const {
+  return hostMagnet_;
 }
 
 void Ferromagnet::minimize(real tol, int nSamples) {

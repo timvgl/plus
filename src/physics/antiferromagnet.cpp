@@ -16,8 +16,8 @@ Antiferromagnet::Antiferromagnet(std::shared_ptr<System> system_ptr,
       afmex_cell(system(), 0.0),
       afmex_nn(system(), 0.0),
       latcon(system(), 0.35e-9),
-      sub1_(Ferromagnet(system_ptr, name + ":sublattice_1")),
-      sub2_(Ferromagnet(system_ptr, name + ":sublattice_2")) {}
+      sub1_(Ferromagnet(system_ptr, name + ":sublattice_1", this)),
+      sub2_(Ferromagnet(system_ptr, name + ":sublattice_2", this)) {}
 Antiferromagnet::Antiferromagnet(MumaxWorld* world,
                          Grid grid,
                          std::string name,
