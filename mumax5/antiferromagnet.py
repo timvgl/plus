@@ -1,6 +1,7 @@
 """Antiferromagnet implementation."""
 
 import numpy as _np
+import warnings
 
 import _mumax5cpp as _cpp
 
@@ -139,7 +140,10 @@ class Antiferromagnet:
 
     @afmex_cell.setter
     def afmex_cell(self, value):
-        assert value <= 0, "The antiferromagnetic exchange constant afmex_cell should be negative (or zero)."
+        if value > 0:
+            warnings.warn("The antiferromagnetic exchange constant afmex_cell"
+                          + " is set to a positive value, instead of negative (or zero)."
+                          + " Make sure this is intentional!", UserWarning)
         self.afmex_cell.set(value)
 
     @property
@@ -149,7 +153,10 @@ class Antiferromagnet:
 
     @afmex_nn.setter
     def afmex_nn(self, value):
-        assert value <= 0, "The antiferromagnetic exchange constant afmex_nn should be negative (or zero)."
+        if value > 0:
+            warnings.warn("The antiferromagnetic exchange constant afmex_nn"
+                          + " is set to a positive value, instead of negative (or zero)."
+                          + " Make sure this is intentional!", UserWarning)
         self.afmex_nn.set(value)
 
     @property
