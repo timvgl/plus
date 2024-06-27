@@ -171,7 +171,7 @@ void MumaxWorld::resetTimeSolverEquations() {
     for (const Ferromagnet* sub : magnet->sublattices()) {
       DynamicEquation eq(
         sub->magnetization(),
-        std::shared_ptr<FieldQuantity>(AFM_torqueQuantity(magnet, sub).clone()),
+        std::shared_ptr<FieldQuantity>(torqueQuantity(sub).clone()),
         std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(sub).clone()));
       equations.push_back(eq);
     }
