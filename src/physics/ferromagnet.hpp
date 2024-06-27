@@ -23,7 +23,9 @@ class Antiferromagnet;
 class Ferromagnet : public Magnet {
  public:
   Ferromagnet(std::shared_ptr<System> system_ptr,
-              std::string name, Antiferromagnet* hostMagnet_ = nullptr);
+              std::string name,
+              Antiferromagnet* hostMagnet_ = nullptr);
+              
   Ferromagnet(MumaxWorld* world,
               Grid grid,
               std::string name,

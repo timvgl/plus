@@ -1,5 +1,4 @@
 #include "antiferromagnet.hpp"
-#include "antiferromagnetquantity.hpp"
 #include "cudalaunch.hpp"
 #include "datatypes.hpp"
 #include "energy.hpp"
@@ -24,42 +23,36 @@ bool externalFieldAssuredZero(const Magnet* magnet) {
   return b_ext == real3{0.0, 0.0, 0.0};
 }
 
-Field calcExternalFields(const Magnet* magnet, Field h, const FM_VectorParameter& mbias_field) {
+Field evalExternalField(const Ferromagnet* magnet) {
 
-  if (externalFieldAssuredZero(magnet)) {
-    h.makeZero();
-    return h;
-  }
+  Field h(magnet->system(), 3);
+  if (externalFieldAssuredZero(magnet) && externalFieldAssuredZero(magnet->hostMagnet())) {
+      h.makeZero();
+      return h;
+    }
 
   const MumaxWorld* world = static_cast<const MumaxWorld*>(magnet->world());
   real3 wB_bias = world->biasMagneticField; // bias field on world
+  auto& mB_bias = magnet->biasMagneticField; // bias field on individual magnet
 
   h.setUniformComponent(0, wB_bias.x);
   h.setUniformComponent(1, wB_bias.y);
   h.setUniformComponent(2, wB_bias.z);
 
-  mbias_field.addToField(h);
-    
-  auto strayFields = magnet->getStrayFields();
+  mB_bias.addToField(h);
+
+  std::vector<const StrayField*> strayFields;
+  if (magnet->isSublattice())
+    strayFields = magnet->hostMagnet()->getStrayFields();
+  else
+    strayFields = magnet->getStrayFields();
   for (auto strayField : strayFields) {
     // Avoid the demag field, we only want external fields
-    if (strayField->source() == magnet)
+    if (strayField->source() == magnet || strayField->source() == magnet->hostMagnet())
       continue;
     strayField->addToField(h);
   }
   return h;
-}
-
-Field evalExternalField(const Ferromagnet* magnet) {
-  Field h(magnet->system(), 3);
-  auto& mB_bias = magnet->biasMagneticField; // bias field on individual magnet
-  return calcExternalFields(magnet, h, mB_bias);
-}
-
-Field evalAFMExternalField(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-  Field h(sublattice->system(), 3);
-  auto& mB_bias = sublattice->biasMagneticField; // bias field on individual magnet
-  return calcExternalFields(magnet, h, mB_bias);
 }
 
 Field evalZeemanEnergyDensity(const Ferromagnet* magnet) {
@@ -80,10 +73,6 @@ real zeemanEnergy(const Ferromagnet* magnet) {
 
 FM_FieldQuantity externalFieldQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalExternalField, 3, "external_field", "T");
-}
-
-AFM_FieldQuantity AFM_externalFieldQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-  return AFM_FieldQuantity(magnet, sublattice, evalAFMExternalField, 3, "external_field", "T");
 }
 
 FM_FieldQuantity zeemanEnergyDensityQuantity(const Ferromagnet* magnet) {

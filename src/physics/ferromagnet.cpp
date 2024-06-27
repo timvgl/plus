@@ -15,7 +15,8 @@
 #include "poissonsystem.hpp"
 
 Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr, 
-                         std::string name, Antiferromagnet* hostMagnet)
+                         std::string name,
+                         Antiferromagnet* hostMagnet)
     : Magnet(system_ptr, name),
       hostMagnet_(hostMagnet),
       magnetization_(name + ":magnetization", "", system(), 3),

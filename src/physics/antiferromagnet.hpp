@@ -18,10 +18,12 @@ class Antiferromagnet : public Magnet {
  public:
   Antiferromagnet(std::shared_ptr<System> system_ptr,
          std::string name);
+
   Antiferromagnet(MumaxWorld* world,
          Grid grid,
          std::string name,
          GpuBuffer<bool> geometry);
+         
   ~Antiferromagnet() override = default;
   
  std::vector<const Ferromagnet*> sublattices() const;
