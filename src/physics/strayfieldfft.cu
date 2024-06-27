@@ -193,6 +193,9 @@ Field StrayFieldFFTExecutor::GetMag() const {
     return mag->magnetization()->field();
   else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_))
     return add(mag->sub1()->magnetization()->field(), mag->sub2()->magnetization()->field());
+  else 
+    throw std::invalid_argument("Cannot calculate strayfield since magnet is neither"
+                                "a Ferromagnet nor an Antiferromagnet/Ferrimagnet.");
 }
 
 Parameter StrayFieldFFTExecutor::GetMsat() const {
@@ -200,6 +203,9 @@ Parameter StrayFieldFFTExecutor::GetMsat() const {
     return mag->msat;
   else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_))
     return mag->sub1()->msat;
+  else 
+    throw std::invalid_argument("Cannot calculate strayfield since magnet is neither"
+                                "a Ferromagnet nor an Antiferromagnet/Ferrimagnet.");
 }
 
 Field StrayFieldFFTExecutor::exec() const {
