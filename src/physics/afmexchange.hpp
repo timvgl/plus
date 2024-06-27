@@ -1,20 +1,19 @@
 #pragma once
 
-#include "antiferromagnetquantity.hpp"
+#include "ferromagnetquantity.hpp"
 
-class Antiferromagnet;
 class Ferromagnet;
 class Field;
 
-bool afmExchangeAssuredZero(const Antiferromagnet*);
+bool afmExchangeAssuredZero(const Ferromagnet*);
 
-Field evalAFMExchangeField(const Antiferromagnet*, const Ferromagnet*);
-Field evalAFMExchangeEnergyDensity(const Antiferromagnet*, const Ferromagnet*);
-real evalAFMExchangeEnergy(const Antiferromagnet*, const Ferromagnet*);
+Field evalAFMExchangeField(const Ferromagnet*);
+Field evalAFMExchangeEnergyDensity(const Ferromagnet*);
+real evalAFMExchangeEnergy(const Ferromagnet*);
 
-AFM_FieldQuantity AFM_exchangeFieldQuantity(const Antiferromagnet*, const Ferromagnet*);
-AFM_FieldQuantity AFM_exchangeEnergyDensityQuantity(const Antiferromagnet*, const Ferromagnet*);
-AFM_ScalarQuantity AFM_exchangeEnergyQuantity(const Antiferromagnet*, const Ferromagnet*);
+FM_FieldQuantity AFMexchangeFieldQuantity(const Ferromagnet*);
+FM_FieldQuantity AFMexchangeEnergyDensityQuantity(const Ferromagnet*);
+FM_ScalarQuantity AFMexchangeEnergyQuantity(const Ferromagnet*);
 
 // returns the maximal angle between exchange coupled cells
 //real evalMaxAngle(const Ferromagnet*, const bool sub2);

@@ -18,7 +18,7 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
   h += evalDmiField(magnet);
   h += evalDemagField(magnet);
   if (magnet->isSublattice())
-      h += evalAFMExchangeField(magnet->hostMagnet(), magnet);
+      h += evalAFMExchangeField(magnet);
   return h;
 }
 

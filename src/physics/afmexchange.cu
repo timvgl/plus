@@ -8,9 +8,12 @@
 #include "reduce.hpp"
 #include "world.hpp"
 
-bool afmExchangeAssuredZero(const Antiferromagnet* magnet) {
-  return ((magnet->afmex_cell.assuredZero() && magnet->afmex_nn.assuredZero())
-       || (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat.assuredZero()));
+bool afmExchangeAssuredZero(const Ferromagnet* magnet) {
+
+  return ((magnet->hostMagnet()->afmex_cell.assuredZero()
+        && magnet->hostMagnet()->afmex_nn.assuredZero())
+        || (magnet->msat.assuredZero()
+        && magnet->hostMagnet()->getOtherSublattice(magnet)->msat.assuredZero()));
 }
 
 __device__ static inline real harmonicMean(real a, real b) {
@@ -110,10 +113,9 @@ __global__ void k_afmExchangeField(CuField hField,
   hField.setVectorInCell(idx, h / msat2.valueAt(idx));
 }
 
-Field evalAFMExchangeField(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+Field evalAFMExchangeField(const Ferromagnet* magnet) {
 
-  int comp = sublattice->magnetization()->ncomp();
-  Field hField(sublattice->system(), comp);
+  Field hField(magnet->system(), 3);
   
   if (afmExchangeAssuredZero(magnet)) {
     hField.makeZero();
@@ -123,46 +125,46 @@ Field evalAFMExchangeField(const Antiferromagnet* magnet, const Ferromagnet* sub
   real3 c = magnet->cellsize();
   real3 w = {1 / (c.x * c.x), 1 / (c.y * c.y), 1 / (c.z * c.z)};
   
-  auto otherSub = magnet->getOtherSublattice(sublattice);
+  auto otherSub = magnet->hostMagnet()->getOtherSublattice(magnet);
   auto otherMag = otherSub->magnetization()->field().cu();
   auto msat2 = otherSub->msat.cu();
-  auto afmex_cell = magnet->afmex_cell.cu();
-  auto afmex_nn = magnet->afmex_nn.cu();
-  auto latcon = magnet->latcon.cu();
+  auto afmex_cell = magnet->hostMagnet()->afmex_cell.cu();
+  auto afmex_nn = magnet->hostMagnet()->afmex_nn.cu();
+  auto latcon = magnet->hostMagnet()->latcon.cu();
 
   cudaLaunch(hField.grid().ncells(), k_afmExchangeField, hField.cu(), otherMag,
-             afmex_cell, afmex_nn, msat2, latcon, w, sublattice->world()->mastergrid());
+             afmex_cell, afmex_nn, msat2, latcon, w, magnet->world()->mastergrid());
   return hField;
 }
 
-Field evalAFMExchangeEnergyDensity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+Field evalAFMExchangeEnergyDensity(const Ferromagnet* magnet) {
   if (afmExchangeAssuredZero(magnet))
-    return Field(sublattice->system(),1, 0.0);
-  return evalEnergyDensity(sublattice, evalAFMExchangeField(magnet, sublattice), 0.5);
+    return Field(magnet->system(), 1, 0.0);
+  return evalEnergyDensity(magnet, evalAFMExchangeField(magnet), 0.5);
 }
 
-real evalAFMExchangeEnergy(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+real evalAFMExchangeEnergy(const Ferromagnet* magnet) {
   if (afmExchangeAssuredZero(magnet))
     return 0;
     
-  real edens = AFM_exchangeEnergyDensityQuantity(magnet, sublattice).average()[0];
+  real edens = AFMexchangeEnergyDensityQuantity(magnet).average()[0];
 
   int ncells = magnet->grid().ncells();
   real cellVolume = magnet->world()->cellVolume();
   return ncells * edens * cellVolume;
 }
 
-AFM_FieldQuantity AFM_exchangeFieldQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-  return AFM_FieldQuantity(magnet, sublattice, evalAFMExchangeField, 3, "exchange_field", "T");
+FM_FieldQuantity AFMexchangeFieldQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalAFMExchangeField, 3, "exchange_field", "T");
 }
 
-AFM_FieldQuantity AFM_exchangeEnergyDensityQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-  return AFM_FieldQuantity(magnet, sublattice, evalAFMExchangeEnergyDensity, 1,
+FM_FieldQuantity AFMexchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalAFMExchangeEnergyDensity, 1,
                           "afm_exchange_energy_density", "J/m3");
 }
 
-AFM_ScalarQuantity AFM_exchangeEnergyQuantity(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
-  return AFM_ScalarQuantity(magnet, sublattice, evalAFMExchangeEnergy, "afm_exchange_energy", "J");
+FM_ScalarQuantity AFMexchangeEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalAFMExchangeEnergy, "afm_exchange_energy", "J");
 }
 
 /*
