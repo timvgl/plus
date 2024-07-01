@@ -22,10 +22,11 @@ __global__ void k_neelvector(CuField neel,
     real ms1 = msat1.valueAt(idx);
     real ms2 = msat2.valueAt(idx);
 
-    neel.setVectorInCell(idx, 0.5 * (ms1 * m1 - ms2 * m2));
+    neel.setVectorInCell(idx, (ms1 * m1 - ms2 * m2) / (ms1 + ms2));
 }
 
-Field evalNeelvector(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+Field evalNeelvector(const Antiferromagnet* magnet) {
+  // Calculate a weighted Neel vector (dimensionless) to account for ferrimagnets
   Field neel(magnet->system(), 3);
 
   if (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat.assuredZero()) {
@@ -40,6 +41,5 @@ Field evalNeelvector(const Antiferromagnet* magnet, const Ferromagnet* sublattic
 }
 
 AFM_FieldQuantity neelVectorQuantity(const Antiferromagnet* magnet) {
-    // TODO: make sublattice argument optional (nullptr)
-    return AFM_FieldQuantity(magnet, magnet->sub1(), evalNeelvector, 3, "neel_vector", "A/m");
+    return AFM_FieldQuantity(magnet, evalNeelvector, 3, "neel_vector", "A/m");
 }

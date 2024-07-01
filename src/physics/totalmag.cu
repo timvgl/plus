@@ -25,7 +25,7 @@ __global__ void k_totalmag(CuField total,
     total.setVectorInCell(idx, ms1 * m1 + ms2 * m2);
 }
 
-Field evalTotalMag(const Antiferromagnet* magnet, const Ferromagnet* sublattice) {
+Field evalTotalMag(const Antiferromagnet* magnet) {
   Field total(magnet->system(), 3);
 
   if (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat.assuredZero()) {
@@ -40,6 +40,5 @@ Field evalTotalMag(const Antiferromagnet* magnet, const Ferromagnet* sublattice)
 }
 
 AFM_FieldQuantity totalMagnetizationQuantity(const Antiferromagnet* magnet) {
-    // TODO: make sublattice argument optional (nullptr)
-    return AFM_FieldQuantity(magnet, magnet->sub1(), evalTotalMag, 3, "total_magnetization", "A/m");
+    return AFM_FieldQuantity(magnet, evalTotalMag, 3, "total_magnetization", "A/m");
 }

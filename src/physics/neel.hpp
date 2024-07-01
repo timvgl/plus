@@ -3,8 +3,7 @@
 #include "antiferromagnetquantity.hpp"
 
 class Antiferromagnet;
-class Ferromagnet;
 class Field;
 
-Field evalNeelvector(const Antiferromagnet*, const Ferromagnet*);
+Field evalNeelvector(const Antiferromagnet*);
 AFM_FieldQuantity neelVectorQuantity(const Antiferromagnet*);
