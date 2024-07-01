@@ -30,6 +30,7 @@ class Magnet {
   std::string name() const;
   std::shared_ptr<const System> system() const;
   const World* world() const;
+  const MumaxWorld* mumaxWorld() const;
   Grid grid() const;
   real3 cellsize() const;
   const GpuBuffer<bool>& getGeometry() const;

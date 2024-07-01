@@ -35,6 +35,11 @@ const World* Magnet::world() const {
   return system()->world();
 }
 
+const MumaxWorld* Magnet::mumaxWorld() const {
+  // static_cast: no check needed, world() is always a MumaxWorld
+  return static_cast<const MumaxWorld*>(this->world());
+}
+
 Grid Magnet::grid() const {
   return system()->grid();
 }

@@ -27,6 +27,12 @@ class World:
         """Return World string representation."""
         return f"World(cellsize={self.cellsize})"
 
+    @classmethod
+    def _from_impl(cls, impl):
+        world = cls.__new__(cls)
+        world._impl = impl
+        return world
+
     @property
     def timesolver(self):
         """Time solver for this world."""

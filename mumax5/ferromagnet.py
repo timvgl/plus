@@ -11,6 +11,7 @@ from .parameter import Parameter
 from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
+# from .world import World  # imported below to avoid circular imports
 
 
 class Ferromagnet:
@@ -113,6 +114,12 @@ class Ferromagnet:
             xyz coordinate of the center of the ferromagnet.
         """
         return self._impl.system.center
+
+    @property
+    def world(self):
+        """Return the World of which the ferromagnet is a part."""
+        from .world import World  # imported here to avoid circular imports
+        return World._from_impl(self._impl.world)
 
     @property
     def magnetization(self):

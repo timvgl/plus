@@ -25,11 +25,7 @@ void wrap_ferromagnet(py::module& m) {
   py::class_<Ferromagnet>(m, "Ferromagnet")
       .def_property_readonly("name", &Ferromagnet::name)
       .def_property_readonly("system", &Ferromagnet::system)
-
-      // TODO: implement the world property which returns the MumaxWorld to
-      // which the ferromagnet belongs
-      // .def_property_readonly("world",...)
-
+      .def_property_readonly("world", &Ferromagnet::mumaxWorld)
       .def_property_readonly("magnetization", &Ferromagnet::magnetization)
 
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)

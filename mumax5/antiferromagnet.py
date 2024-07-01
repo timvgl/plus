@@ -101,8 +101,14 @@ class Antiferromagnet:
     
     @property
     def grid(self):
-        """Return the underlying grid of the ferromagnet."""
+        """Return the underlying grid of the antiferromagnet."""
         return Grid._from_impl(self._impl.system.grid)
+
+    @property
+    def world(self):
+        """Return the World of which the antiferromagnet is a part."""
+        # same world as sublattice world; this uses less imports
+        return self.sub1.world
     
     @property
     def sub1(self):
