@@ -29,13 +29,11 @@ class Variable : public FieldQuantity {
   virtual void set(const Field&) const;
   virtual void set(real) const;
   virtual void set(real3) const;
-  virtual void set(real6) const;
 
   // Assignment operators which call the respective set function
   void operator=(const Field& f) const { set(f); }
   void operator=(real val) const { set(val); }
   void operator=(real3 val) const { set(val); }
-  void operator=(real6 val) const { set(val); }
 
  protected:
   Field* field_;
@@ -56,5 +54,4 @@ class NormalizedVariable : public Variable {
   void set(const Field&) const;
   void set(real) const;
   void set(real3) const;
-  void set(real6) const;
 };

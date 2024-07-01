@@ -16,16 +16,12 @@ void addTo(Field& y, real a, const Field& x);
 
 void addTo(Field& y, real3 a, const Field& x);
 
-void addTo(Field& y, real6 a, const Field& x);
-
 /// sum_i( weight[i]*x[i] )
 Field add(std::vector<const Field*> x, std::vector<real> weights);
 
 Field operator*(real a, const Field& x);
 
 Field operator*(real3 a, const Field& x);
-
-Field operator*(real6 a, const Field& x);
 
 Field normalized(const Field& src);
 void normalize(Field&);

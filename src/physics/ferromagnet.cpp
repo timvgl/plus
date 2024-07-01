@@ -1,6 +1,7 @@
 #include "ferromagnet.hpp"
 
 #include <curand.h>
+#include <chrono>
 
 #include <memory>
 #include <random>
@@ -12,74 +13,65 @@
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
 #include "poissonsystem.hpp"
-#include "strayfield.hpp"
-#include "system.hpp"
 
-Ferromagnet::Ferromagnet(MumaxWorld* world,
-                         Grid grid,
-                         int ncomp,
+Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr, 
                          std::string name,
-                         GpuBuffer<bool> geometry)
-    : system_(new System(world, grid, geometry)),
-      magnetization_(name + ":magnetization", "", system_, ncomp),
-      name_(name),
-      aex(system_, 0.0),
-      aex2(system_, 0.0),
-      afmex_cell(system_, 0.0),
-      afmex_nn(system_, 0.0),
-      msat(system_, 1.0),
-      msat2(system_, 1.0),
-      ku1(system_, 0.0),
-      ku12(system_, 0.0),
-      ku2(system_, 0.0),
-      ku22(system_, 0.0),
-      kc1(system_, 0.0),
-      kc2(system_, 0.0),
-      kc3(system_, 0.0),
-      kc12(system_, 0.0),
-      kc22(system_, 0.0),
-      kc32(system_, 0.0),
-      alpha(system_, 0.0),
-      temperature(system_, 0.0),
-      idmi(system_, 0.0),
-      latcon(system_, 0.35e-9),
-      xi(system_, 0.0),
-      Lambda(system_, 0.0),
-      FreeLayerThickness(system_, grid.size().z * cellsize().z),
-      eps_prime(system_, 0.0),
-      FixedLayer(system_, {0, 0, 0}),
-      pol(system_, 0.0),
-      anisU(system_, {0, 0, 0}),
-      anisC1(system_, {0, 0, 0}),
-      anisC2(system_, {0, 0, 0}),
-      jcur(system_, {0, 0, 0}),
-      biasMagneticField(system_, {0, 0, 0}),
-      dmiTensor(system_),
+                         Antiferromagnet* hostMagnet)
+    : Magnet(system_ptr, name),
+      hostMagnet_(hostMagnet),
+      magnetization_(name + ":magnetization", "", system(), 3),
+      msat(system(), 1.0),
+      aex(system(), 0.0),
+      ku1(system(), 0.0),
+      ku2(system(), 0.0),
+      kc1(system(), 0.0),
+      kc2(system(), 0.0),
+      kc3(system(), 0.0),
+      alpha(system(), 0.0),
+      temperature(system(), 0.0),
+      idmi(system(), 0.0),
+      xi(system(), 0.0),
+      Lambda(system(), 0.0),
+      FreeLayerThickness(system(), grid().size().z * cellsize().z),
+      eps_prime(system(), 0.0),
+      FixedLayer(system(), {0, 0, 0}),
+      pol(system(), 0.0),
+      anisU(system(), {0, 0, 0}),
+      anisC1(system(), {0, 0, 0}),
+      anisC2(system(), {0, 0, 0}),
+      jcur(system(), {0, 0, 0}),
+      biasMagneticField(system(), {0, 0, 0}),
+      dmiTensor(system()),
       enableDemag(true),
       enableOpenBC(false),
-      appliedPotential(system_, std::nanf("0")),
-      conductivity(system_, 0.0),
-      conductivity2(system_, 0.0),
-      amrRatio(system_, 0.0),
-      amrRatio2(system_, 0.0),
+      appliedPotential(system(), std::nanf("0")),
+      conductivity(system(), 0.0),
+      amrRatio(system(), 0.0),
       poissonSystem(this) {
-  {
+    {
     // TODO: this can be done much more efficient somewhere else
-    int nvalues = ncomp * this->grid().ncells();
+    int nvalues = 3 * this->grid().ncells();
     std::vector<real> randomValues(nvalues);
     std::normal_distribution<real> dist(0.0, 1.0);
     std::default_random_engine randomEngine;
+    auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    randomEngine.seed (seed);
     for (auto& v : randomValues) {
       v = dist(randomEngine);
     }
-    Field randomField(system(), ncomp);
+    Field randomField(system(), 3);
     randomField.setData(&randomValues[0]);
     magnetization_.set(randomField);
   }
   // TODO: move the generator to somewhere else
   curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);
   curandSetPseudoRandomGeneratorSeed(randomGenerator, 1234);
-}
+  }
+Ferromagnet::Ferromagnet(MumaxWorld* world,
+                         Grid grid,
+                         std::string name,
+                         GpuBuffer<bool> geometry)
+    : Ferromagnet(std::make_shared<System>(world, grid, geometry), name) {}
 
 Ferromagnet::~Ferromagnet() {
   for (auto& entry : strayFields_) {
@@ -88,81 +80,19 @@ Ferromagnet::~Ferromagnet() {
   curandDestroyGenerator(randomGenerator);
 }
 
-std::string Ferromagnet::name() const {
-  return name_;
-}
-
-int Ferromagnet::ncomp() const {
-  return ncomp_;
-}
-
-std::shared_ptr<const System> Ferromagnet::system() const {
-  return system_;
-}
-
-const World* Ferromagnet::world() const {
-  return system()->world();
-}
-
-Grid Ferromagnet::grid() const {
-  return system()->grid();
-}
-
-real3 Ferromagnet::cellsize() const {
-  return world()->cellsize();
-}
-
 const Variable* Ferromagnet::magnetization() const {
   return &magnetization_;
 }
 
-const GpuBuffer<bool>& Ferromagnet::getGeometry() const {
-  return system_->geometry();
+bool Ferromagnet::isSublattice() const {
+  return !(hostMagnet_ == nullptr);
+}
+
+const Antiferromagnet* Ferromagnet::hostMagnet() const {
+  return hostMagnet_;
 }
 
 void Ferromagnet::minimize(real tol, int nSamples) {
   Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
-}
-
-const StrayField* Ferromagnet::getStrayField(const Ferromagnet* magnet) const {
-  auto it = strayFields_.find(magnet);
-  if (it == strayFields_.end())
-    return nullptr;
-  return it->second;
-}
-
-std::vector<const StrayField*> Ferromagnet::getStrayFields() const {
-  std::vector<const StrayField*> strayFields;
-  strayFields.reserve(strayFields_.size());
-  for (const auto& entry : strayFields_) {
-    strayFields.push_back(entry.second);
-  }
-  return strayFields;
-}
-
-void Ferromagnet::addStrayField(const Ferromagnet* magnet,
-                                StrayFieldExecutor::Method method) {
-  if (world() != magnet->world()) {
-    throw std::runtime_error(
-        "Can not define the field of the magnet on this magnet because it is "
-        "not in the same world.");
-  }
-
-  auto it = strayFields_.find(magnet);
-  if (it != strayFields_.end()) {
-    // StrayField is already registered, just need to update the method
-    it->second->setMethod(method);
-    return;
-  }
-  // Stray field of magnet (parameter) on this magnet (the object)
-  strayFields_[magnet] = new StrayField(magnet, system(), method);
-}
-
-void Ferromagnet::removeStrayField(const Ferromagnet* magnet) {
-  auto it = strayFields_.find(magnet);
-  if (it != strayFields_.end()) {
-    delete it->second;
-    strayFields_.erase(it);
-  }
 }

@@ -6,7 +6,7 @@
 #include "fieldquantity.hpp"
 
 class Parameter;
-class Ferromagnet;
+class Magnet;
 class Field;
 class System;
 class Grid;
@@ -35,13 +35,13 @@ class StrayFieldExecutor {
    *               METHOD_FFT at the moment
    */
   static std::unique_ptr<StrayFieldExecutor> create(
-      const Ferromagnet* magnet,
+      const Magnet* magnet,
       std::shared_ptr<const System> system,
       Method method);
 
  protected:
   /** Constructor only to be used in constructor of derived classes. */
-  StrayFieldExecutor(const Ferromagnet* magnet,
+  StrayFieldExecutor(const Magnet* magnet,
                      std::shared_ptr<const System> system);
 
  public:
@@ -56,7 +56,7 @@ class StrayFieldExecutor {
 
  protected:
   /** Source of the stray field*/
-  const Ferromagnet* magnet_;
+  const Magnet* magnet_;
 
   /** System in which the stray field will be computed. */
   const std::shared_ptr<const System> system_;
@@ -79,7 +79,7 @@ class StrayField : public FieldQuantity {
    * @param system the system in which we compute the stray field
    * @param method the used method for the computation
    */
-  StrayField(const Ferromagnet* magnet,
+  StrayField(const Magnet* magnet,
              std::shared_ptr<const System> system,
              StrayFieldExecutor::Method = StrayFieldExecutor::METHOD_AUTO);
 
@@ -92,7 +92,7 @@ class StrayField : public FieldQuantity {
    * @param grid   used to create a system in which the stray field is computed
    * @param method the used method for the computation
    */
-  StrayField(const Ferromagnet* magnet,
+  StrayField(const Magnet* magnet,
              Grid grid,
              StrayFieldExecutor::Method = StrayFieldExecutor::METHOD_AUTO);
 
@@ -103,7 +103,7 @@ class StrayField : public FieldQuantity {
   void setMethod(StrayFieldExecutor::Method);
 
   /** Return the magnet which is the source of the stray field. */
-  const Ferromagnet* source() const;
+  const Magnet* source() const;
 
   /** Return the number of components of the stray field which is 3. */
   int ncomp() const;
@@ -122,6 +122,6 @@ class StrayField : public FieldQuantity {
 
  private:
   std::shared_ptr<const System> system_;
-  const Ferromagnet* magnet_;
+  const Magnet* magnet_;
   std::unique_ptr<StrayFieldExecutor> executor_;
 };

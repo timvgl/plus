@@ -1,8 +1,14 @@
 #project(mumax5)
 
 add_library(physics STATIC 
+    afmexchange.cu
+    afmexchange.hpp
     anisotropy.cu 
     anisotropy.hpp 
+    antiferromagnet.cpp
+    antiferromagnet.hpp
+    antiferromagnetquantity.cpp
+    antiferromagnetquantity.hpp
     conductivitytensor.cu
     conductivitytensor.hpp
     constants.hpp
@@ -23,7 +29,9 @@ add_library(physics STATIC
     ferromagnet.cpp 
     ferromagnet.hpp 
     ferromagnetquantity.cpp 
-    ferromagnetquantity.hpp 
+    ferromagnetquantity.hpp
+    magnet.cpp
+    magnet.hpp 
     minimizer.cu
     minimizer.hpp
     mumaxworld.cpp
@@ -47,7 +55,9 @@ add_library(physics STATIC
     thermalnoise.cu
     thermalnoise.hpp
     torque.cu 
-    torque.hpp 
+    torque.hpp
+    totalmag.cu
+    totalmag.hpp 
     zeeman.cu
     zeeman.hpp
 )

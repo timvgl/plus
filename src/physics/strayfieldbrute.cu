@@ -1,47 +1,43 @@
 #include <memory>
 
+#include "antiferromagnet.hpp"
 #include "constants.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
+#include "magnet.hpp"
 #include "field.hpp"
+#include "fieldops.hpp"
 #include "grid.hpp"
 #include "parameter.hpp"
 #include "strayfieldbrute.hpp"
 #include "system.hpp"
+#include "totalmag.hpp"
 
 __global__ void k_demagfield(CuField hField,
-                             const CuField mField,
+                             const CuField mField1,
+                             const CuField mField2,
                              const CuField kernel,
-                             const CuParameter msat,
+                             const CuParameter msat1,
                              const CuParameter msat2,
-                             bool afm) {
+                             real fac) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry of destiny field, set to zero and return
   // early
   if (!hField.cellInGeometry(idx)) {
-    if (hField.cellInGrid(idx)) {
-      if (!afm) {
-        hField.setVectorInCell(idx, real3{0, 0, 0});
-      }
-      else {
-        hField.setVectorInCell(idx, real6{0, 0, 0, 0, 0, 0});
-      }
-    }
+    if (hField.cellInGrid(idx))
+      hField.setVectorInCell(idx, real3{0, 0, 0});
     return;
   }
 
-  // Treat 6d case and strip 3 zeros at the end in case of FM.
-  real6 h{0, 0, 0, 0, 0, 0};
-  real6 M{0, 0, 0, 0, 0, 0};
-
   int3 dstcoo = hField.system.grid.index2coord(idx);
+  real3 h{0, 0, 0};
 
-  for (int i = 0; i < mField.system.grid.ncells(); i++) {
-    if (!mField.cellInGeometry(i))
+  for (int i = 0; i < mField1.system.grid.ncells(); i++) {
+    if (!mField1.cellInGeometry(i))
       continue;
 
-    int3 srccoo = mField.system.grid.index2coord(i);
+    int3 srccoo = mField1.system.grid.index2coord(i);
     int3 r = dstcoo - srccoo;
     real nxx = kernel.valueAt(r, 0);
     real nyy = kernel.valueAt(r, 1);
@@ -50,41 +46,44 @@ __global__ void k_demagfield(CuField hField,
     real nxz = kernel.valueAt(r, 4);
     real nyz = kernel.valueAt(r, 5);
     
-    if (!afm) {
-      real3 mag = msat.valueAt(i) * mField.FM_vectorAt(i);
-      M = {mag.x, mag.y, mag.z, 0, 0, 0};
-    }
-    else {
-      M = real2{msat.valueAt(i), msat2.valueAt(i)} * mField.AFM_vectorAt(i);
-    }
+    real3 M = (msat1.valueAt(i) * mField1.vectorAt(i) +
+               msat2.valueAt(i) * mField2.vectorAt(i)) / fac;
 
-    h.x1 -= nxx * M.x1 + nxy * M.y1 + nxz * M.z1;
-    h.y1 -= nxy * M.x1 + nyy * M.y1 + nyz * M.z1;
-    h.z1 -= nxz * M.x1 + nyz * M.y1 + nzz * M.z1;
-    h.x2 -= nxx * M.x2 + nxy * M.y2 + nxz * M.z2;
-    h.y2 -= nxy * M.x2 + nyy * M.y2 + nyz * M.z2;
-    h.z2 -= nxz * M.x2 + nyz * M.y2 + nzz * M.z2;
+    h.x -= nxx * M.x + nxy * M.y + nxz * M.z;
+    h.y -= nxy * M.x + nyy * M.y + nyz * M.z;
+    h.z -= nxz * M.x + nyz * M.y + nzz * M.z;
   }
-  if (!afm) {
-    hField.setVectorInCell(idx, MU0 * real3{h.x1, h.y1, h.z1});
-  }
-  else {
-    hField.setVectorInCell(idx, MU0 * h);
-  }
+  
+  hField.setVectorInCell(idx, MU0 * h);
 }
 
 StrayFieldBruteExecutor::StrayFieldBruteExecutor(
-    const Ferromagnet* magnet,
+    const Magnet* magnet,
     std::shared_ptr<const System> system)
     : StrayFieldExecutor(magnet, system),
       kernel_(system->grid(), magnet_->grid(), magnet_->world()) {}
 
 Field StrayFieldBruteExecutor::exec() const {
-   auto m = magnet_->magnetization()->field().cu();
-  Field h(system_, m.ncomp);
+  
+  Field h(system_, 3);
   int ncells = h.grid().ncells();
-  bool afm = m.ncomp == 6;
-  cudaLaunch(ncells, k_demagfield, h.cu(), m, kernel_.field().cu(),
-             magnet_->msat.cu(), magnet_->msat2.cu(), afm);
+  real fac;
+
+  if(const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_)) {
+    auto m = mag->magnetization()->field().cu();
+    auto msat = mag->msat.cu();
+    fac = 2.0;
+    cudaLaunch(ncells, k_demagfield, h.cu(), m, m, kernel_.field().cu(),
+              msat, msat, fac);
+  }
+  else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_)) {
+    auto m1 = mag->sub1()->magnetization()->field().cu();
+    auto m2 = mag->sub2()->magnetization()->field().cu();
+    auto ms1 = mag->sub1()->msat.cu();
+    auto ms2 = mag->sub2()->msat.cu();
+    fac = 1.0;
+    cudaLaunch(ncells, k_demagfield, h.cu(), m1, m2, kernel_.field().cu(),
+              ms1, ms2, fac);
+  }
   return h;
 }

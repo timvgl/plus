@@ -29,29 +29,20 @@ void Minimizer::exec() {
 __global__ void k_step(CuField mField,
                        const CuField m0Field,
                        const CuField torqueField,
-                       real dt,
-                       const int comp) {
+                       real dt) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!mField.cellInGrid(idx))
     return;
-  if (comp == 3) {
-    real3 m0 = m0Field.FM_vectorAt(idx);
-    real3 t = torqueField.FM_vectorAt(idx);
 
-    real t2 = dt * dt * dot(t, t);
-    real3 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
+  real3 m0 = m0Field.vectorAt(idx);
+  real3 t = torqueField.vectorAt(idx);
 
-    mField.setVectorInCell(idx, m);
-  }
-  else if (comp == 6) {
-    real6 m0 = m0Field.AFM_vectorAt(idx);
-    real6 t = torqueField.AFM_vectorAt(idx);
+  real t2 = dt * dt * dot(t, t);
+  real3 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
 
-    real2 t2 = dt * dt * dot(t, t);
-    real6 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
-    mField.setVectorInCell(idx, m);
-  }
+  mField.setVectorInCell(idx, m);
+
 }
 
 static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
@@ -71,15 +62,14 @@ static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
 
 void Minimizer::step() {
   m0 = magnet_->magnetization()->eval();
-  int comp = m0.ncomp();
   if (nsteps_ == 0)
     t0 = torque_.eval();
   else
     t0 = t1;
 
-  m1 = Field(magnet_->system(), comp);
+  m1 = Field(magnet_->system(), 3);
   int N = m1.grid().ncells();
-  cudaLaunch(N, k_step, m1.cu(), m0.cu(), t0.cu(), stepsize_, comp);
+  cudaLaunch(N, k_step, m1.cu(), m0.cu(), t0.cu(), stepsize_);
   
   magnet_->magnetization()->set(m1);  // normalizes
 

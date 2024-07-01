@@ -9,8 +9,7 @@
 #include "world.hpp"
 
 bool dmiAssuredZero(const Ferromagnet* magnet) {
-  return (magnet->dmiTensor.assuredZero()
-         || (magnet->msat.assuredZero() && magnet->msat2.assuredZero()));
+  return (magnet->dmiTensor.assuredZero() || magnet->msat.assuredZero());
 }
 
 __device__ static inline real harmonicMean(real a, real b) {
@@ -29,42 +28,26 @@ __global__ void k_dmiField(CuField hField,
                            const CuField mField,
                            const CuDmiTensor dmiTensor,
                            const CuParameter msat,
-                           const CuParameter msat2,
                            Grid mastergrid,
-                           const CuParameter afmex_nn,
                            const CuParameter aex,
-                           const CuParameter aex2,
-                           const CuParameter latcon,
-                           const bool enableOpenBC,
-			                     const int comp) {
+                           const bool enableOpenBC) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
   const auto system = hField.system;
  
- real6 m; 
-  if (comp == 3) {
-	  real3 mag = mField.FM_vectorAt(idx);
-	  m = real6{mag.x, mag.y, mag.z, 0, 0, 0};
-  }
-  else if (comp == 6) 
-	  m = mField.AFM_vectorAt(idx);
-  
   if (!system.grid.cellInGrid(idx))
     return;
 
   // When outside the geometry or msat=0, set to zero and return early
-  if (!system.inGeometry(idx) || (msat.valueAt(idx) == 0 && msat2.valueAt(idx) == 0)) {
-    if (comp == 3)
-      hField.setVectorInCell(idx, real3{0, 0, 0});
-    else if (comp == 6)
-      hField.setVectorInCell(idx, real6{0, 0, 0, 0, 0, 0});
+  if (!system.inGeometry(idx) || (msat.valueAt(idx) == 0)) {
+    hField.setVectorInCell(idx, real3{0, 0, 0});
     return;
   }
 
+	real3 m = mField.vectorAt(idx);
   const int3 coo = system.grid.index2coord(idx);
 
   // Accumulate DMI field of cell at idx in h. Divide by msat at the end.
-  // Treat 6d case and strip 3 zeros at the end in case of FM.
-  real6 h{0, 0, 0, 0, 0, 0};
+  real3 h{0, 0, 0};
 
 // Loop over the 6 nearest neighbors using the neighbor's relative coordinate.
 // Compute for each neighbor the DMI effective field term.
@@ -77,7 +60,7 @@ __global__ void k_dmiField(CuField hField,
     // If we assume open boundary conditions and if there is no neighbor, 
     // then simply continue without adding to the effective field.    
     if ((!system.inGeometry(neighbor_coo) && enableOpenBC)
-       || (msat.valueAt(neighbor_idx) == 0 && msat2.valueAt(neighbor_idx) == 0))
+       || (msat.valueAt(neighbor_idx) == 0))
       continue;
     
     
@@ -126,14 +109,13 @@ __global__ void k_dmiField(CuField hField,
                  relative_coo.y * system.cellsize.y +
                  relative_coo.z * system.cellsize.z;
 
-    real6 m_;
+    real3 m_ = mField.vectorAt(neighbor_idx);
+    
+    /* TO DO: implement DMI BC (also in case of AFM)
 
     if (!system.inGeometry(neighbor_coo)) {
     // DMI-BC
       real a = aex.valueAt(idx);
-      if (comp == 6)
-        a = harmonicMean(aex.valueAt(idx), aex2.valueAt(idx));
-
       real fac = afmex_nn.valueAt(idx) / (2 * a);
       real Ax = Dxz * system.cellsize.x / (2 * a * (1 - fac * fac));
       real Ay = Dyz * system.cellsize.y / (2 * a * (1 - fac * fac));
@@ -159,22 +141,18 @@ __global__ void k_dmiField(CuField hField,
       }
     }
     else {
-      if (comp == 3) {
-        real3 mag_ = mField.FM_vectorAt(neighbor_idx);
-        m_ = real6{mag_.x, mag_.y, mag_.z, 0, 0, 0};
-      }
-      else if (comp == 6)
-        m_ = mField.AFM_vectorAt(neighbor_idx);
-    }
+      m_ = mField.vectorAt(neighbor_idx);
+    }*/
+
+    
     // Compute the effective field contribution of the DMI with the neighbor
-    h.x1 += (Dxy * m_.y1 + Dxz * m_.z1) / delta;
-    h.y1 += (Dyx * m_.x1 + Dyz * m_.z1) / delta;
-    h.z1 += (Dzx * m_.x1 + Dzy * m_.y1) / delta;
-    h.x2 += (Dxy * m_.y2 + Dxz * m_.z2) / delta;
-    h.y2 += (Dyx * m_.x2 + Dyz * m_.z2) / delta;
-    h.z2 += (Dzx * m_.x2 + Dzy * m_.y2) / delta;
+    h.x += (Dxy * m_.y + Dxz * m_.z) / delta;
+    h.y += (Dyx * m_.x + Dyz * m_.z) / delta;
+    h.z += (Dzx * m_.x + Dzy * m_.y) / delta;
+
   }  // end loop over neighbors
 
+  /* TO DO: implement DMI-contribution to afm-exchange
   if (comp == 6) {
     // Compute effective field contribution of the DMI between sublattices at a single site
     real Dyz = dmiTensor.xyz.valueAt(idx);
@@ -190,49 +168,38 @@ __global__ void k_dmiField(CuField hField,
     h.x2 += (Dxy * m.y1 + Dxz * m.z1) / l;
     h.y2 += (Dyx * m.x1 + Dyz * m.z1) / l;
     h.z2 += (Dzx * m.x1 + Dzy * m.y1) / l;
-  }
+  }*/
 
-  if(comp == 3) {
-    h /= msat.valueAt(idx);
-    hField.setVectorInCell(idx, real3{h.x1, h.y1, h.z1});
-  }
-  else if (comp == 6) {
-    h /= real2{msat.valueAt(idx), msat2.valueAt(idx)};
-    hField.setVectorInCell(idx, h);
-  }
+  h /= msat.valueAt(idx);
+  hField.setVectorInCell(idx, h);
+
 }
 
 Field evalDmiField(const Ferromagnet* magnet) {
-  int comp = magnet->magnetization()->ncomp();
-  Field hField(magnet->system(), comp);
+  Field hField(magnet->system(), 3);
   if (dmiAssuredZero(magnet)) {
     hField.makeZero();
     return hField;
   }
   cudaLaunch(hField.grid().ncells(), k_dmiField, hField.cu(),
              magnet->magnetization()->field().cu(), magnet->dmiTensor.cu(),
-             magnet->msat.cu(), magnet->msat2.cu(), magnet->world()->mastergrid(),
-             magnet->afmex_nn.cu(), magnet->aex.cu(), magnet->aex2.cu(),
-             magnet->latcon.cu(), magnet->enableOpenBC, comp);
+             magnet->msat.cu(), magnet->world()->mastergrid(),
+             magnet->aex.cu(), magnet->enableOpenBC);
   return hField;
 }
 
 Field evalDmiEnergyDensity(const Ferromagnet* magnet) {
   if (dmiAssuredZero(magnet))
-    return Field(magnet->system(), magnet->magnetization()->ncomp() / 3, 0.0);
+    return Field(magnet->system(), 1, 0.0);
 
   return evalEnergyDensity(magnet, evalDmiField(magnet), 0.5);
 }
 
-real evalDmiEnergy(const Ferromagnet* magnet, const bool sub2) {
+real evalDmiEnergy(const Ferromagnet* magnet) {
   if (dmiAssuredZero(magnet))
     return 0;
 
-  real edens;
-  if (!sub2) 
-    edens = dmiEnergyDensityQuantity(magnet).average()[0];
-  else 
-    edens = dmiEnergyDensityQuantity(magnet).average()[1];
+  real edens = dmiEnergyDensityQuantity(magnet).average()[0];
 
   int ncells = magnet->grid().ncells();
   real cellVolume = magnet->world()->cellVolume();
@@ -240,17 +207,14 @@ real evalDmiEnergy(const Ferromagnet* magnet, const bool sub2) {
 }
 
 FM_FieldQuantity dmiFieldQuantity(const Ferromagnet* magnet) {
-  int comp = magnet->magnetization()->ncomp();
-  return FM_FieldQuantity(magnet, evalDmiField, comp, "dmi_field", "T");
+  return FM_FieldQuantity(magnet, evalDmiField, 3, "dmi_field", "T");
 }
 
 FM_FieldQuantity dmiEnergyDensityQuantity(const Ferromagnet* magnet) {
-  int comp = magnet->magnetization()->ncomp();
-  return FM_FieldQuantity(magnet, evalDmiEnergyDensity, comp / 3, "dmi_emergy_density",
+  return FM_FieldQuantity(magnet, evalDmiEnergyDensity, 1, "dmi_emergy_density",
                           "J/m3");
 }
 
-FM_ScalarQuantity dmiEnergyQuantity(const Ferromagnet* magnet, const bool sub2) {
-  std::string name = sub2 ? "dmi_energy2" : "dmi_energy";
-  return FM_ScalarQuantity(magnet, evalDmiEnergy, sub2, name, "J");
+FM_ScalarQuantity dmiEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalDmiEnergy, "dmi_energy", "J");
 }
