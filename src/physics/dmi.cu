@@ -43,7 +43,7 @@ __global__ void k_dmiField(CuField hField,
     return;
   }
 
-	real3 m = mField.FM_vectorAt(idx);
+	real3 m = mField.vectorAt(idx);
   const int3 coo = system.grid.index2coord(idx);
 
   // Accumulate DMI field of cell at idx in h. Divide by msat at the end.
@@ -109,7 +109,7 @@ __global__ void k_dmiField(CuField hField,
                  relative_coo.y * system.cellsize.y +
                  relative_coo.z * system.cellsize.z;
 
-    real3 m_ = mField.FM_vectorAt(neighbor_idx);
+    real3 m_ = mField.vectorAt(neighbor_idx);
     
     /* TO DO: implement DMI BC (also in case of AFM)
 
@@ -141,7 +141,7 @@ __global__ void k_dmiField(CuField hField,
       }
     }
     else {
-      m_ = mField.FM_vectorAt(neighbor_idx);
+      m_ = mField.vectorAt(neighbor_idx);
     }*/
 
     

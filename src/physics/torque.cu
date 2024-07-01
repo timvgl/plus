@@ -30,8 +30,8 @@ __global__ void k_llgtorque(CuField torque,
     return;
   }
 
-  real3 m = mField.FM_vectorAt(idx);
-  real3 h = hField.FM_vectorAt(idx);
+  real3 m = mField.vectorAt(idx);
+  real3 h = hField.vectorAt(idx);
   real a = alpha.valueAt(idx);
   real3 mxh = cross(m, h);
   real3 mxmxh = cross(m, mxh);
@@ -62,8 +62,8 @@ __global__ void k_dampingtorque(CuField torque,
     return;
   }
 
-  real3 m = mField.FM_vectorAt(idx);
-  real3 h = hField.FM_vectorAt(idx);
+  real3 m = mField.vectorAt(idx);
+  real3 h = hField.vectorAt(idx);
   real3 t = -GAMMALL * cross(m, cross(m, h));
   torque.setVectorInCell(idx, t);
 }

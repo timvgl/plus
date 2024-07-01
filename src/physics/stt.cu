@@ -24,7 +24,7 @@ __global__ void k_ZhangLi(CuField torque,
                                      const CuParameter polParam,
                                      const CuParameter xiParam,
                                      const CuParameter alphaParam,
-                                     const FM_CuVectorParameter jcurParam) {
+                                     const CuVectorParameter jcurParam) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   const Grid grid = torque.system.grid;
@@ -37,9 +37,9 @@ __global__ void k_ZhangLi(CuField torque,
     return;
   }
 
-  real3 m = mField.FM_vectorAt(idx);
+  real3 m = mField.vectorAt(idx);
 
-  const real3 j = jcurParam.FM_vectorAt(idx);
+  const real3 j = jcurParam.vectorAt(idx);
   const real msat = msatParam.valueAt(idx);
   const real pol = polParam.valueAt(idx);
   const real xi = xiParam.valueAt(idx);
@@ -60,7 +60,7 @@ __global__ void k_ZhangLi(CuField torque,
   for (int sign : {-1, 1}) {  // left and right neighbor
     const int3 coo_ = coo + int3{sign, 0, 0};
     if (grid.cellInGrid(coo_) && msatParam.valueAt(coo_) != 0) {
-      real3 m_ = mField.FM_vectorAt(coo_);
+      real3 m_ = mField.vectorAt(coo_);
       hspin += sign * u.x * m_ / (2 * cellsize.x);  // central finite difference
     }
   }
@@ -68,7 +68,7 @@ __global__ void k_ZhangLi(CuField torque,
   for (int sign : {-1, 1}) {
     const int3 coo_ = coo + int3{0, sign, 0};
     if (grid.cellInGrid(coo_) && msatParam.valueAt(coo_) != 0) {
-      real3 m_ = mField.FM_vectorAt(coo_);
+      real3 m_ = mField.vectorAt(coo_);
       hspin += sign * u.y * m_ / (2 * cellsize.y);
     }
   }
@@ -76,7 +76,7 @@ __global__ void k_ZhangLi(CuField torque,
   for (int sign : {-1, 1}) {
     const int3 coo_ = coo + int3{0, 0, sign};
     if (grid.cellInGrid(coo_) && msatParam.valueAt(coo_) != 0) {
-      real3 m_ = mField.FM_vectorAt(coo_);
+      real3 m_ = mField.vectorAt(coo_);
       hspin += sign * u.z * m_ / (2 * cellsize.z);  // central finite difference
     }
   }
@@ -95,9 +95,9 @@ __global__ void k_Slonczewski(CuField torque,
                                      const CuParameter polParam,
                                      const CuParameter lambdaParam,
                                      const CuParameter alphaParam,
-                                     const FM_CuVectorParameter jcurParam,
+                                     const CuVectorParameter jcurParam,
                                      const CuParameter eps_prime,
-                                     const FM_CuVectorParameter FixedLayer,
+                                     const CuVectorParameter FixedLayer,
                                      const CuParameter FreeLayerThickness) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -108,16 +108,16 @@ __global__ void k_Slonczewski(CuField torque,
     return;
   }
 
-  real3 m = mField.FM_vectorAt(idx);
+  real3 m = mField.vectorAt(idx);
  
-  const real3 jj = jcurParam.FM_vectorAt(idx);
+  const real3 jj = jcurParam.vectorAt(idx);
   const real j = norm(jj);
 
   const real msat = msatParam.valueAt(idx);
   const real pol = polParam.valueAt(idx);
   const real alpha = alphaParam.valueAt(idx);
 
-  const real3 p = FixedLayer.FM_vectorAt(idx);
+  const real3 p = FixedLayer.vectorAt(idx);
   const real lambda = lambdaParam.valueAt(idx);
   const real eps_p = eps_prime.valueAt(idx);
   const real d = FreeLayerThickness.valueAt(idx);

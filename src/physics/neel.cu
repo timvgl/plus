@@ -17,8 +17,8 @@ __global__ void k_neelvector(CuField neel,
         neel.setVectorInCell(idx, real3{0, 0, 0});
     return;
   }
-    real3 m1 = mag1.FM_vectorAt(idx);
-    real3 m2 = mag2.FM_vectorAt(idx);
+    real3 m1 = mag1.vectorAt(idx);
+    real3 m2 = mag2.vectorAt(idx);
     real ms1 = msat1.valueAt(idx);
     real ms2 = msat2.valueAt(idx);
 

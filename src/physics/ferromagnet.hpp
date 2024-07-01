@@ -50,15 +50,15 @@ class Ferromagnet : public Magnet {
   mutable PoissonSystem poissonSystem;
   bool enableDemag;
   bool enableOpenBC;
-  FM_VectorParameter anisU;
-  FM_VectorParameter anisC1;
-  FM_VectorParameter anisC2;
-  FM_VectorParameter jcur;
-  FM_VectorParameter FixedLayer;
+  VectorParameter anisU;
+  VectorParameter anisC1;
+  VectorParameter anisC2;
+  VectorParameter jcur;
+  VectorParameter FixedLayer;
   /** Uniform bias magnetic field which will affect a ferromagnet.
    * Measured in Teslas.
    */
-  FM_VectorParameter biasMagneticField;
+  VectorParameter biasMagneticField;
   Parameter msat;
   Parameter aex;
   Parameter ku1;

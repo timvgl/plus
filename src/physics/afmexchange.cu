@@ -54,7 +54,7 @@ __global__ void k_afmExchangeField(CuField hField,
   const int3 coo = grid.index2coord(idx);
 
 
-  const real3 m2 = mField.FM_vectorAt(idx);
+  const real3 m2 = mField.vectorAt(idx);
 
   const real ac = afmex_cell.valueAt(idx);
   const real ann = afmex_nn.valueAt(idx);
@@ -75,7 +75,7 @@ __global__ void k_afmExchangeField(CuField hField,
       continue;
     const int idx_ = grid.coord2index(coo_);
     if (msat2.valueAt(idx_) != 0) {
-      const real3 m2_ = mField.FM_vectorAt(idx_);
+      const real3 m2_ = mField.vectorAt(idx_);
       const real ann_ = afmex_nn.valueAt(idx_);
       h += harmonicMean(ann, ann_) * w.x * (m2_ - m2);
     }
@@ -89,7 +89,7 @@ __global__ void k_afmExchangeField(CuField hField,
       continue;
     const int idx_ = grid.coord2index(coo_);
     if (msat2.valueAt(idx_) != 0) {
-      const real3 m2_ = mField.FM_vectorAt(idx_);
+      const real3 m2_ = mField.vectorAt(idx_);
       const real ann_ = afmex_nn.valueAt(idx_);
       h += harmonicMean(ann, ann_) * w.y * (m2_ - m2);
     }
@@ -104,7 +104,7 @@ __global__ void k_afmExchangeField(CuField hField,
         continue;
       const int idx_ = grid.coord2index(coo_);
       if (msat2.valueAt(idx_) != 0) {
-        const real3 m2_ = mField.FM_vectorAt(idx_);
+        const real3 m2_ = mField.vectorAt(idx_);
         const real ann_ = afmex_nn.valueAt(idx_);
         h += harmonicMean(ann, ann_) * w.z * (m2_ - m2);
       }

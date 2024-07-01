@@ -46,7 +46,7 @@ __global__ void k_exchangeField(CuField hField,
   }
 
   const int3 coo = grid.index2coord(idx);
-  const real3 m = mField.FM_vectorAt(idx);
+  const real3 m = mField.vectorAt(idx);
   const real a = aex.valueAt(idx);
 
   // accumulate exchange field in h for cell at idx, divide by msat at the end
@@ -62,7 +62,7 @@ __global__ void k_exchangeField(CuField hField,
     const int idx_ = grid.coord2index(coo_);
     if (msat.valueAt(idx_) != 0) {
 
-      real3 m_ = mField.FM_vectorAt(idx_);
+      real3 m_ = mField.vectorAt(idx_);
       const real a_ = aex.valueAt(idx_);
 
       h += 2 * harmonicMean(a, a_) * w.x * (m_ - m);      
@@ -78,7 +78,7 @@ __global__ void k_exchangeField(CuField hField,
     const int idx_ = grid.coord2index(coo_);
     if (msat.valueAt(idx_) != 0) {
 
-      real3 m_ = mField.FM_vectorAt(idx_);
+      real3 m_ = mField.vectorAt(idx_);
       const real a_ = aex.valueAt(idx_);
 
       h += 2 * harmonicMean(a, a_) * w.y * (m_ - m);
@@ -95,7 +95,7 @@ __global__ void k_exchangeField(CuField hField,
       const int idx_ = grid.coord2index(coo_);
       if (msat.valueAt(idx_) != 0) {
 
-        real3 m_ = mField.FM_vectorAt(idx_);
+        real3 m_ = mField.vectorAt(idx_);
         const real a_ = aex.valueAt(idx_);
 
         h += 2 * harmonicMean(a, a_) * w.z * (m_ - m);        
@@ -213,8 +213,8 @@ __global__ void k_maxangle(CuField maxAngleField,
     const int idx_ = grid.coord2index(coo_);
     if (mField.cellInGeometry(coo_) && msat.valueAt(idx_) != 0) {
       real a_ = aex.valueAt(idx_);
-      real3 m = mField.FM_vectorAt(idx);
-      real3 m_ = mField.FM_vectorAt(idx_);
+      real3 m = mField.vectorAt(idx);
+      real3 m_ = mField.vectorAt(idx_);
       real angle = m == m_ ? 0 : acos(dot(m, m_));
       if (harmonicMean(a, a_) != 0 && angle > maxAngle)
         maxAngle = angle;

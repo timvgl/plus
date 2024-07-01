@@ -15,8 +15,8 @@ __global__ void k_addFields(CuField y,
   if (!y.cellInGeometry(idx))
     return;
   for (int c = 0; c < y.ncomp; c++) {
-    real term1 = a1 * x1.valueAt(idx, c % x1.ncomp);
-    real term2 = a2 * x2.valueAt(idx, c % x2.ncomp);
+    real term1 = a1 * x1.valueAt(idx, c);
+    real term2 = a2 * x2.valueAt(idx, c);
     y.setValueInCell(idx, c, term1 + term2);
   }
 }
@@ -30,22 +30,8 @@ __global__ void k_addFields(CuField y,
   if (!y.cellInGeometry(idx))
     return;
 
-  real3 term1 = a1 * x1.FM_vectorAt(idx);
-  real3 term2 = a2 * x2.FM_vectorAt(idx);
-  y.setVectorInCell(idx, term1 + term2);
-}
-
-__global__ void k_addFields(CuField y,
-                            real6 a1,
-                            const CuField x1,
-                            real6 a2,
-                            const CuField x2) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (!y.cellInGeometry(idx))
-    return;
-
-  real6 term1 = a1 * x1.AFM_vectorAt(idx);
-  real6 term2 = a2 * x2.AFM_vectorAt(idx);
+  real3 term1 = a1 * x1.vectorAt(idx);
+  real3 term2 = a2 * x2.vectorAt(idx);
   y.setVectorInCell(idx, term1 + term2);
 }
 
@@ -86,28 +72,6 @@ inline void add(Field& y,
   cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
 }
 
-inline void add(Field& y,
-                real6 a1,
-                const Field& x1,
-                real6 a2,
-                const Field& x2) {
-  if (x1.system() != y.system() || x2.system() != y.system()) {
-    throw std::invalid_argument(
-        "Fields can not be added together because they belong to different "
-        "systems)");
-  }
-  if (x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) {
-    throw std::invalid_argument(
-        "Fields can not be added because they do not have the same number of "
-        "components");
-  }
-  if (x1.ncomp() != 6) {
-    throw std::invalid_argument("Fields should have 6 components.");
-  }
-  int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
-}
-
 Field add(real a1, const Field& x1, real a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
@@ -124,11 +88,6 @@ void addTo(Field& y, real a, const Field& x) {
 
 void addTo(Field& y, real3 a, const Field& x) {
   real3 a0 = real3{1, 1, 1};
-  add(y, a0, y, a, x);
-}
-
-void addTo(Field& y, real6 a, const Field& x) {
-  real6 a0 = real6{1, 1, 1, 1, 1, 1};
   add(y, a0, y, a, x);
 }
 
@@ -167,34 +126,15 @@ __global__ void k_normalize(CuField dst, const CuField src) {
   if (!dst.cellInGeometry(idx))
     return;
 
-  int comp = src.ncomp;
-  
-  if (comp == 3) {
-    real norm2 = 0.0;
-    for (int c = 0; c < comp; c++) {
-      real v = src.valueAt(idx, c);
-      norm2 += v * v;
-    }
-    real invnorm = rsqrt(norm2);
-    for (int c = 0; c < comp; c++) {
-      real value = src.valueAt(idx, c) * invnorm;
-      dst.setValueInCell(idx, c, value);
-    }
+  real norm2 = 0.0;
+  for (int c = 0; c < src.ncomp; c++) {
+    real v = src.valueAt(idx, c);
+    norm2 += v * v;
   }
-  else if (comp == 6) {
-    real2 norm2 = real2{0., 0.};
-    for (int c = 0; c < comp - 3; c++) {
-      real v = src.valueAt(idx, c);
-      real u = src.valueAt(idx, c + 3);
-      norm2 += real2{v * v, u * u};
-    }
-    real2 invnorm = real2{rsqrt(norm2.x), rsqrt(norm2.y)};
-    for (int c = 0; c < comp - 3; c++) {
-      real vvalue = src.valueAt(idx, c) * invnorm.x;
-      real uvalue = src.valueAt(idx, c + 3) * invnorm.y;
-      dst.setValueInCell(idx, c, vvalue);
-      dst.setValueInCell(idx, c + 3, uvalue);
-    }
+  real invnorm = rsqrt(norm2);
+  for (int c = 0; c < src.ncomp; c++) {
+    real value = src.valueAt(idx, c) * invnorm;
+    dst.setValueInCell(idx, c, value);
   }
 }
 
@@ -212,13 +152,6 @@ void normalize(Field& f) {
 Field operator*(real3 a, const Field& x) {
   Field y(x.system(), x.ncomp());
   real3 a0 = real3{0, 0, 0};
-  add(y, a0, x, a, x);
-  return y;
-}
-
-Field operator*(real6 a, const Field& x) {
-  Field y(x.system(), x.ncomp());
-  real6 a0 = real6{0, 0, 0, 0, 0, 0};
   add(y, a0, x, a, x);
   return y;
 }
@@ -275,47 +208,24 @@ __device__ real3 getRGB(real3 vec) {
   return real3{R, G, B};  // convert to real3 for Field
 }
 
-/// execute getRGB on both sublattice vectors
-__device__ real6 getRGB(real6 vec) {
-  real3 RGB1 = getRGB(real3{vec.x1, vec.y1, vec.z1});
-  real3 RGB2 = getRGB(real3{vec.x2, vec.y2, vec.z2});
-  return real6{RGB1.x, RGB1.y, RGB1.z, RGB2.x, RGB2.y, RGB2.z};
-}
-
 /// Map 3D vector field (with norm<=1) to RGB
-__global__ void k_fieldGetRGB3(CuField dst, const CuField src) {
+__global__ void k_fieldGetRGB(CuField dst, const CuField src) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!dst.cellInGeometry(idx)) {
     // not in geometry, so make grey instead
     dst.setVectorInCell(idx, real3{0.5, 0.5, 0.5});
   } else {
-    dst.setVectorInCell(idx, getRGB(src.FM_vectorAt(idx)));
+    dst.setVectorInCell(idx, getRGB(src.vectorAt(idx)));
   }
 }
-
-/// Map 6D vector field (with norm<=1) to RGB
-__global__ void k_fieldGetRGB6(CuField dst, const CuField src) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if (!dst.cellInGeometry(idx)) {
-    // not in geometry, so make grey instead
-    dst.setVectorInCell(idx, real6{0.5, 0.5, 0.5, 0.5, 0.5, 0.5});
-  } else {
-    dst.setVectorInCell(idx, getRGB(src.AFM_vectorAt(idx)));
-  }
-}
-
 
 Field fieldGetRGB(const Field& src) {
   if (src.ncomp() == 3) {  // 3D
     Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
-    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB3, dst.cu(), dst.cu());  // src is dst
-    return dst;
-  } else if (src.ncomp() == 6) {  // 6D
-    Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
-    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB6, dst.cu(), dst.cu());  // src is dst
+    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB, dst.cu(), dst.cu());  // src is dst
     return dst;
   } else {
     throw std::invalid_argument(
-            "getRGB can only operate on vector fields with 3 or 6 components.");
+            "getRGB can only operate on vector fields with 3 components.");
   }
 }

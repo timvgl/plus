@@ -19,7 +19,7 @@ bool cubicanisotropyAssuredZero(const Ferromagnet* magnet) {
 
 __global__ void k_unianisotropyField(CuField hField,
                                   const CuField mField,
-                                  const FM_CuVectorParameter anisU,
+                                  const CuVectorParameter anisU,
                                   const CuParameter FM_Ku1,
                                   const CuParameter FM_Ku2,
                                   const CuParameter msat) {
@@ -37,8 +37,8 @@ __global__ void k_unianisotropyField(CuField hField,
       return;
     }
 
-  real3 u = normalized(anisU.FM_vectorAt(idx));
-  real3 m = mField.FM_vectorAt(idx);
+  real3 u = normalized(anisU.vectorAt(idx));
+  real3 m = mField.vectorAt(idx);
   real k1 = FM_Ku1.valueAt(idx);
   real k2 = FM_Ku2.valueAt(idx);
   real Ms = msat.valueAt(idx);
@@ -51,8 +51,8 @@ __global__ void k_unianisotropyField(CuField hField,
 
 __global__ void k_cubicanisotropyField(CuField hField,
                                   const CuField mField,
-                                  const FM_CuVectorParameter anisC1,
-                                  const FM_CuVectorParameter anisC2,
+                                  const CuVectorParameter anisC1,
+                                  const CuVectorParameter anisC2,
                                   const CuParameter Kc1,
                                   const CuParameter Kc2,
                                   const CuParameter Kc3,
@@ -71,11 +71,11 @@ __global__ void k_cubicanisotropyField(CuField hField,
       return;
     }
 
-  real3 c1 = normalized(anisC1.FM_vectorAt(idx));
-  real3 c2 = normalized(anisC2.FM_vectorAt(idx));
+  real3 c1 = normalized(anisC1.vectorAt(idx));
+  real3 c2 = normalized(anisC2.vectorAt(idx));
   real3 c3 = cross(c1, c2);
   
-  real3 m = mField.FM_vectorAt(idx);
+  real3 m = mField.vectorAt(idx);
 
   real kc1 = Kc1.valueAt(idx);
   real kc2 = Kc2.valueAt(idx);
@@ -136,7 +136,7 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
 
 __global__ void k_unianisotropyEnergyDensity(CuField edens,
                                           const CuField mField,
-                                          const FM_CuVectorParameter anisU,
+                                          const CuVectorParameter anisU,
                                           const CuParameter Ku1,
                                           const CuParameter Ku2,
                                           const CuParameter msat) {
@@ -155,8 +155,8 @@ __global__ void k_unianisotropyEnergyDensity(CuField edens,
     return;
   }
 
-  real3 u = normalized(anisU.FM_vectorAt(idx));
-  real3 m = mField.FM_vectorAt(idx);
+  real3 u = normalized(anisU.vectorAt(idx));
+  real3 m = mField.vectorAt(idx);
   real k1 = Ku1.valueAt(idx);
   real k2 = Ku2.valueAt(idx);
 
@@ -170,8 +170,8 @@ __global__ void k_unianisotropyEnergyDensity(CuField edens,
 
 __global__ void k_cubanisotropyEnergyDensity(CuField edens,
                                           const CuField mField,
-                                          const FM_CuVectorParameter anisC1,
-                                          const FM_CuVectorParameter anisC2,
+                                          const CuVectorParameter anisC1,
+                                          const CuVectorParameter anisC2,
                                           const CuParameter Kc1,
                                           const CuParameter Kc2,
                                           const CuParameter Kc3,
@@ -191,14 +191,14 @@ __global__ void k_cubanisotropyEnergyDensity(CuField edens,
     return;
   }
 
-  real3 c1 = normalized(anisC1.FM_vectorAt(idx));
-  real3 c2 = normalized(anisC2.FM_vectorAt(idx));
+  real3 c1 = normalized(anisC1.vectorAt(idx));
+  real3 c2 = normalized(anisC2.vectorAt(idx));
   real3 c3 = cross(c1, c2);
 
   real kc1 = Kc1.valueAt(idx);
   real kc2 = Kc2.valueAt(idx);
   real kc3 = Kc3.valueAt(idx);
-  real3 m = mField.FM_vectorAt(idx);
+  real3 m = mField.vectorAt(idx);
 
   real c1m = dot(c1, m);
   real c2m = dot(c2, m);

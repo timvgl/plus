@@ -23,8 +23,8 @@ __global__ void k_energyDensity(CuField edens,
     return;
   }
   real Ms = msat.valueAt(idx);
-  real3 h = hfield.FM_vectorAt(idx);
-  real3 m = mag.FM_vectorAt(idx);
+  real3 h = hfield.vectorAt(idx);
+  real3 m = mag.vectorAt(idx);
   edens.setValueInCell(idx, 0, -prefactor * Ms * dot(m, h));
 }
 

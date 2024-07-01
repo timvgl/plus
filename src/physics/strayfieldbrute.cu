@@ -46,8 +46,8 @@ __global__ void k_demagfield(CuField hField,
     real nxz = kernel.valueAt(r, 4);
     real nyz = kernel.valueAt(r, 5);
     
-    real3 M = (msat1.valueAt(i) * mField1.FM_vectorAt(i) +
-               msat2.valueAt(i) * mField2.FM_vectorAt(i)) / fac;
+    real3 M = (msat1.valueAt(i) * mField1.vectorAt(i) +
+               msat2.valueAt(i) * mField2.vectorAt(i)) / fac;
 
     h.x -= nxx * M.x + nxy * M.y + nxz * M.z;
     h.y -= nxy * M.x + nyy * M.y + nyz * M.z;

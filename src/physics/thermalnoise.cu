@@ -39,7 +39,7 @@ __global__ void k_thermalNoise(CuField noiseField,
   real T = temperature.valueAt(idx);
   real a = alpha.valueAt(idx);
 
-  real3 noise = noiseField.FM_vectorAt(idx);
+  real3 noise = noiseField.vectorAt(idx);
   noise *= sqrt(preFactor * a * T / ((1 + a * a) * Ms));
   noiseField.setVectorInCell(idx, noise);
 }

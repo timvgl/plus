@@ -20,7 +20,7 @@ __global__ static void k_conductTensor(CuField conductivity,
   const real c0 = conductivity0.valueAt(idx);
   const real fac = 6 * amr / (6 + amr);
 
-  const real3 m = mField.FM_vectorAt(idx);
+  const real3 m = mField.vectorAt(idx);
   conductivity.setValueInCell(idx, 0, c0 * (1 - fac * (m.x * m.x - 1. / 3.)));
   conductivity.setValueInCell(idx, 1, c0 * (1 - fac * (m.y * m.y - 1. / 3.)));
   conductivity.setValueInCell(idx, 2, c0 * (1 - fac * (m.z * m.z - 1. / 3.)));

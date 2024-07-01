@@ -35,8 +35,8 @@ __global__ void k_step(CuField mField,
   if (!mField.cellInGrid(idx))
     return;
 
-  real3 m0 = m0Field.FM_vectorAt(idx);
-  real3 t = torqueField.FM_vectorAt(idx);
+  real3 m0 = m0Field.vectorAt(idx);
+  real3 t = torqueField.vectorAt(idx);
 
   real t2 = dt * dt * dot(t, t);
   real3 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);

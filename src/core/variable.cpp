@@ -69,18 +69,6 @@ void Variable::set(real3 value) const {
   field_->setUniformComponent(2, value.z);
 }
 
-void Variable::set(real6 value) const {
-  if (ncomp() != 6)
-    throw std::runtime_error("Variable has " + std::to_string(ncomp()) +
-                             "components instead of 6");
-    field_->setUniformComponent(0, value.x1);
-    field_->setUniformComponent(1, value.y1);
-    field_->setUniformComponent(2, value.z1);
-    field_->setUniformComponent(3, value.x2);
-    field_->setUniformComponent(4, value.y2);
-    field_->setUniformComponent(5, value.z2);
-}
-
 NormalizedVariable::NormalizedVariable(std::string name,
                                        std::string unit,
                                        std::shared_ptr<const System> system,
@@ -97,9 +85,5 @@ void NormalizedVariable::set(real value) const {
 }
 
 void NormalizedVariable::set(real3 value) const {
-  Variable::set(normalized(value));
-}
-
-void NormalizedVariable::set(real6 value) const {
   Variable::set(normalized(value));
 }
