@@ -26,10 +26,15 @@ bool externalFieldAssuredZero(const Magnet* magnet) {
 Field evalExternalField(const Ferromagnet* magnet) {
 
   Field h(magnet->system(), 3);
-  if (externalFieldAssuredZero(magnet) && externalFieldAssuredZero(magnet->hostMagnet())) {
+  if (magnet->isSublattice()) {
+    if (externalFieldAssuredZero(magnet->hostMagnet()))
       h.makeZero();
       return h;
-    }
+  }
+  else if (!magnet->isSublattice() && externalFieldAssuredZero(magnet)) {
+    h.makeZero();
+    return h;
+  }
 
   const MumaxWorld* world = static_cast<const MumaxWorld*>(magnet->world());
   real3 wB_bias = world->biasMagneticField; // bias field on world
@@ -48,7 +53,11 @@ Field evalExternalField(const Ferromagnet* magnet) {
     strayFields = magnet->getStrayFields();
   for (auto strayField : strayFields) {
     // Avoid the demag field, we only want external fields
-    if (strayField->source() == magnet || strayField->source() == magnet->hostMagnet())
+    if (magnet->isSublattice()) {
+      if (strayField->source() == magnet->hostMagnet())
+        continue;
+    }
+    if (strayField->source() == magnet)
       continue;
     strayField->addToField(h);
   }
