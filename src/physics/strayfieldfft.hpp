@@ -9,7 +9,6 @@
 #include "strayfield.hpp"
 #include "strayfieldkernel.hpp"
 
-class Parameter;
 class Field;
 class System;
 class Magnet;
@@ -29,9 +28,6 @@ class StrayFieldFFTExecutor : public StrayFieldExecutor {
   /** Destruct the executor. */
   ~StrayFieldFFTExecutor();
 
-  /** Functions used to discriminate between FM and AFM systems. */
-  Field GetMag() const;
-  Parameter GetMsat() const;
   /** Compute and return the stray field. */
   Field exec() const;
 

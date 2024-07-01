@@ -48,11 +48,11 @@ __CUDAOP__ complex prod(complex a, complex b) {
 #endif
 }
 
-__global__ void k_pad(CuField out, CuField in, CuParameter msat) {
+__global__ void k_pad(CuField out, CuField in1, CuParameter msat1, CuField in2, CuParameter msat2, real fac) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
-
+  
   Grid outgrid = out.system.grid;
-  Grid ingrid = in.system.grid;
+  Grid ingrid = in1.system.grid;
 
   if (outIdx >= outgrid.ncells())
     return;
@@ -61,10 +61,11 @@ __global__ void k_pad(CuField out, CuField in, CuParameter msat) {
   int3 inCoo = outCoo - outgrid.origin() + ingrid.origin();
   int inIdx = ingrid.coord2index(inCoo);
 
-  if (in.cellInGeometry(inCoo)) {
-    real Ms = msat.valueAt(inIdx);
+  if (in1.cellInGeometry(inCoo)) {
+    real Ms1 = msat1.valueAt(inIdx);
+    real Ms2 = msat2.valueAt(inIdx);
     for (int c = 0; c < out.ncomp; c++)
-      out.setValueInCell(outIdx, c, Ms * in.valueAt(inIdx, c));
+      out.setValueInCell(outIdx, c, (Ms1 * in1.valueAt(inIdx, c) + Ms2 * in2.valueAt(inIdx, c)) / fac);
   } else {
     for (int c = 0; c < out.ncomp; c++)
       out.setValueInCell(outIdx, c, 0.0);
@@ -187,36 +188,29 @@ StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
   checkCufftResult(cufftDestroy(backwardPlan));
 }
 
-
-Field StrayFieldFFTExecutor::GetMag() const {
-  if(const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_))
-    return mag->magnetization()->field();
-  else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_))
-    return add(mag->sub1()->magnetization()->field(), mag->sub2()->magnetization()->field());
-  else 
-    throw std::invalid_argument("Cannot calculate strayfield since magnet is neither"
-                                "a Ferromagnet nor an Antiferromagnet/Ferrimagnet.");
-}
-
-Parameter StrayFieldFFTExecutor::GetMsat() const {
-  if(const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_))
-    return mag->msat;
-  else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_))
-    return mag->sub1()->msat;
-  else 
-    throw std::invalid_argument("Cannot calculate strayfield since magnet is neither"
-                                "a Ferromagnet nor an Antiferromagnet/Ferrimagnet.");
-}
-
 Field StrayFieldFFTExecutor::exec() const {
-  const Field& m = GetMag();
-  const Parameter& ms = GetMsat();
 
   // pad m, and multiply with msat
   std::shared_ptr<System> kernelSystem =
-      std::make_shared<System>(m.system()->world(), kernel_.grid());
+      std::make_shared<System>(magnet_->world(), kernel_.grid());
   std::unique_ptr<Field> mpad(new Field(kernelSystem, 3));
-  cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m.cu(), ms.cu());
+
+  // Launch kernel function in different scopes to avoid unnecessary copies
+  real fac;
+  if (const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_)) {
+    auto m = mag->magnetization()->field();
+    auto ms = mag->msat;
+    fac = 2.0;
+    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m.cu(), ms.cu(), m.cu(), ms.cu(), fac);
+  }
+  else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_)) {
+    auto m1 = mag->sub1()->magnetization()->field();
+    auto m2 = mag->sub2()->magnetization()->field();
+    auto ms1 = mag->sub1()->msat;
+    auto ms2 = mag->sub2()->msat;
+    fac = 1.0;
+    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m1.cu(), ms1.cu(), m2.cu(), ms2.cu(), fac);
+  }
 
   // Forward fourier transforms
   for (int comp = 0; comp < 3; comp++)
