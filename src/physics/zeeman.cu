@@ -27,9 +27,10 @@ Field evalExternalField(const Ferromagnet* magnet) {
 
   Field h(magnet->system(), 3);
   if (magnet->isSublattice()) {
-    if (externalFieldAssuredZero(magnet->hostMagnet()))
+    if (externalFieldAssuredZero(magnet->hostMagnet())) {
       h.makeZero();
       return h;
+    }
   }
   else if (!magnet->isSublattice() && externalFieldAssuredZero(magnet)) {
     h.makeZero();
