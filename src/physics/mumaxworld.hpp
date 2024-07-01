@@ -47,7 +47,7 @@ class MumaxWorld : public World {
 
     
   /**Add the magnetic field of the other magnets in the new magnet, and vice versa. */
-  void handleStrayfields(Magnet* newMagnet);
+  void handleNewStrayfield(Magnet* newMagnet);
 
   /** Get a magnet by its name.
    *  Return a nullptr if there is no magnet with specified name. */

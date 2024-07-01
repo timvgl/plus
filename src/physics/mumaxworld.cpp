@@ -70,7 +70,7 @@ Ferromagnet* MumaxWorld::addFerromagnet(Grid grid,
   Ferromagnet* newMagnet = ferromagnets_[name].get();
   magnets_[name] = newMagnet;
   
-  handleStrayfields(newMagnet);
+  handleNewStrayfield(newMagnet);
   resetTimeSolverEquations();
   return newMagnet;
 }
@@ -93,12 +93,12 @@ Antiferromagnet* MumaxWorld::addAntiferromagnet(Grid grid,
   Antiferromagnet* newMagnet = antiferromagnets_[name].get();
   magnets_[name] = newMagnet;
 
-  handleStrayfields(newMagnet);
+  handleNewStrayfield(newMagnet);
   resetTimeSolverEquations();
   return newMagnet;
 }
 
-void MumaxWorld::handleStrayfields(Magnet* newMagnet) {
+void MumaxWorld::handleNewStrayfield(Magnet* newMagnet) {
   for (const auto& namedMagnet : magnets_) {
     Magnet* otherMagnet = namedMagnet.second;
     if (otherMagnet != nullptr) {
@@ -132,11 +132,7 @@ Antiferromagnet* MumaxWorld::getAntiferromagnet(std::string name) const {
 }
 
 const std::map<std::string, Magnet*> MumaxWorld::magnets() const {
-  std::map<std::string, Magnet*> sharedMagnets;
-  for (const auto& pair : magnets_) {
-    sharedMagnets[pair.first] = pair.second;
-  }
-  return sharedMagnets;
+  return magnets_;
 }
 
 const std::map<std::string, Ferromagnet*> MumaxWorld::ferromagnets() const {
