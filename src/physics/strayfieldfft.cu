@@ -198,18 +198,18 @@ Field StrayFieldFFTExecutor::exec() const {
   // Launch kernel function in different scopes to avoid unnecessary copies
   real fac;
   if (const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_)) {
-    auto m = mag->magnetization()->field();
-    auto ms = mag->msat;
+    auto m = mag->magnetization()->field().cu();
+    auto ms = mag->msat.cu();
     fac = 2.0;
-    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m.cu(), ms.cu(), m.cu(), ms.cu(), fac);
+    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m, ms, m, ms, fac);
   }
   else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_)) {
-    auto m1 = mag->sub1()->magnetization()->field();
-    auto m2 = mag->sub2()->magnetization()->field();
-    auto ms1 = mag->sub1()->msat;
-    auto ms2 = mag->sub2()->msat;
+    auto m1 = mag->sub1()->magnetization()->field().cu();
+    auto m2 = mag->sub2()->magnetization()->field().cu();
+    auto ms1 = mag->sub1()->msat.cu();
+    auto ms2 = mag->sub2()->msat.cu();
     fac = 1.0;
-    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m1.cu(), ms1.cu(), m2.cu(), ms2.cu(), fac);
+    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m1, ms1, m2, ms2, fac);
   }
 
   // Forward fourier transforms
