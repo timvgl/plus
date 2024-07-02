@@ -224,7 +224,7 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
 
   Field edens(magnet->system(), 1);
 
-  if (unianisotropyAssuredZero(magnet) && cubicanisotropyAssuredZero(magnet)) {
+  if (anisotropyAssuredZero(magnet)) {
     edens.makeZero();
     return edens;
   }
