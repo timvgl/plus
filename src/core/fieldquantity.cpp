@@ -15,9 +15,7 @@ Grid FieldQuantity::grid() const {
 }
 
 void FieldQuantity::addToField(Field& f) const {
-  if (!sameFieldDimensions(*this, f)
-  && (this->ncomp() != f.ncomp() + 3
-  && this->ncomp() != f.ncomp() - 3))
+  if (!sameFieldDimensions(*this, f))
     throw std::invalid_argument(
         "Can not add the quantity to given field because the fields are "
         "incompatible.");
