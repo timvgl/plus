@@ -13,6 +13,7 @@
 #include "minimizer.hpp"
 #include "mumaxworld.hpp"
 #include "poissonsystem.hpp"
+#include "relaxer.hpp"
 
 Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr, 
                          std::string name,
@@ -47,6 +48,7 @@ Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr,
       appliedPotential(system(), std::nanf("0")),
       conductivity(system(), 0.0),
       amrRatio(system(), 0.0),
+      RelaxTorqueThreshold(system(), -1.0),
       poissonSystem(this) {
     {
     // TODO: this can be done much more efficient somewhere else
@@ -95,4 +97,10 @@ const Antiferromagnet* Ferromagnet::hostMagnet() const {
 void Ferromagnet::minimize(real tol, int nSamples) {
   Minimizer minimizer(this, tol, nSamples);
   minimizer.exec();
+}
+
+void Ferromagnet::relax() {
+  real threshold = this->RelaxTorqueThreshold.getUniformValue();
+  Relaxer relaxer(this, threshold);
+  relaxer.exec();
 }

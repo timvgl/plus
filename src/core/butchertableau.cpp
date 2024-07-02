@@ -19,6 +19,14 @@ RKmethod getRungeKuttaMethodFromName(const std::string& name) {
   return method;
 }
 
+std::string getRungeKuttaNameFromMethod(const RKmethod& method) {
+  auto pos = RungeKuttaMethodNames.find(method);
+  if (pos == RungeKuttaMethodNames.end()) {
+    throw std::invalid_argument("Got an invalid RKmethod");
+  }
+  return pos->second;
+}
+
 ButcherTableau::ButcherTableau(std::vector<real> nodes,
                                std::vector<std::vector<real>> rkMatrix,
                                std::vector<real> weights1,
