@@ -17,6 +17,11 @@ bool cubicanisotropyAssuredZero(const Ferromagnet* magnet) {
        || magnet->msat.assuredZero();
 }
 
+bool anisotropyAssuredZero(const Ferromagnet* magnet) {
+  return (unianisotropyAssuredZero(magnet)
+          && cubicanisotropyAssuredZero(magnet));
+}
+
 __global__ void k_unianisotropyField(CuField hField,
                                   const CuField mField,
                                   const CuVectorParameter anisU,
@@ -105,7 +110,7 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
 
   Field result(magnet->system(), 3);
   
-  if (unianisotropyAssuredZero(magnet) && cubicanisotropyAssuredZero(magnet)) {
+  if (anisotropyAssuredZero(magnet)) {
     result.makeZero();
     return result;
   }
