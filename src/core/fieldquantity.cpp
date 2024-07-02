@@ -19,9 +19,7 @@ void FieldQuantity::addToField(Field& f) const {
     throw std::invalid_argument(
         "Can not add the quantity to given field because the fields are "
         "incompatible.");
-  if (assuredZero())
-    return;
-  f += eval();
+  f += *this;  // += checks assuredZero before calling eval()
 }
 
 std::vector<real> FieldQuantity::average() const {
