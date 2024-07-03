@@ -44,8 +44,8 @@ Field evalEnergyDensity(const Ferromagnet* magnet,
 }
 
 Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
-  // there will probably be exchange and need to construct a Field anyway
-  Field edens = evalExchangeEnergyDensity(magnet);
+  Field edens(magnet->system(), 1, 0.0);
+  if (!exchangeAssuredZero(magnet)) {edens += evalExchangeEnergyDensity(magnet);}
   if (!anisotropyAssuredZero(magnet)) {edens += evalAnisotropyEnergyDensity(magnet);}
   if (!externalFieldAssuredZero(magnet)) {edens += evalZeemanEnergyDensity(magnet);}
   if (!dmiAssuredZero(magnet)) {edens += evalDmiEnergyDensity(magnet);}
