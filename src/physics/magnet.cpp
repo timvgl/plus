@@ -7,6 +7,8 @@
 #include <math.h>
 #include <cfloat>
 
+#include "antiferromagnet.hpp"
+#include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
 #include "gpubuffer.hpp"
 #include "mumaxworld.hpp"
@@ -50,6 +52,14 @@ real3 Magnet::cellsize() const {
 
 const GpuBuffer<bool>& Magnet::getGeometry() const {
   return system_->geometry();
+}
+
+const Ferromagnet* Magnet::asFM() const {
+  return dynamic_cast<const Ferromagnet*>(this);
+}
+
+const Antiferromagnet* Magnet::asAFM() const {
+  return dynamic_cast<const Antiferromagnet*>(this);
 }
 
 const StrayField* Magnet::getStrayField(const Magnet* magnet) const {

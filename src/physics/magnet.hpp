@@ -12,6 +12,8 @@
 #include "world.hpp"
 #include "system.hpp"
 
+class Antiferromagnet;
+class Ferromagnet;
 class FieldQuantity;
 class MumaxWorld;
 class System;
@@ -34,6 +36,10 @@ class Magnet {
   Grid grid() const;
   real3 cellsize() const;
   const GpuBuffer<bool>& getGeometry() const;
+
+  // Cast Magnet instance to child instances
+  virtual const Ferromagnet* asFM() const;
+  virtual const Antiferromagnet* asAFM() const;
 
   const StrayField* getStrayField(const Magnet*) const;
   std::vector<const StrayField*> getStrayFields() const;
