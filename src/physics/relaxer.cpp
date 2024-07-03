@@ -1,16 +1,28 @@
+#include "antiferromagnet.hpp"
 #include "butchertableau.hpp"
 #include "energy.hpp"
 #include "ferromagnet.hpp"
+#include "fieldops.hpp"
 #include "reduce.hpp"
 #include "relaxer.hpp"
 #include "timesolver.hpp"
 #include "torque.hpp"
 
-Relaxer::Relaxer(const Ferromagnet* magnet, real RelaxTorqueThreshold)
+Relaxer::Relaxer(const Magnet* magnet, real RelaxTorqueThreshold)
     : magnet_(magnet),
-      threshold_(RelaxTorqueThreshold),
-      torque_(relaxTorqueQuantity(magnet)) {}
-      
+      threshold_(RelaxTorqueThreshold) {}
+
+std::vector<FM_FieldQuantity> Relaxer::getTorque() {
+  if (const Ferromagnet* mag = magnet_->asFM())
+    return {relaxTorqueQuantity(mag)};
+  else if (const Antiferromagnet* mag = magnet_->asAFM())
+    return {relaxTorqueQuantity(mag->sub1()),
+               relaxTorqueQuantity(mag->sub2())};
+  else
+    throw std::invalid_argument("Cannot relax quantity which is"
+                                "no Ferromagnet or Antiferromagnet.");
+}
+
 void Relaxer::exec() {
 
   TimeSolver &timesolver = magnet_->world()->timesolver();
@@ -43,33 +55,61 @@ void Relaxer::exec() {
   // Run while monitoring torque
   // If threshold = -1 (default): relax until torque is steady or increasing.
   if (threshold_ < 0) {
-    real t0 = 0;
-    real t1 = dotSum(torque_.eval(), torque_.eval());
+
+    std::vector<FM_FieldQuantity> torque = getTorque();
+    std::vector<real> t0(torque.size());
+    std::vector<real> t1(torque.size());
+    for (size_t i = 0; i < torque.size(); i++) {
+      t0[i] = 0;
+      t1[i] = dotSum(torque[i].eval(), torque[i].eval());
+    }
+
     real err = timesolver.maxerror();
     while (err > 1e-9) {
       err /= std::sqrt(2);
       timesolver.setMaxError(err);
 
       timesolver.steps(N);
-      t0 = t1;
-      t1 = dotSum(torque_.eval(), torque_.eval());
 
-      while (t1 < t0) {
-        timesolver.steps(N);
-        t0 = t1;
-        t1 = dotSum(torque_.eval(), torque_.eval());
-      }
+      bool torqueConverged = true;
+
+        for (size_t i = 0; i < torque.size(); i++) {
+          t0[i] = t1[i];
+          t1[i] = dotSum(torque[i].eval(), torque[i].eval());
+
+          if (t1[i] < t0[i]) {torqueConverged = false;}
+        }
+
+        if (torqueConverged) {break;}
+        err = timesolver.maxerror();     
     }
   }
 
   // If threshold is set by user: relax until torque is smaller than or equal to threshold.
   else { 
     real err = timesolver.maxerror();
+    std::vector<FM_FieldQuantity> torque = getTorque();
+    std::vector<real> t0(torque.size());
+    std::vector<real> t1(torque.size());
+
     while (err > 1e-9) {
-      while (maxVecNorm(torque_.eval())  > threshold_) {timesolver.steps(N);}
-      err /= std::sqrt(2);
-      timesolver.setMaxError(err);
-      timesolver.steps(N);
+      bool torqueConverged = true;
+
+      for (size_t i = 0; i < torque.size(); i++) {
+        if (maxVecNorm(torque[i].eval()) > threshold_) {
+          torqueConverged = false;
+          break;
+        }
+      }
+
+      if (torqueConverged) {    
+        err /= std::sqrt(2);
+        timesolver.setMaxError(err);
+        timesolver.steps(N);
+        break;
+      }
+
+      else { timesolver.steps(N); }
     }
   }
 
