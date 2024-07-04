@@ -7,6 +7,7 @@ class Field;
 
 bool unianisotropyAssuredZero(const Ferromagnet*);
 bool cubicanisotropyAssuredZero(const Ferromagnet*);
+bool anisotropyAssuredZero(const Ferromagnet*);
 Field evalAnisotropyField(const Ferromagnet*);
 Field evalAnisotropyEnergyDensity(const Ferromagnet*);
 real evalAnisotropyEnergy(const Ferromagnet*);

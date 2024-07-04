@@ -10,28 +10,42 @@
 #include "mumaxworld.hpp"
 #include "zeeman.hpp"
 
-bool externalFieldAssuredZero(const Magnet* magnet) {
+bool strayFieldsAssuredZero(const Ferromagnet* ferromagnet) {
+  const Magnet* magnet;
+  if (ferromagnet->isSublattice()) {
+    magnet = ferromagnet->hostMagnet();
+  } else {
+    magnet = ferromagnet;
+  }
+
   auto strayFields = magnet->getStrayFields();
   for (auto strayField : strayFields) {
     if (!strayField->assuredZero()) {
       return false;
     }
   }
+  return true;
+}
 
+bool worldBiasFieldAssuredZero(const Magnet* magnet) {
   real3 b_ext = magnet->mumaxWorld()->biasMagneticField;
   return b_ext == real3{0.0, 0.0, 0.0};
+}
+
+bool magnetBiasFieldAssuredZero(const Ferromagnet* magnet) {
+  return magnet->biasMagneticField.assuredZero();
+}
+
+bool externalFieldAssuredZero(const Ferromagnet* magnet) {
+  return (strayFieldsAssuredZero(magnet)
+          && worldBiasFieldAssuredZero(magnet)
+          && magnetBiasFieldAssuredZero(magnet));
 }
 
 Field evalExternalField(const Ferromagnet* magnet) {
 
   Field h(magnet->system(), 3);
-  if (magnet->isSublattice()) {
-    if (externalFieldAssuredZero(magnet->hostMagnet())) {
-      h.makeZero();
-      return h;
-    }
-  }
-  else if (!magnet->isSublattice() && externalFieldAssuredZero(magnet)) {
+  if (externalFieldAssuredZero(magnet)) {
     h.makeZero();
     return h;
   }

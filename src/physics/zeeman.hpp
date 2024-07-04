@@ -6,7 +6,10 @@ class Ferromagnet;
 class Field;
 class Magnet;
 
-bool externalFieldAssuredZero(const Magnet*);
+bool strayFieldsAssuredZero(const Ferromagnet*);
+bool worldBiasFieldAssuredZero(const Magnet*);
+bool magnetBiasFieldAssuredZero(const Ferromagnet*);
+bool externalFieldAssuredZero(const Ferromagnet*);
 
 Field evalExternalField(const Ferromagnet*);
 Field evalZeemanEnergyDensity(const Ferromagnet*);
