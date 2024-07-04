@@ -5,6 +5,7 @@ import subprocess
 import sys
 
 import numpy as np
+from pandas import read_table
 
 CACHEDIR = sys.path[0] + "/.mumax3_cache"
 
@@ -26,6 +27,9 @@ class Mumax3Simulation:
         if not os.path.exists(self.outputdir):
             self.run()
 
+        self._table = read_table(self.outputdir + "/table.txt")
+        self._table.columns = ' '.join(self._table.columns).split()[1::2]
+
     @property
     def script(self):
         return self._script
@@ -41,6 +45,11 @@ class Mumax3Simulation:
     @property
     def outputdir(self):
         return CACHEDIR + "/" + self.hash + ".out"
+
+    @property
+    def table(self):
+        """Returns a pandas dataframe of the mumax3 table."""
+        return self._table
 
     def run(self):
         if not os.path.exists(CACHEDIR):
@@ -66,3 +75,6 @@ class Mumax3Simulation:
     def get_field(self, fieldname):
         filename = self.outputdir + "/" + fieldname + ".npy"
         return np.load(filename)
+
+    def get_column(self, columnname):
+        return self.table[columnname]
