@@ -137,6 +137,11 @@ class Antiferromagnet:
         self.sub1.bias_magnetic_field.set(value)
         self.sub2.bias_magnetic_field.set(value)
 
+    def relax(self):
+        """Relax the state to an energy minimum."""
+        self._impl.relax()
+
+
     # ----- MATERIAL PARAMETERS -----------
 
     @property
