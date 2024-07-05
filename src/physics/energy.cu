@@ -45,11 +45,12 @@ Field evalEnergyDensity(const Ferromagnet* magnet,
 }
 
 Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
-  Field edens = evalAnisotropyEnergyDensity(magnet);
-  edens += evalExchangeEnergyDensity(magnet);
-  edens += evalZeemanEnergyDensity(magnet);
-  edens += evalDmiEnergyDensity(magnet);
-  edens += evalDemagEnergyDensity(magnet);
+  Field edens(magnet->system(), 1, 0.0);
+  if (!exchangeAssuredZero(magnet)) {edens += evalExchangeEnergyDensity(magnet);}
+  if (!anisotropyAssuredZero(magnet)) {edens += evalAnisotropyEnergyDensity(magnet);}
+  if (!externalFieldAssuredZero(magnet)) {edens += evalZeemanEnergyDensity(magnet);}
+  if (!dmiAssuredZero(magnet)) {edens += evalDmiEnergyDensity(magnet);}
+  if (!demagFieldAssuredZero(magnet)) {edens += evalDemagEnergyDensity(magnet);}
   return edens;
 }
 

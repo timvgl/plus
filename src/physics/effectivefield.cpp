@@ -12,13 +12,14 @@
 #include "zeeman.hpp"
 
 Field evalEffectiveField(const Ferromagnet* magnet) {
-  Field h = evalAnisotropyField(magnet);
-  h += evalExchangeField(magnet);
-  h += evalExternalField(magnet);
-  h += evalDmiField(magnet);
-  h += evalDemagField(magnet);
+  Field h(magnet->system(), 3, 0.0);
+  if (!exchangeAssuredZero(magnet)) {h += evalExchangeField(magnet);}
+  if (!anisotropyAssuredZero(magnet)) {h += evalAnisotropyField(magnet);}
+  if (!externalFieldAssuredZero(magnet)) {h += evalExternalField(magnet);}
+  if (!dmiAssuredZero(magnet)) {h += evalDmiField(magnet);}
+  if (!demagFieldAssuredZero(magnet)) {h += evalDemagField(magnet);}
   if (magnet->isSublattice())
-      h += evalAFMExchangeField(magnet);
+      if (!afmExchangeAssuredZero(magnet)) {h += evalAFMExchangeField(magnet);}
   return h;
 }
 

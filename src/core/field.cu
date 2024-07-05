@@ -192,11 +192,13 @@ Field& Field::operator-=(const Field& other) {
 }
 
 Field& Field::operator+=(const FieldQuantity& q) {
-  addTo(*this, 1, q.eval());
+  if (!q.assuredZero())
+    addTo(*this, 1, q.eval());
   return *this;
 }
 
 Field& Field::operator-=(const FieldQuantity& q) {
-  addTo(*this, -1, q.eval());
+  if (!q.assuredZero())
+    addTo(*this, -1, q.eval());
   return *this;
 }
