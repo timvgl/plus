@@ -10,12 +10,13 @@ class Magnet;
 
 class Relaxer {
  public:
-  Relaxer(const Magnet*, real RelaxTorqueThreshold);
+  Relaxer(const Magnet*, std::vector<real> RelaxTorqueThreshold);
   
   void exec();
   std::vector<FM_FieldQuantity> getTorque();
+  bool converged(std::vector<real> t1, std::vector<real> t2);
 
  private:
   const Magnet* magnet_;
-  real threshold_;
+  std::vector<real> threshold_;
 };
