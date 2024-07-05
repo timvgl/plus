@@ -27,8 +27,11 @@ class Mumax3Simulation:
         if not os.path.exists(self.outputdir):
             self.run()
 
-        self._table = read_table(self.outputdir + "/table.txt")
-        self._table.columns = ' '.join(self._table.columns).split()[1::2]
+        if os.path.exists(self.outputdir + "/table.txt"):
+            self._table = read_table(self.outputdir + "/table.txt")
+            self._table.columns = ' '.join(self._table.columns).split()[1::2]
+        else:
+            self._table = None
 
     @property
     def script(self):
@@ -48,7 +51,8 @@ class Mumax3Simulation:
 
     @property
     def table(self):
-        """Returns a pandas dataframe of the mumax3 table."""
+        """Returns a pandas dataframe of the mumax3 table, or None if no table
+        was found."""
         return self._table
 
     def run(self):
