@@ -38,7 +38,6 @@ class Ferromagnet : public Magnet {
   const Antiferromagnet* hostMagnet() const;  // TODO: right amount of const?
 
   void minimize(real tol = 1e-6, int nSamples = 10);
-  void relax();
 
  private:
   NormalizedVariable magnetization_;

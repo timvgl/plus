@@ -12,6 +12,7 @@
 #include "fieldquantity.hpp"
 #include "gpubuffer.hpp"
 #include "mumaxworld.hpp"
+#include "relaxer.hpp"
 #include "strayfield.hpp"
 
 Magnet::Magnet(std::shared_ptr<System> system_ptr,
@@ -60,6 +61,23 @@ const Ferromagnet* Magnet::asFM() const {
 
 const Antiferromagnet* Magnet::asAFM() const {
   return dynamic_cast<const Antiferromagnet*>(this);
+}
+
+void Magnet::relax() {
+  if (const Ferromagnet* magnet = this->asFM()) {
+    real threshold = magnet->RelaxTorqueThreshold.getUniformValue();
+    Relaxer relaxer(magnet, threshold);
+    relaxer.exec();
+  }
+  else if (const Antiferromagnet* magnet = this->asAFM()) {
+    real threshold = magnet->sub1()->RelaxTorqueThreshold.getUniformValue();
+    Relaxer relaxer(magnet, threshold);
+    relaxer.exec();
+  }
+  else {
+    throw std::invalid_argument("Cannot relax instance which is no Ferromagnet"
+                                " or Antiferromagnet");
+  }
 }
 
 const StrayField* Magnet::getStrayField(const Magnet* magnet) const {
