@@ -113,7 +113,7 @@ class TestStandardProblem4:
         err = max_absolute_error(
             result=mumax5output["mx"], wanted=mumax3sim.get_column("mx")
         )
-        assert err < 2e-2
+        assert err < RTOL
 
     def test_magnetization_y(self, simulations):
         mumax5output, mumax3sim = simulations
