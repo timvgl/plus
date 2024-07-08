@@ -25,6 +25,13 @@ std::vector<FM_FieldQuantity> Relaxer::getTorque() {
                                 "no Ferromagnet or Antiferromagnet.");
 }
 
+real Relaxer::calcTorque(std::vector<FM_FieldQuantity> torque) {
+  real t;
+  for (size_t i = 0; i < torque.size(); i++)
+      t += dotSum(torque[i].eval(), torque[i].eval());
+  return t;
+}
+
 void Relaxer::exec() {
 
   TimeSolver &timesolver = magnet_->world()->timesolver();
@@ -59,30 +66,25 @@ void Relaxer::exec() {
   if (std::all_of(threshold_.begin(), threshold_.end(), [](real t) { return t < 0; })) {
 
     std::vector<FM_FieldQuantity> torque = getTorque();
-    std::vector<real> t0(torque.size(), 0);
-    std::vector<real> t1(torque.size());
-    for (size_t i = 0; i < torque.size(); i++) {
-      t1[i] = dotSum(torque[i].eval(), torque[i].eval());
-    }
-
+    real t0 = 0;
+    real t1 = calcTorque(torque);
+  
     real err = timesolver.maxerror();
+
     while (err > 1e-9) {
       err /= std::sqrt(2);
       timesolver.setMaxError(err);
 
       timesolver.steps(N);
+      t0 = t1;
+      t1 = calcTorque(torque);
 
-      bool torqueConverged = false;
-      while(!torqueConverged) {
-        for (size_t i = 0; i < torque.size(); i++) {
-          t0[i] = t1[i];
-          t1[i] = dotSum(torque[i].eval(), torque[i].eval());
-        }
-
-        if (converged(t0, t1)) { break; }
+      while (t1 < t0) {
         timesolver.steps(N);
-      }     
-    }
+        t0 = t1;
+        t1 = calcTorque(torque);
+      }    
+    }     
   }
 
   else if (std::find(threshold_.begin(), threshold_.end(), 0) != threshold_.end())
@@ -117,11 +119,4 @@ void Relaxer::exec() {
   if (prec) { timesolver.enablePrecession(); }
   timesolver.setTime(time);
   timesolver.setTimeStep(timestep); 
-}
-
-bool Relaxer::converged(std::vector<real> t0, std::vector<real> t1) {
- for (size_t i = 0; i < t1.size(); ++i) {
-        if (t1[i] < t0[i]) { return false; }
-    }
-    return true;
 }

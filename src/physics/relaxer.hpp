@@ -13,8 +13,10 @@ class Relaxer {
   Relaxer(const Magnet*, std::vector<real> RelaxTorqueThreshold);
   
   void exec();
+
+  // Helper functions to execute relax procedure
   std::vector<FM_FieldQuantity> getTorque();
-  bool converged(std::vector<real> t1, std::vector<real> t2);
+  real calcTorque(std::vector<FM_FieldQuantity>);
 
  private:
   const Magnet* magnet_;
