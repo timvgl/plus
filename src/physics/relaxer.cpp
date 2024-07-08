@@ -3,6 +3,7 @@
 #include "energy.hpp"
 #include "ferromagnet.hpp"
 #include "fieldops.hpp"
+#include "mumaxworld.hpp"
 #include "reduce.hpp"
 #include "relaxer.hpp"
 #include "timesolver.hpp"
@@ -11,47 +12,63 @@
 #include <algorithm>
 
 Relaxer::Relaxer(const Magnet* magnet, std::vector<real> RelaxTorqueThreshold)
-    : magnet_(magnet),
+    : magnets_({magnet}),
+      timesolver_(magnet->world()->timesolver()),
       threshold_(RelaxTorqueThreshold) {}
 
+Relaxer::Relaxer(const MumaxWorld* world)
+    : world_(world),
+      timesolver_(world->timesolver()) {
+        for (const auto& pair : world->magnets())
+          magnets_.push_back(pair.second);
+}
+
 std::vector<FM_FieldQuantity> Relaxer::getTorque() {
-  if (const Ferromagnet* mag = magnet_->asFM())
-    return {relaxTorqueQuantity(mag)};
-  else if (const Antiferromagnet* mag = magnet_->asAFM())
-    return {relaxTorqueQuantity(mag->sub1()),
-            relaxTorqueQuantity(mag->sub2())};
-  else
-    throw std::invalid_argument("Cannot relax quantity which is"
-                                "no Ferromagnet or Antiferromagnet.");
+  std::vector<FM_FieldQuantity> torque;
+  for (auto magnet : magnets_) {
+    if (const Ferromagnet* mag = magnet->asFM())
+     torque.push_back(relaxTorqueQuantity(mag));
+    else if (const Antiferromagnet* mag = magnet->asAFM())
+      torque.push_back(relaxTorqueQuantity(mag->sub1()));
+    else
+      throw std::invalid_argument("Cannot relax quantity which is"
+                                  "no Ferromagnet or Antiferromagnet.");
+  }
+  return torque;
+}
+
+real Relaxer::calcEnergy() {
+  real E = 0;
+  for (auto magnet : magnets_)
+    E += evalTotalEnergy(magnet);
+  return E;
 }
 
 void Relaxer::exec() {
-
-  TimeSolver &timesolver = magnet_->world()->timesolver();
   
   // Store current solver settings
-  real time = timesolver.time();
-  real timestep = timesolver.timestep();
-  bool adaptive = timesolver.hasAdaptiveTimeStep();
-  real maxerr = timesolver.maxerror();
-  bool prec = timesolver.hasPrecession();
-  std::string method = getRungeKuttaNameFromMethod(timesolver.getRungeKuttaMethod());
+  real time = timesolver_.time();
+  real timestep = timesolver_.timestep();
+  bool adaptive = timesolver_.hasAdaptiveTimeStep();
+  real maxerr = timesolver_.maxerror();
+  bool prec = timesolver_.hasPrecession();
+  std::string method = getRungeKuttaNameFromMethod(timesolver_.getRungeKuttaMethod());
 
   // Set solver settings for relax
-  timesolver.disablePrecession();
-  timesolver.enableAdaptiveTimeStep();
-  timesolver.setRungeKuttaMethod("BogackiShampine");
+  timesolver_.disablePrecession();
+  timesolver_.enableAdaptiveTimeStep();
+  timesolver_.setRungeKuttaMethod("BogackiShampine");
 
   // Run while monitoring energy
   const int N = 3; // evaluates energy every N steps (expenisve)  
 
-  real E0 = evalTotalEnergy(magnet_);
-  timesolver.steps(N);
-  real E1 = evalTotalEnergy(magnet_);
+  real E0 = calcEnergy();
+  timesolver_.steps(N);
+  real E1 = calcEnergy();
   while (E1 < E0) {
-    timesolver.steps(N);
+    timesolver_.steps(N);
     E0 = E1;
-    E1 = evalTotalEnergy(magnet_);
+    E1 = calcEnergy();
   }
   
   // Run while monitoring torque
@@ -65,12 +82,12 @@ void Relaxer::exec() {
       t1[i] = dotSum(torque[i].eval(), torque[i].eval());
     }
 
-    real err = timesolver.maxerror();
+    real err = timesolver_.maxerror();
     while (err > 1e-9) {
       err /= std::sqrt(2);
-      timesolver.setMaxError(err);
+      timesolver_.setMaxError(err);
 
-      timesolver.steps(N);
+      timesolver_.steps(N);
 
       bool torqueConverged = false;
       while(!torqueConverged) {
@@ -80,7 +97,7 @@ void Relaxer::exec() {
         }
 
         if (converged(t0, t1)) { break; }
-        timesolver.steps(N);
+        timesolver_.steps(N);
       }     
     }
   }
@@ -90,7 +107,7 @@ void Relaxer::exec() {
 
   // If threshold is set by user: relax until torque is smaller than or equal to threshold.
   else { 
-    real err = timesolver.maxerror();
+    real err = timesolver_.maxerror();
     std::vector<FM_FieldQuantity> torque = getTorque();
 
     while (err > 1e-9) {
@@ -104,19 +121,19 @@ void Relaxer::exec() {
 
       if (torqueConverged) {    
         err /= std::sqrt(2);
-        timesolver.setMaxError(err);
+        timesolver_.setMaxError(err);
       }
-      timesolver.steps(N);
+      timesolver_.steps(N);
     }
   }
 
   // Restore solver settings after relaxing
-  timesolver.setRungeKuttaMethod(method);
-  timesolver.setMaxError(maxerr);
-  if (!adaptive) { timesolver.disableAdaptiveTimeStep(); }
-  if (prec) { timesolver.enablePrecession(); }
-  timesolver.setTime(time);
-  timesolver.setTimeStep(timestep); 
+  timesolver_.setRungeKuttaMethod(method);
+  timesolver_.setMaxError(maxerr);
+  if (!adaptive) { timesolver_.disableAdaptiveTimeStep(); }
+  if (prec) { timesolver_.enablePrecession(); }
+  timesolver_.setTime(time);
+  timesolver_.setTimeStep(timestep); 
 }
 
 bool Relaxer::converged(std::vector<real> t0, std::vector<real> t1) {
