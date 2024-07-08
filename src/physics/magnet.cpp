@@ -72,6 +72,11 @@ void Magnet::relax() {
   else if (const Antiferromagnet* magnet = this->asAFM()) {
     std::vector<real> threshold = {magnet->sub1()->RelaxTorqueThreshold.getUniformValue(),
                                    magnet->sub2()->RelaxTorqueThreshold.getUniformValue()};
+    if (threshold[0] > 0.0 && threshold[1] <= 0.0)
+      threshold[1] = threshold[0];
+    else if (threshold[0] <= 0.0 && threshold[1] > 0.0)
+      threshold[0] == threshold[1];
+
     Relaxer relaxer(magnet, threshold);
     relaxer.exec();
   }
