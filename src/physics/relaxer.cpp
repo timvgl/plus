@@ -44,6 +44,7 @@ void Relaxer::exec() {
 
   // Run while monitoring energy
   const int N = 3; // evaluates energy every N steps (expenisve)  
+
   real E0 = evalTotalEnergy(magnet_);
   timesolver.steps(N);
   real E1 = evalTotalEnergy(magnet_);
@@ -54,7 +55,7 @@ void Relaxer::exec() {
   }
   
   // Run while monitoring torque
-  // If threshold = -1 (default): relax until torque is steady or increasing.
+  // If threshold = -1 (default) or < 0: relax until torque is steady or increasing.
   if (std::all_of(threshold_.begin(), threshold_.end(), [](real t) { return t < 0; })) {
 
     std::vector<FM_FieldQuantity> torque = getTorque();
@@ -82,8 +83,7 @@ void Relaxer::exec() {
           break;
         }
         timesolver.steps(N);
-
-    }     
+      }     
     }
   }
 
@@ -105,13 +105,11 @@ void Relaxer::exec() {
         err /= std::sqrt(2);
         timesolver.setMaxError(err);
         timesolver.steps(N);
-        break;
       }
 
       else { timesolver.steps(N); }
     }
   }
-
 
   // Restore solver settings after relaxing
   timesolver.setRungeKuttaMethod(method);
