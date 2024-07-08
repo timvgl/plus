@@ -3,6 +3,7 @@
 #include "ferromagnetquantity.hpp"
 #include "timesolver.hpp"
 
+class DynamicEquation;
 class Magnet;
 class MumaxWorld;
 class TimeSolver;
@@ -17,6 +18,7 @@ class Relaxer {
   void exec();
 
   // Helper functions to execute relax procedure
+  std::vector<DynamicEquation> getEquation(const Magnet*);
   std::vector<FM_FieldQuantity> getTorque();
   real calcTorque(std::vector<FM_FieldQuantity>);
   real calcEnergy();

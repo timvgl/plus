@@ -1,11 +1,13 @@
 #include "antiferromagnet.hpp"
 #include "butchertableau.hpp"
+#include "dynamicequation.hpp"
 #include "energy.hpp"
 #include "ferromagnet.hpp"
 #include "fieldops.hpp"
 #include "mumaxworld.hpp"
 #include "reduce.hpp"
 #include "relaxer.hpp"
+#include "thermalnoise.hpp"
 #include "timesolver.hpp"
 #include "torque.hpp"
 
@@ -23,6 +25,31 @@ Relaxer::Relaxer(const MumaxWorld* world)
           magnets_.push_back(pair.second);
 }
 
+std::vector<DynamicEquation> Relaxer::getEquation(const Magnet* magnet) {
+  /////////
+  // TODO: make MumaxWorld.resetTimeSolverEquations() public ???
+  /////////
+    std::vector<DynamicEquation> eqs;
+
+    if (const Ferromagnet* mag = magnet->asFM()) {
+      DynamicEquation eq(
+          mag->magnetization(),
+          std::shared_ptr<FieldQuantity>(torqueQuantity(mag).clone()),
+          std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(mag).clone()));
+      eqs.push_back(eq);
+    }
+    else if (const Antiferromagnet* mag = magnet->asAFM()) {
+      for (const Ferromagnet* sub : mag->sublattices()) {
+        DynamicEquation eq(
+          sub->magnetization(),
+          std::shared_ptr<FieldQuantity>(torqueQuantity(sub).clone()),
+          std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(sub).clone()));
+        eqs.push_back(eq);
+      }
+    }
+    return eqs;
+}
+
 std::vector<FM_FieldQuantity> Relaxer::getTorque() {
   std::vector<FM_FieldQuantity> torque;
   for (auto magnet : magnets_) {
@@ -38,7 +65,7 @@ std::vector<FM_FieldQuantity> Relaxer::getTorque() {
 }
 
 real Relaxer::calcTorque(std::vector<FM_FieldQuantity> torque) {
-  real t;
+  real t = 0;
   for (size_t i = 0; i < torque.size(); i++)
       t += dotSum(torque[i].eval(), torque[i].eval());
   return t;
@@ -60,11 +87,13 @@ void Relaxer::exec() {
   real maxerr = timesolver_.maxerror();
   bool prec = timesolver_.hasPrecession();
   std::string method = getRungeKuttaNameFromMethod(timesolver_.getRungeKuttaMethod());
+  auto eqs = timesolver_.equations();
 
   // Set solver settings for relax
   timesolver_.disablePrecession();
   timesolver_.enableAdaptiveTimeStep();
   timesolver_.setRungeKuttaMethod("BogackiShampine");
+  if (magnets_.size() == 1) { timesolver_.setEquations(getEquation(magnets_[0])); }
 
   // Run while monitoring energy
   const int N = 3; // evaluates energy every N steps (expenisve)  
@@ -86,18 +115,18 @@ void Relaxer::exec() {
     real t0 = 0;
     real t1 = calcTorque(torque);
   
-    real err = timesolver.maxerror();
+    real err = timesolver_.maxerror();
 
     while (err > 1e-9) {
       err /= std::sqrt(2);
       timesolver_.setMaxError(err);
 
-      timesolver.steps(N);
+      timesolver_.steps(N);
       t0 = t1;
       t1 = calcTorque(torque);
 
       while (t1 < t0) {
-        timesolver.steps(N);
+        timesolver_.steps(N);
         t0 = t1;
         t1 = calcTorque(torque);
       }    
@@ -136,4 +165,5 @@ void Relaxer::exec() {
   if (prec) { timesolver_.enablePrecession(); }
   timesolver_.setTime(time);
   timesolver_.setTimeStep(timestep); 
+  timesolver_.setEquations(eqs);
 }
