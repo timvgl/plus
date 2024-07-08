@@ -9,6 +9,7 @@ RTOL = 1e-3
 def openbc(request):
     return request.param
 
+@pytest.mark.mumax3
 class TestBulkDMI:
     """Test bulk dmi against mumax3."""
 

@@ -86,6 +86,7 @@ def simulations(request):
     return mumax5output, mumax3sim
 
 @pytest.mark.slow
+@pytest.mark.mumax3
 class TestStandardProblem5:
     """Compare the results of standard problem #5 of mumax5 against mumax3.
     Standard Problems: http://www.ctcms.nist.gov/~rdm/mumag.org.html

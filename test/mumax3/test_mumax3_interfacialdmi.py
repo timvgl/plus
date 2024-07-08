@@ -10,6 +10,7 @@ RTOL = 1e-3
 def openbc(request):
     return request.param
 
+@pytest.mark.mumax3
 class TestInterfacialDMI:
     """Test interfacial induced dmi against mumax3."""
 

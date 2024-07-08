@@ -1,6 +1,7 @@
-from mumax3 import Mumax3Simulation
+import pytest
 import numpy as np
 
+from mumax3 import Mumax3Simulation
 from mumax5 import Ferromagnet, Grid, World
 
 
@@ -10,6 +11,7 @@ def max_relative_error(result, wanted):
     return np.max(relerr)
 
 
+@pytest.mark.mumax3
 class TestMumax3:
     """ Test the effective fields of mumax5 against mumax3 """
 
