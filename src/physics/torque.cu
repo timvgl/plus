@@ -8,13 +8,18 @@
 #include "field.hpp"
 #include "parameter.hpp"
 #include "stt.hpp"
+#include "timesolver.hpp"
 #include "torque.hpp"
 
 Field evalTorque(const Ferromagnet* magnet) {
-  Field torque = evalLlgTorque(magnet);
-  if (!spinTransferTorqueAssuredZero(magnet))
-    torque += evalSpinTransferTorque(magnet);
-  return torque;
+  if (magnet->world()->timesolver().hasPrecession()) {
+    Field torque = evalLlgTorque(magnet);
+    if (!spinTransferTorqueAssuredZero(magnet))
+      torque += evalSpinTransferTorque(magnet);
+    return torque;
+  }
+  else
+    return evalRelaxTorque(magnet);
 }
 
 __global__ void k_llgtorque(CuField torque,
