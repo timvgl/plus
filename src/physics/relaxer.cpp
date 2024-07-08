@@ -79,9 +79,7 @@ void Relaxer::exec() {
           t1[i] = dotSum(torque[i].eval(), torque[i].eval());
         }
 
-        if (converged(t1, t0)) {
-          break;
-        }
+        if (converged(t0, t1)) { break; }
         timesolver.steps(N);
       }     
     }
@@ -107,10 +105,8 @@ void Relaxer::exec() {
       if (torqueConverged) {    
         err /= std::sqrt(2);
         timesolver.setMaxError(err);
-        timesolver.steps(N);
       }
-
-      else { timesolver.steps(N); }
+      timesolver.steps(N);
     }
   }
 
@@ -123,9 +119,9 @@ void Relaxer::exec() {
   timesolver.setTimeStep(timestep); 
 }
 
-bool Relaxer::converged(std::vector<real> t1, std::vector<real> t2) {
+bool Relaxer::converged(std::vector<real> t0, std::vector<real> t1) {
  for (size_t i = 0; i < t1.size(); ++i) {
-        if (t1[i] < t2[i]) { return false; }
+        if (t1[i] < t0[i]) { return false; }
     }
     return true;
 }

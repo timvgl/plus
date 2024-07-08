@@ -64,6 +64,9 @@ real evalTotalEnergy(const Magnet* magnet) {
   else if (const Antiferromagnet* mag = magnet->asAFM())
     edensAverage = totalEnergyDensityQuantity(mag->sub1()).average()[0]
                  + totalEnergyDensityQuantity(mag->sub2()).average()[0];
+  else
+    throw std::invalid_argument("Cannot calculate energy of instance which"
+                                "is no Ferromagnet or Antiferromagnet.");
                  
   return ncells * edensAverage * cellVolume;
 }
