@@ -176,14 +176,19 @@ class Ferromagnet:
 
     @property
     def RelaxTorqueThreshold(self):
-        """Threshold torque used for relaxing the system.
-        If not set (or set to default value -1), the system relaxes until the torque is steady or increasing.
+        """Threshold torque used for relaxing the system (default = -1).
+        If set to a negative value (default behaviour),
+            the system relaxes until the torque is steady or increasing.
+        If set to a positive value,
+            the system relaxes until the torque is smaller than or equal
+            to this threshold.
         """
         return Parameter(self._impl.RelaxTorqueThreshold)
         
     @RelaxTorqueThreshold.setter
     def RelaxTorqueThreshold(self, value):
-        assert isinstance(value, float), "The relax threshold should be uniform."
+        assert isinstance(value, (int, float)), "The relax threshold should be uniform."
+        assert value != 0, "The relax threshold should not be zero."
         self.RelaxTorqueThreshold.set(value)
 
     # ----- MATERIAL PARAMETERS -----------

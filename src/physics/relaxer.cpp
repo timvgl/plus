@@ -87,6 +87,9 @@ void Relaxer::exec() {
     }
   }
 
+  else if (std::find(threshold_.begin(), threshold_.end(), 0) != threshold_.end())
+    throw std::invalid_argument("The relax threshold should not be zero.");
+
   // If threshold is set by user: relax until torque is smaller than or equal to threshold.
   else { 
     real err = timesolver.maxerror();
