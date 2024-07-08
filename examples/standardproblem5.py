@@ -54,9 +54,21 @@ outputquantities = {
 output = world.timesolver.solve(timepoints, outputquantities)
 
 # --- PLOT THE OUTPUT DATA ---
+
+# time series
+t_fig, t_ax = plt.subplots()
 for key in ["mx", "my", "mz"]:
-    plt.plot(np.asarray(output["time"])*1e9, output[key], label=key)
-plt.legend()
-plt.xlabel("t (ns)")
-plt.ylabel("<m>")
+    t_ax.plot(np.asarray(output["time"])*1e9, output[key], label=key)
+t_ax.legend()
+t_ax.set_xlabel("t (ns)")
+t_ax.set_ylabel("<m>")
+
+#  mx versus my
+mm_fig, mm_ax = plt.subplots()
+mm_ax.axis("equal")
+mm_ax.plot(output["mx"], output["my"])
+mm_ax.set_xlabel("$m_x$")
+mm_ax.set_ylabel("$m_y$")
+mm_ax.grid()
+
 plt.show()
