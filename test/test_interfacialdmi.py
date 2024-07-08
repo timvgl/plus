@@ -42,6 +42,7 @@ class TestInterfacialDmi:
         cellsize = (1.1, 2.0, 3.2)
         world = World(cellsize)
         magnet = Ferromagnet(world, Grid((4, 5, 3)))
+        magnet.enable_openbc = True  # open boundary conditions in this test
         magnet.msat = 3.1
         magnet.dmi_tensor.xxz = 7.1
         magnet.dmi_tensor.yyz = -7.1
