@@ -9,6 +9,7 @@
 #include "fieldquantity.hpp"
 #include "gpubuffer.hpp"
 #include "mumaxworld.hpp"
+#include "relaxer.hpp"
 
 Antiferromagnet::Antiferromagnet(std::shared_ptr<System> system_ptr,
                                  std::string name)
@@ -41,4 +42,16 @@ const Ferromagnet* Antiferromagnet::getOtherSublattice(const Ferromagnet* sub) c
 
 std::vector<const Ferromagnet*> Antiferromagnet::sublattices() const {
   return sublattices_;
+}
+
+void Antiferromagnet::relax() {
+  std::vector<real> threshold = {sub1()->RelaxTorqueThreshold.getUniformValue(),
+                                 sub2()->RelaxTorqueThreshold.getUniformValue()};
+    if (threshold[0] > 0.0 && threshold[1] <= 0.0)
+      threshold[1] = threshold[0];
+    else if (threshold[0] <= 0.0 && threshold[1] > 0.0)
+      threshold[0] == threshold[1];
+
+    Relaxer relaxer(this, threshold);
+    relaxer.exec();
 }

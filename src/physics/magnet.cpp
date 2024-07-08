@@ -63,29 +63,6 @@ const Antiferromagnet* Magnet::asAFM() const {
   return dynamic_cast<const Antiferromagnet*>(this);
 }
 
-void Magnet::relax() {
-  if (const Ferromagnet* magnet = this->asFM()) {
-    real threshold = magnet->RelaxTorqueThreshold.getUniformValue();
-    Relaxer relaxer(magnet, {threshold});
-    relaxer.exec();
-  }
-  else if (const Antiferromagnet* magnet = this->asAFM()) {
-    std::vector<real> threshold = {magnet->sub1()->RelaxTorqueThreshold.getUniformValue(),
-                                   magnet->sub2()->RelaxTorqueThreshold.getUniformValue()};
-    if (threshold[0] > 0.0 && threshold[1] <= 0.0)
-      threshold[1] = threshold[0];
-    else if (threshold[0] <= 0.0 && threshold[1] > 0.0)
-      threshold[0] == threshold[1];
-
-    Relaxer relaxer(magnet, threshold);
-    relaxer.exec();
-  }
-  else {
-    throw std::invalid_argument("Cannot relax instance which is no Ferromagnet"
-                                " or Antiferromagnet");
-  }
-}
-
 const StrayField* Magnet::getStrayField(const Magnet* magnet) const {
   auto it = strayFields_.find(magnet);
   if (it == strayFields_.end())
