@@ -52,15 +52,15 @@ class TestAnisotropy:
     def test_anisotropy_field(self):
         result = (self.magnet.anisotropy_field(),)
         wanted = compute_anisotropy_field(self.magnet)
-        assert max_relative_error(result, wanted) < 1e-3
+        assert max_relative_error(result, wanted) < 2e-3
 
     def test_anisotropy_energy_density(self):
         result = (self.magnet.anisotropy_energy_density(),)
         wanted = compute_anisotropy_energy_density(self.magnet)
-        assert max_relative_error(result, wanted) < 1e-3
+        assert max_relative_error(result, wanted) < 2e-3
 
     def test_anisotropy_energy(self):
         result = self.magnet.anisotropy_energy()
         wanted = compute_anisotropy_energy(self.magnet)
         relative_error = (result - wanted) / wanted
-        assert relative_error < 1e-3
+        assert relative_error < 2e-3

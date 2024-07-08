@@ -83,6 +83,11 @@ To start debugging session:
 5. Rebuild the mumax5.sln solution with VS
 6. Launch a debugging session via *Extensions->NSight->Start CUDA Debugging*
 
+
+# Testing
+
+Several automated tests are located inside the `test/` directory. Type `pytest` inside the terminal to run them. Some are marked as `slow`, such as `test_mumax3_standardproblem5.py`. You can deselect those by running `pytest -m "not slow"`. Tests inside the `test/mumax3/` directory require external installation of MuMax3. They are marked by `mumax3` and can be deselected in the same way.
+
 # Building the documentation
 
 Documentation for mumax5 can be generated using [Sphinx](https://www.sphinx-doc.org). Run the following command in the docs directory to let Sphinx build the HTML documentation pages:
