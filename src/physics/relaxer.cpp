@@ -29,6 +29,9 @@ std::vector<DynamicEquation> Relaxer::getEquation(const Magnet* magnet) {
   /////////
   // TODO: make MumaxWorld.resetTimeSolverEquations() public ???
   /////////
+  /////////
+  // TODO: this function can make timesolver.disablePrecession() obsolete.
+  /////////
     std::vector<DynamicEquation> eqs;
 
     if (const Ferromagnet* mag = magnet->asFM()) {
@@ -55,8 +58,10 @@ std::vector<FM_FieldQuantity> Relaxer::getTorque() {
   for (auto magnet : magnets_) {
     if (const Ferromagnet* mag = magnet->asFM())
      torque.push_back(relaxTorqueQuantity(mag));
-    else if (const Antiferromagnet* mag = magnet->asAFM())
+    else if (const Antiferromagnet* mag = magnet->asAFM()) {
       torque.push_back(relaxTorqueQuantity(mag->sub1()));
+      torque.push_back(relaxTorqueQuantity(mag->sub2()));
+    }
     else
       throw std::invalid_argument("Cannot relax quantity which is"
                                   "no Ferromagnet or Antiferromagnet.");
