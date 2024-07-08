@@ -83,5 +83,7 @@ void wrap_world(py::module& m) {
            "get a map of all antiferromagnets in this world")
 
       .def_property_readonly("timesolver", &MumaxWorld::timesolver,
-                             py::return_value_policy::reference);
+                             py::return_value_policy::reference)
+      .def("relax", &MumaxWorld::relax);
+
 }
