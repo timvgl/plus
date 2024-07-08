@@ -67,6 +67,9 @@ class MumaxWorld : public World {
   /** Get map of all Antiferromagnets in this world. */
   const std::map<std::string, Antiferromagnet*> antiferromagnets() const;
 
+  /** Relax the current state of the world with every magnet in it. */
+  void relax();
+
  private:
   void resetTimeSolverEquations();
 

@@ -65,6 +65,10 @@ class World:
         """Get a dictionairy of antiferromagnets by name."""
         return {key: Antiferromagnet._from_impl(impl) for key, impl in
                 self._impl.antiferromagnets.items()}
+    
+    def relax(self):
+        """Relax the state to an energy minimum."""
+        self._impl.relax()    
 
     @property
     def cellsize(self):

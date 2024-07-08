@@ -11,6 +11,7 @@
 #include "gpubuffer.hpp"
 #include "grid.hpp"
 #include "magnet.hpp"
+#include "relaxer.hpp"
 #include "system.hpp"
 #include "thermalnoise.hpp"
 #include "timesolver.hpp"
@@ -173,4 +174,9 @@ void MumaxWorld::resetTimeSolverEquations() {
     }
   }
   timesolver_->setEquations(equations);
+}
+
+void MumaxWorld::relax() {
+    Relaxer relaxer(this);
+    relaxer.exec();
 }
