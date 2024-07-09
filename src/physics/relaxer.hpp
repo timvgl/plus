@@ -29,4 +29,5 @@ class Relaxer {
   std::vector<const Magnet*> magnets_;
   std::vector<real> threshold_;
   TimeSolver &timesolver_;
+  const MumaxWorld* world_;
 };

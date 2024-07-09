@@ -38,8 +38,8 @@ class Magnet {
   const GpuBuffer<bool>& getGeometry() const;
 
   // Cast Magnet instance to child instances
-  virtual const Ferromagnet* asFM() const;
-  virtual const Antiferromagnet* asAFM() const;
+  const Ferromagnet* asFM() const;
+  const Antiferromagnet* asAFM() const;
 
   virtual void relax() = 0;
 

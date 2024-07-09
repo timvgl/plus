@@ -152,13 +152,13 @@ const std::map<std::string, Antiferromagnet*> MumaxWorld::antiferromagnets() con
   return sharedAntiferromagnets;
 }
 
-void MumaxWorld::resetTimeSolverEquations() {
+void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
   std::vector<DynamicEquation> equations;
   for (const auto& namedMagnet : ferromagnets_) {
     Ferromagnet* magnet = namedMagnet.second.get();
     DynamicEquation eq(
         magnet->magnetization(),
-        std::shared_ptr<FieldQuantity>(torqueQuantity(magnet).clone()),
+        std::shared_ptr<FieldQuantity>(torque(magnet).clone()),
         std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(magnet).clone()));
     equations.push_back(eq);
   }
@@ -168,7 +168,7 @@ void MumaxWorld::resetTimeSolverEquations() {
     for (const Ferromagnet* sub : magnet->sublattices()) {
       DynamicEquation eq(
         sub->magnetization(),
-        std::shared_ptr<FieldQuantity>(torqueQuantity(sub).clone()),
+        std::shared_ptr<FieldQuantity>(torque(sub).clone()),
         std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(sub).clone()));
       equations.push_back(eq);
     }
