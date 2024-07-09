@@ -21,10 +21,11 @@ Relaxer::Relaxer(const Magnet* magnet, std::vector<real> RelaxTorqueThreshold)
 
 Relaxer::Relaxer(const MumaxWorld* world, real RelaxTorqueThreshold)
     : timesolver_(world->timesolver()),
-      world_(world),
-      threshold_({RelaxTorqueThreshold}) {
-        for (const auto& pair : world->magnets())
+      world_(world) {
+        for (const auto& pair : world->magnets()) {
           magnets_.push_back(pair.second);
+          threshold_.push_back(RelaxTorqueThreshold);
+        }
 }
 
 std::vector<DynamicEquation> Relaxer::getEquation(const Magnet* magnet) {
@@ -139,7 +140,8 @@ void Relaxer::exec() {
     throw std::invalid_argument("The relax threshold should not be zero.");
 
   // If threshold is set by user: relax until torque is smaller than or equal to threshold.
-  else { 
+  else {
+
     real err = timesolver_.maxerror();
     std::vector<FM_FieldQuantity> torque = getTorque();
 
