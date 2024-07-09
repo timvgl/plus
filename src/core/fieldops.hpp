@@ -8,6 +8,9 @@
 /// a1*x1 + a2*x2
 Field add(real a1, const Field& x1, real a2, const Field& x2);
 
+/// a1*x1 + a2*x2
+Field add(real3 a1, const Field& x1, real3 a2, const Field& x2);
+
 /// x1 + x2
 Field add(const Field& x1, const Field& x2);
 

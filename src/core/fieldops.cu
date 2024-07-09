@@ -78,6 +78,12 @@ Field add(real a1, const Field& x1, real a2, const Field& x2) {
   return y;
 }
 
+Field add(real3 a1, const Field& x1, real3 a2, const Field& x2) {
+  Field y(x1.system(), x1.ncomp());
+  add(y, a1, x1, a2, x2);
+  return y;
+}
+
 Field add(const Field& x1, const Field& x2) {
   return add(1, x1, 1, x2);
 }
