@@ -24,6 +24,8 @@ void addTo(Field& y, real a, const Field& x);
 
 void addTo(Field& y, real3 a, const Field& x);
 
+void addTo(Field& y, const Field& a, const Field& x);
+
 /// sum_i( weight[i]*x[i] )
 Field add(std::vector<const Field*> x, std::vector<real> weights);
 
