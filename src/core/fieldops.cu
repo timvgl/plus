@@ -73,12 +73,12 @@ inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
   if (x1.system() != y.system() || x2.system() != y.system()) {
     throw std::invalid_argument(
         "Fields can not be added together because they belong to different "
-        "systems)");
+        "systems.");
   }
   if ((x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) ) {
     throw std::invalid_argument(
         "Fields can not be added because they do not have the same number of "
-        "components");
+        "components.");
   }
   int ncells = y.grid().ncells();
   cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
@@ -92,12 +92,12 @@ inline void add(Field& y,
   if (x1.system() != y.system() || x2.system() != y.system()) {
     throw std::invalid_argument(
         "Fields can not be added together because they belong to different "
-        "systems)");
+        "systems.");
   }
   if (x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) {
     throw std::invalid_argument(
         "Fields can not be added because they do not have the same number of "
-        "components");
+        "components.");
   }
   if (x1.ncomp() != 3) {
     throw std::invalid_argument("Fields should have 3 components.");
