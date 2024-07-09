@@ -167,11 +167,24 @@ class Ferromagnet:
         self.bias_magnetic_field.set(value)
 
     def minimize(self):
-        """Minimize the total energy."""
+        """Minimize the total energy.
+        Fast energy minimization, but less robust than "relax"
+        when starting from a high energy state.
+        """
         self._impl.minimize()
     
     def relax(self):
-        """Relax the state to an energy minimum."""
+        """Relax the state to an energy minimum.
+        The system evolves in time without precession (pure damping) until
+        the total energy hits the noise floor.
+        Hereafter, relaxation keeps on going until the maximum torque is
+        minimized.
+
+        Compared to "minimize", this function takes a longer time to execute,
+        but is more robust when starting from a high energy state (i.e. random).
+
+        See also RelaxTorqueThreshold property of Ferromagnet.
+        """
         self._impl.relax()
 
     @property

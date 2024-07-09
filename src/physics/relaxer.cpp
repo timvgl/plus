@@ -28,10 +28,7 @@ Relaxer::Relaxer(const MumaxWorld* world)
 
 std::vector<DynamicEquation> Relaxer::getEquation(const Magnet* magnet) {
   /////////
-  // TODO: make MumaxWorld.resetTimeSolverEquations() public ???
-  /////////
-  /////////
-  // TODO: this function can make timesolver.disablePrecession() obsolete.
+  // TODO: this function looks too much like mumaxworld.resetTimeSolverEquations.
   /////////
     std::vector<DynamicEquation> eqs;
     if (const Ferromagnet* mag = magnet->asFM()) {

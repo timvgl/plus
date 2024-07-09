@@ -138,7 +138,16 @@ class Antiferromagnet:
         self.sub2.bias_magnetic_field.set(value)
 
     def relax(self):
-        """Relax the state to an energy minimum."""
+        """Relax the state to an energy minimum.
+        -----
+
+        The system evolves in time without precession (pure damping) until
+        the total energy (i.e. the sum of sublattices) hits the noise floor.
+        Hereafter, relaxation keeps on going until the maximum torque is
+        minimized.
+
+        See also RelaxTorqueThreshold property of Ferromagnet.
+        """
         self._impl.relax()
 
 
