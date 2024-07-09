@@ -35,6 +35,24 @@ __global__ void k_addFields(CuField y,
   y.setVectorInCell(idx, term1 + term2);
 }
 
+__global__ void k_addFields(CuField y,
+                            const CuField a1,
+                            const CuField x1,
+                            const CuField a2,
+                            const CuField x2) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGeometry(idx))
+    return;
+
+  for (int c = 0; c < y.ncomp; c++) {
+    int c_a1 = (a1.ncomp == y.ncomp) ? c : 0;  // follow comp or be scalar
+    real term1 = a1.valueAt(idx, c_a1) * x1.valueAt(idx, c);
+    int c_a2 = (a2.ncomp == y.ncomp) ? c : 0;
+    real term2 = a2.valueAt(idx, c_a2) * x2.valueAt(idx, c);
+    y.setValueInCell(idx, c, term1 + term2);
+  }
+}
+
 inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
   if (x1.system() != y.system() || x2.system() != y.system()) {
     throw std::invalid_argument(
@@ -72,6 +90,38 @@ inline void add(Field& y,
   cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
 }
 
+inline void add(Field& y,
+                const Field& a1,
+                const Field& x1,
+                const Field& a2,
+                const Field& x2) {
+  if (x1.system() != y.system() || x2.system() != y.system() ||
+      a1.system() != y.system() || a2.system() != y.system()) {
+    throw std::invalid_argument(
+        "Fields can not be multiplied and added together because they belong to "
+        "different systems.");
+  }
+  if (x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) {
+    throw std::invalid_argument(
+        "Fields can not be added because they do not have the same number of "
+        "components.");
+  }
+  if (a1.ncomp() != a2.ncomp()) {
+    throw std::invalid_argument(
+        "Weights need to have the same number of components."
+    );
+  }
+  if (a1.ncomp() > x1.ncomp()) {
+    throw std::invalid_argument(
+        "Weights should not have more components than fields, so no vector "
+        "weights times scalar fields."
+    );
+  }
+
+  int ncells = y.grid().ncells();
+  cudaLaunch(ncells, k_addFields, y.cu(), a1.cu(), x1.cu(), a2.cu(), x2.cu());
+}
+
 Field add(real a1, const Field& x1, real a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
@@ -79,6 +129,12 @@ Field add(real a1, const Field& x1, real a2, const Field& x2) {
 }
 
 Field add(real3 a1, const Field& x1, real3 a2, const Field& x2) {
+  Field y(x1.system(), x1.ncomp());
+  add(y, a1, x1, a2, x2);
+  return y;
+}
+
+Field add(const Field& a1, const Field& x1, const Field& a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
   return y;
