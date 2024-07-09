@@ -183,7 +183,7 @@ class Ferromagnet:
         Compared to "minimize", this function takes a longer time to execute,
         but is more robust when starting from a high energy state (i.e. random).
 
-        See also RelaxTorqueThreshold property of Ferromagnet.
+        See also RelaxTorqueThreshold property.
         """
         self._impl.relax()
 

@@ -18,7 +18,9 @@
 #include "torque.hpp"
 
 MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
-    : World(cellsize, mastergrid), biasMagneticField({0, 0, 0}) {}
+    : World(cellsize, mastergrid),
+      biasMagneticField({0, 0, 0}),
+      RelaxTorqueThreshold(-1.0) {}
 
 MumaxWorld::~MumaxWorld() {}
 
@@ -177,6 +179,6 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
 }
 
 void MumaxWorld::relax() {
-    Relaxer relaxer(this);
+    Relaxer relaxer(this, this->RelaxTorqueThreshold);
     relaxer.exec();
 }

@@ -19,9 +19,10 @@ Relaxer::Relaxer(const Magnet* magnet, std::vector<real> RelaxTorqueThreshold)
       world_(magnet->mumaxWorld()),
       threshold_(RelaxTorqueThreshold) {}
 
-Relaxer::Relaxer(const MumaxWorld* world)
+Relaxer::Relaxer(const MumaxWorld* world, real RelaxTorqueThreshold)
     : timesolver_(world->timesolver()),
-      world_(world) {
+      world_(world),
+      threshold_({RelaxTorqueThreshold}) {
         for (const auto& pair : world->magnets())
           magnets_.push_back(pair.second);
 }

@@ -75,8 +75,27 @@ class World:
         the noise floor.
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
+
+        See also RelaxTorqueThreshold property.
         """
-        self._impl.relax()    
+        self._impl.relax()
+
+    @property
+    def RelaxTorqueThreshold(self):
+        """Threshold torque used for relaxing the system (default = -1).
+        If set to a negative value (default behaviour),
+            the system relaxes until the total torque (i.e. the sum of all
+            magnets in this world) is steady or increasing.
+        If set to a positive value,
+            the system relaxes until the total torque is smaller than or
+            equal to this threshold.
+        """
+        return self._impl.RelaxTorqueThreshold
+        
+    @RelaxTorqueThreshold.setter
+    def RelaxTorqueThreshold(self, value):
+        assert value != 0, "The relax threshold should not be zero."
+        self._impl.RelaxTorqueThreshold = value
 
     @property
     def cellsize(self):

@@ -27,6 +27,7 @@ void wrap_world(py::module& m) {
                              "mastergrid of the world")
       .def_readwrite("bias_magnetic_field", &MumaxWorld::biasMagneticField,
                      "uniform external magnetic field")
+      .def_readwrite("RelaxTorqueThreshold", &MumaxWorld::RelaxTorqueThreshold)
 
       .def(
           "add_ferromagnet",

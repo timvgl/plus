@@ -75,6 +75,7 @@ class MumaxWorld : public World {
 
   /** Relax the current state of the world with every magnet in it. */
   void relax();
+  real RelaxTorqueThreshold;
 
   void resetTimeSolverEquations(FM_Field torque = torqueQuantity) const;
 

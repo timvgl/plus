@@ -13,7 +13,7 @@ class TimeSolver;
 class Relaxer {
  public:
   Relaxer(const Magnet*, std::vector<real> RelaxTorqueThreshold);
-  Relaxer(const MumaxWorld*);
+  Relaxer(const MumaxWorld*, real RelaxTorqueThreshold);
   
   // Execute relaxing procedure
   void exec();
