@@ -88,6 +88,10 @@ Field add(const Field& x1, const Field& x2) {
   return add(1, x1, 1, x2);
 }
 
+Field operator+(const Field& x1, const Field& x2) {
+  return add(x1, x2);
+}
+
 void addTo(Field& y, real a, const Field& x) {
   add(y, 1, y, a, x);
 }

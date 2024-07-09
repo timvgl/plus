@@ -13,6 +13,8 @@ Field add(real3 a1, const Field& x1, real3 a2, const Field& x2);
 
 /// x1 + x2
 Field add(const Field& x1, const Field& x2);
+/// x1 + x2
+Field operator+(const Field& x1, const Field& x2);
 
 /// y += a*x
 void addTo(Field& y, real a, const Field& x);
