@@ -222,6 +222,47 @@ Field operator*(real3 a, const Field& x) {
   return y;
 }
 
+__global__ void k_multiplyFields(CuField y,
+                            const CuField a,
+                            const CuField x) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGeometry(idx))
+    return;
+  for (int c = 0; c < y.ncomp; c++) {
+    int c_a = (a.ncomp == y.ncomp) ? c : 0;  // follow comp or be scalar
+    y.setValueInCell(idx, c, a.valueAt(idx, c_a) * x.valueAt(idx, c));
+  }
+}
+
+inline void multiply(Field& y, const Field& a, const Field& x) {
+  if (x.system() != y.system() || a.system() != y.system()) {
+    throw std::invalid_argument(
+        "Fields can not be added together because they belong to different "
+        "systems.");
+  }
+  if (x.ncomp() != y.ncomp()) {
+    throw std::invalid_argument(
+        "Fields can not be added because they do not have the same number of "
+        "components.");
+  }
+  if (a.ncomp() > x.ncomp()) {
+    throw std::invalid_argument(
+        "First field should not have more components than second field.");
+  }
+  int ncells = y.grid().ncells();
+  cudaLaunch(ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());
+}
+
+Field multiply(const Field& a, const Field& x) {
+  Field y(x.system(), x.ncomp());
+  multiply(y, a, x);
+  return y;
+}
+
+Field operator*(const Field& a, const Field& x) {
+  return multiply(a, x);
+}
+
 // --------------------------------------------------
 // fieldGetRGB
 
