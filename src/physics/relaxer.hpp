@@ -15,9 +15,11 @@ class Relaxer {
   Relaxer(const Magnet*, std::vector<real> RelaxTorqueThreshold);
   Relaxer(const MumaxWorld*);
   
+  // Execute relaxing procedure
   void exec();
 
-  // Helper functions to execute relax procedure
+  // Helper functions
+ private:
   std::vector<DynamicEquation> getEquation(const Magnet*);
   std::vector<FM_FieldQuantity> getTorque();
   real calcTorque(std::vector<FM_FieldQuantity>);
@@ -26,6 +28,5 @@ class Relaxer {
  private:
   std::vector<const Magnet*> magnets_;
   std::vector<real> threshold_;
-  const MumaxWorld* world_;
   TimeSolver &timesolver_;
 };
