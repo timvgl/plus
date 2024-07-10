@@ -84,7 +84,7 @@ axs[2].set_xlabel('$t$')
 
 plt.suptitle('Ferromagnetic Spinwave Dispersion Relation (Python)')
 plt.show()
-plt.savefig("dispersion output")
+
 # Apply the two dimensional FFT
 m = np.array(output['m'], dtype=float)
 mx = m[:, 0, 0, 0, :]
@@ -110,5 +110,5 @@ plt.ylim([0, fmax])
 plt.ylabel("$f$ (Hz)")
 plt.xlabel("$k$ (1/m)")
 plt.title('Ferromagnetic Spinwave Dispersion Relation (Python)')
-plt.savefig("dispersion")
+
 plt.show()
