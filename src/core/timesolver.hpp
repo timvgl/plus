@@ -29,6 +29,7 @@ class TimeSolver {
   //------------- GET SOLVER SETTINGS ------------------------------------------
 
   const std::vector<DynamicEquation>& equations() const { return eqs_; }
+  RKmethod getRungeKuttaMethod();
   real time() const { return time_; }
   real timestep() const { return timestep_; }
   bool hasAdaptiveTimeStep() const { return !fixedTimeStep_; }
@@ -37,6 +38,7 @@ class TimeSolver {
   //------------- SET SOLVER SETTINGS ------------------------------------------
 
   void setRungeKuttaMethod(RKmethod);
+  void setRungeKuttaMethod(const std::string& method);
   void setEquations(std::vector<DynamicEquation> eq);
   void setTime(real time) { time_ = time; }
   void setTimeStep(real dt) { timestep_ = dt; }
@@ -68,4 +70,5 @@ class TimeSolver {
   //------------- THE INTERNAL STEPPER -----------------------------------------
 
   std::unique_ptr<Stepper> stepper_;
+  RKmethod method_;
 };

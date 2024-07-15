@@ -27,6 +27,7 @@ void wrap_world(py::module& m) {
                              "mastergrid of the world")
       .def_readwrite("bias_magnetic_field", &MumaxWorld::biasMagneticField,
                      "uniform external magnetic field")
+      .def_readwrite("RelaxTorqueThreshold", &MumaxWorld::RelaxTorqueThreshold)
 
       .def(
           "add_ferromagnet",
@@ -83,5 +84,7 @@ void wrap_world(py::module& m) {
            "get a map of all antiferromagnets in this world")
 
       .def_property_readonly("timesolver", &MumaxWorld::timesolver,
-                             py::return_value_policy::reference);
+                             py::return_value_policy::reference)
+      .def("relax", &MumaxWorld::relax, py::arg("tol"));
+
 }

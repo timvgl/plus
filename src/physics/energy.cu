@@ -1,4 +1,5 @@
 #include "anisotropy.hpp"
+#include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
 #include "demag.hpp"
 #include "dmi.hpp"
@@ -53,10 +54,20 @@ Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   return edens;
 }
 
-real evalTotalEnergy(const Ferromagnet* magnet) {
+real evalTotalEnergy(const Magnet* magnet) {
   int ncells = magnet->grid().ncells();
-  real edensAverage = totalEnergyDensityQuantity(magnet).average()[0];
   real cellVolume = magnet->world()->cellVolume();
+  real edensAverage;
+  
+  if (const Ferromagnet* mag = magnet->asFM())
+    edensAverage = totalEnergyDensityQuantity(mag).average()[0];
+  else if (const Antiferromagnet* mag = magnet->asAFM())
+    edensAverage = totalEnergyDensityQuantity(mag->sub1()).average()[0]
+                 + totalEnergyDensityQuantity(mag->sub2()).average()[0];
+  else
+    throw std::invalid_argument("Cannot calculate energy of instance which"
+                                "is no Ferromagnet or Antiferromagnet.");
+                 
   return ncells * edensAverage * cellVolume;
 }
 

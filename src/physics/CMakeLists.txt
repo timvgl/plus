@@ -42,6 +42,8 @@ add_library(physics STATIC
     newell.hpp
     poissonsystem.hpp
     poissonsystem.cu
+    relaxer.hpp
+    relaxer.cpp
     strayfield.cpp
     strayfield.hpp
     strayfieldbrute.cu

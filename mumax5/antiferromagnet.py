@@ -137,6 +137,26 @@ class Antiferromagnet:
         self.sub1.bias_magnetic_field.set(value)
         self.sub2.bias_magnetic_field.set(value)
 
+    def relax(self, tol=1e-9):
+        """Relax the state to an energy minimum.
+        -----
+
+        The system evolves in time without precession (pure damping) until
+        the total energy (i.e. the sum of sublattices) hits the noise floor.
+        Hereafter, relaxation keeps on going until the maximum torque is
+        minimized.
+
+        The tolerance argument corresponds to the maximum error of the timesolver.
+
+        See also RelaxTorqueThreshold property of Ferromagnet.
+        """
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
+        self._impl.relax(tol)
+
+
     # ----- MATERIAL PARAMETERS -----------
 
     @property

@@ -7,6 +7,8 @@ from .grid import Grid
 from .ferromagnet import Ferromagnet
 from .antiferromagnet import Antiferromagnet
 
+import warnings
+
 class World:
     """Construct a world with a given cell size.
 
@@ -65,6 +67,44 @@ class World:
         """Get a dictionairy of antiferromagnets by name."""
         return {key: Antiferromagnet._from_impl(impl) for key, impl in
                 self._impl.antiferromagnets.items()}
+    
+    def relax(self, tol=1e-9):
+        """Relax the state to an energy minimum.
+        -----
+
+        The system evolves in time without precession (pure damping) until
+        the total energy (i.e. the sum of all magnets in this world) hits
+        the noise floor.
+        Hereafter, relaxation keeps on going until the maximum torque is
+        minimized.
+
+        The tolerance argument corresponds to the maximum error of the timesolver.
+
+        See also RelaxTorqueThreshold property.
+        """
+
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
+        self._impl.relax(tol)
+
+    @property
+    def RelaxTorqueThreshold(self):
+        """Threshold torque used for relaxing the system (default = -1).
+        If set to a negative value (default behaviour),
+            the system relaxes until the total torque (i.e. the sum of all
+            magnets in this world) is steady or increasing.
+        If set to a positive value,
+            the system relaxes until the total torque is smaller than or
+            equal to this threshold.
+        """
+        return self._impl.RelaxTorqueThreshold
+        
+    @RelaxTorqueThreshold.setter
+    def RelaxTorqueThreshold(self, value):
+        assert value != 0, "The relax threshold should not be zero."
+        self._impl.RelaxTorqueThreshold = value
 
     @property
     def cellsize(self):

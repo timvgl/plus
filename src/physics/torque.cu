@@ -8,6 +8,7 @@
 #include "field.hpp"
 #include "parameter.hpp"
 #include "stt.hpp"
+#include "timesolver.hpp"
 #include "torque.hpp"
 
 Field evalTorque(const Ferromagnet* magnet) {
