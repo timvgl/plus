@@ -96,7 +96,7 @@ void Relaxer::exec() {
 
   // Set solver settings for relax
   timesolver_.enableAdaptiveTimeStep();
-  timesolver_.setRungeKuttaMethod("BogackiShampine");
+  timesolver_.setRungeKuttaMethod("Fehlberg");
   if (magnets_.size() == 1) { timesolver_.setEquations(getEquation(magnets_[0])); }
   else {world_->resetTimeSolverEquations(relaxTorqueQuantity);}
 
@@ -106,12 +106,12 @@ void Relaxer::exec() {
   real E0 = calcEnergy();
   timesolver_.steps(N);
   real E1 = calcEnergy();
+
   while (E1 < E0) {
     timesolver_.steps(N);
     E0 = E1;
     E1 = calcEnergy();
   }
-  
   // Run while monitoring torque
   // If threshold < 0 (default = -1): relax until torque is steady or increasing.
   if (std::all_of(threshold_.begin(), threshold_.end(), [](real t) { return t < 0; })) {
@@ -129,13 +129,13 @@ void Relaxer::exec() {
       timesolver_.steps(N);
       t0 = t1;
       t1 = calcTorque(torque);
-
+      
       while (t1 < t0) {
         timesolver_.steps(N);
         t0 = t1;
         t1 = calcTorque(torque);
       }    
-    }     
+    }
   }
 
   else if (std::find(threshold_.begin(), threshold_.end(), 0) != threshold_.end())
