@@ -22,7 +22,7 @@ void wrap_antiferromagnet(py::module& m) {
       .def_readonly("afmex_nn", &Antiferromagnet::afmex_nn)
       .def_readonly("latcon", &Antiferromagnet::latcon)
       
-      .def("relax", &Antiferromagnet::relax);
+      .def("relax", &Antiferromagnet::relax, py::arg("tol"));
       
   m.def("neel_vector", &neelVectorQuantity);
   m.def("total_magnetization", &totalMagnetizationQuantity);

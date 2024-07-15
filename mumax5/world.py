@@ -66,7 +66,7 @@ class World:
         return {key: Antiferromagnet._from_impl(impl) for key, impl in
                 self._impl.antiferromagnets.items()}
     
-    def relax(self):
+    def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
         -----
 
@@ -76,9 +76,11 @@ class World:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
+        The tolerance argument corresponds to the maximum error of the timesolver.
+
         See also RelaxTorqueThreshold property.
         """
-        self._impl.relax()
+        self._impl.relax(tol)
 
     @property
     def RelaxTorqueThreshold(self):

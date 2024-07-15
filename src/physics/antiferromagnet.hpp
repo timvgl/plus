@@ -31,7 +31,7 @@ class Antiferromagnet : public Magnet {
  const Ferromagnet* sub2() const;
  const Ferromagnet* getOtherSublattice(const Ferromagnet* sub) const;
 
- void relax();
+ void relax(real tol);
 
  public:
   Parameter afmex_cell;

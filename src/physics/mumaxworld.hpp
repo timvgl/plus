@@ -74,7 +74,7 @@ class MumaxWorld : public World {
   const std::map<std::string, Antiferromagnet*> antiferromagnets() const;
 
   /** Relax the current state of the world with every magnet in it. */
-  void relax();
+  void relax(real tol);
   real RelaxTorqueThreshold;
 
   void resetTimeSolverEquations(FM_Field torque = torqueQuantity) const;

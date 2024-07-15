@@ -13,15 +13,17 @@
 
 #include <algorithm>
 
-Relaxer::Relaxer(const Magnet* magnet, std::vector<real> RelaxTorqueThreshold)
+Relaxer::Relaxer(const Magnet* magnet, std::vector<real> RelaxTorqueThreshold, real tol)
     : magnets_({magnet}),
       timesolver_(magnet->world()->timesolver()),
       world_(magnet->mumaxWorld()),
+      tol_(tol),
       threshold_(RelaxTorqueThreshold) {}
 
-Relaxer::Relaxer(const MumaxWorld* world, real RelaxTorqueThreshold)
+Relaxer::Relaxer(const MumaxWorld* world, real RelaxTorqueThreshold, real tol)
     : timesolver_(world->timesolver()),
-      world_(world) {
+      world_(world),
+      tol_(tol) {
         for (const auto& pair : world->magnets()) {
           magnets_.push_back(pair.second);
           threshold_.push_back(RelaxTorqueThreshold);
@@ -111,7 +113,7 @@ void Relaxer::exec() {
   }
   
   // Run while monitoring torque
-  // If threshold = -1 (default) or < 0: relax until torque is steady or increasing.
+  // If threshold < 0 (default = -1): relax until torque is steady or increasing.
   if (std::all_of(threshold_.begin(), threshold_.end(), [](real t) { return t < 0; })) {
 
     std::vector<FM_FieldQuantity> torque = getTorque();
@@ -120,7 +122,7 @@ void Relaxer::exec() {
   
     real err = timesolver_.maxerror();
 
-    while (err > 1e-9) {
+    while (err > tol_) {
       err /= std::sqrt(2);
       timesolver_.setMaxError(err);
 
@@ -145,7 +147,7 @@ void Relaxer::exec() {
     real err = timesolver_.maxerror();
     std::vector<FM_FieldQuantity> torque = getTorque();
 
-    while (err > 1e-9) {
+    while (err > tol_) {
       bool torqueConverged = true;
       for (size_t i = 0; i < torque.size(); i++) {
         if (maxVecNorm(torque[i].eval()) > threshold_[i]) {

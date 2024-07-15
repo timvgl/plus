@@ -137,7 +137,7 @@ class Antiferromagnet:
         self.sub1.bias_magnetic_field.set(value)
         self.sub2.bias_magnetic_field.set(value)
 
-    def relax(self):
+    def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
         -----
 
@@ -146,9 +146,11 @@ class Antiferromagnet:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
+        The tolerance argument corresponds to the maximum error of the timesolver.
+
         See also RelaxTorqueThreshold property of Ferromagnet.
         """
-        self._impl.relax()
+        self._impl.relax(tol)
 
 
     # ----- MATERIAL PARAMETERS -----------

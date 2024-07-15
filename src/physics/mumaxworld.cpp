@@ -178,7 +178,7 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
   timesolver_->setEquations(equations);
 }
 
-void MumaxWorld::relax() {
-    Relaxer relaxer(this, this->RelaxTorqueThreshold);
+void MumaxWorld::relax(real tol) {
+    Relaxer relaxer(this, this->RelaxTorqueThreshold, tol);
     relaxer.exec();
 }

@@ -44,7 +44,7 @@ std::vector<const Ferromagnet*> Antiferromagnet::sublattices() const {
   return sublattices_;
 }
 
-void Antiferromagnet::relax() {
+void Antiferromagnet::relax(real tol) {
   std::vector<real> threshold = {sub1()->RelaxTorqueThreshold,
                                  sub2()->RelaxTorqueThreshold};
     // If only one sublattice has a user-set threshold, then both
@@ -54,6 +54,6 @@ void Antiferromagnet::relax() {
     else if (threshold[0] <= 0.0 && threshold[1] > 0.0)
       threshold[0] == threshold[1];
 
-    Relaxer relaxer(this, threshold);
+    Relaxer relaxer(this, threshold, tol);
     relaxer.exec();
 }

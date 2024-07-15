@@ -99,8 +99,8 @@ void Ferromagnet::minimize(real tol, int nSamples) {
   minimizer.exec();
 }
 
-void Ferromagnet::relax() {
+void Ferromagnet::relax(real tol) {
   real threshold = this->RelaxTorqueThreshold;
-  Relaxer relaxer(this, {threshold});
+  Relaxer relaxer(this, {threshold}, tol);
   relaxer.exec();
 }

@@ -72,7 +72,7 @@ void wrap_ferromagnet(py::module& m) {
 
       .def("minimize", &Ferromagnet::minimize, py::arg("tol") = 1e-6,
            py::arg("nsamples") = 10)
-      .def("relax", &Ferromagnet::relax);
+      .def("relax", &Ferromagnet::relax, py::arg("tol"));
 
   m.def("torque", &torqueQuantity);
   m.def("llg_torque", &llgTorqueQuantity);
