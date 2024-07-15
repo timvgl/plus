@@ -41,8 +41,6 @@ class Magnet {
   const Ferromagnet* asFM() const;
   const Antiferromagnet* asAFM() const;
 
-  //virtual void relax() = 0;
-
   const StrayField* getStrayField(const Magnet*) const;
   std::vector<const StrayField*> getStrayFields() const;
   void addStrayField(

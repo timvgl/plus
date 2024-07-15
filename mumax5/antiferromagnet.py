@@ -150,6 +150,10 @@ class Antiferromagnet:
 
         See also RelaxTorqueThreshold property of Ferromagnet.
         """
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
         self._impl.relax(tol)
 
 

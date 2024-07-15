@@ -11,6 +11,8 @@ from .parameter import Parameter
 from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
+
+import warnings
 # from .world import World  # imported below to avoid circular imports
 
 
@@ -187,6 +189,11 @@ class Ferromagnet:
 
         See also RelaxTorqueThreshold property.
         """
+
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
         self._impl.relax(tol)
 
     @property

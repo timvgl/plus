@@ -7,6 +7,8 @@ from .grid import Grid
 from .ferromagnet import Ferromagnet
 from .antiferromagnet import Antiferromagnet
 
+import warnings
+
 class World:
     """Construct a world with a given cell size.
 
@@ -80,6 +82,11 @@ class World:
 
         See also RelaxTorqueThreshold property.
         """
+
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
         self._impl.relax(tol)
 
     @property
