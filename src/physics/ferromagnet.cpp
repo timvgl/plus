@@ -48,7 +48,7 @@ Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr,
       appliedPotential(system(), std::nanf("0")),
       conductivity(system(), 0.0),
       amrRatio(system(), 0.0),
-      RelaxTorqueThreshold(system(), -1.0),
+      RelaxTorqueThreshold(-1.0),
       poissonSystem(this) {
     {
     // TODO: this can be done much more efficient somewhere else
@@ -100,7 +100,7 @@ void Ferromagnet::minimize(real tol, int nSamples) {
 }
 
 void Ferromagnet::relax() {
-  real threshold = this->RelaxTorqueThreshold.getUniformValue();
+  real threshold = this->RelaxTorqueThreshold;
   Relaxer relaxer(this, {threshold});
   relaxer.exec();
 }

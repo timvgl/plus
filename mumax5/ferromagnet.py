@@ -196,13 +196,12 @@ class Ferromagnet:
             the system relaxes until the torque is smaller than or equal
             to this threshold.
         """
-        return Parameter(self._impl.RelaxTorqueThreshold)
+        return self._impl.RelaxTorqueThreshold
         
     @RelaxTorqueThreshold.setter
     def RelaxTorqueThreshold(self, value):
-        assert isinstance(value, (int, float)), "The relax threshold should be uniform."
         assert value != 0, "The relax threshold should not be zero."
-        self.RelaxTorqueThreshold.set(value)
+        self._impl.RelaxTorqueThreshold = value
 
     # ----- MATERIAL PARAMETERS -----------
 
