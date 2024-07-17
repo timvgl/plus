@@ -7,8 +7,6 @@
 #include "reduce.hpp"
 #include "torque.hpp"
 
-#include <iostream>
-
 Minimizer::Minimizer(const Ferromagnet* magnet,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
@@ -66,7 +64,6 @@ __global__ void k_step(CuField mField,
   real3 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
 
   mField.setVectorInCell(idx, m);
-
 }
 
 static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
@@ -101,6 +98,7 @@ void Minimizer::step() {
   
   for (size_t i = 0; i < magnet_.size(); i++)
     magnet_[i]->magnetization()->set(m1[i]);  // normalizes
+    
   for (size_t i = 0; i < magnet_.size(); i++)
     t1[i] = torque_[i].eval();
 
