@@ -7,15 +7,20 @@
 #include "reduce.hpp"
 #include "torque.hpp"
 
+#include <iostream>
+
 Minimizer::Minimizer(const Ferromagnet* magnet,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
     : magnet_({magnet}),
       torque_({relaxTorqueQuantity(magnet)}),
       nMagDiffSamples_(nMagDiffSamples),
-      stopMaxMagDiff_(stopMaxMagDiff) {
+      stopMaxMagDiff_(stopMaxMagDiff),
+      t0(magnet_.size()),
+      t1(magnet_.size()),
+      m0(magnet_.size()),
+      m1(magnet_.size()) {
   stepsize_ = {1e-14};  // TODO: figure out how to make descent guess
-
   // TODO: check if input arguments are sane
 }
 
@@ -88,7 +93,6 @@ void Minimizer::step() {
     m1[i] = Field(magnet_[i]->system(), 3);
     int N = m1[i].grid().ncells();
     cudaLaunch(N, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsize_[i]);
-  
   }
   for (int i = 0; i < magnet_.size(); i++)
     magnet_[i]->magnetization()->set(m1[i]);  // normalizes
