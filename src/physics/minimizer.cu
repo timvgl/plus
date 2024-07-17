@@ -1,3 +1,4 @@
+#include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
@@ -9,12 +10,26 @@
 Minimizer::Minimizer(const Ferromagnet* magnet,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
-    : magnet_(magnet),
-      torque_(relaxTorqueQuantity(magnet)),
+    : magnet_({magnet}),
+      torque_({relaxTorqueQuantity(magnet)}),
       nMagDiffSamples_(nMagDiffSamples),
       stopMaxMagDiff_(stopMaxMagDiff) {
-  stepsize_ = 1e-14;  // TODO: figure out how to make descent guess
+  stepsize_ = {1e-14};  // TODO: figure out how to make descent guess
 
+  // TODO: check if input arguments are sane
+}
+
+Minimizer::Minimizer(const Antiferromagnet* magnet,
+                     real stopMaxMagDiff,
+                     int nMagDiffSamples)
+    : magnet_(magnet->sublattices()),
+      nMagDiffSamples_(nMagDiffSamples),
+      stopMaxMagDiff_(stopMaxMagDiff) {
+  // Necessary to make stepsize_ a vector? Sufficient to consider only smallest element?
+  stepsize_ = {1e-14, 1e-14};
+  for (int i = 0; i < magnet->sublattices().size(); i++) {
+    torque_.push_back(relaxTorqueQuantity(magnet->sublattices()[i]));
+  }
   // TODO: check if input arguments are sane
 }
 
@@ -61,26 +76,33 @@ static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
 }
 
 void Minimizer::step() {
-  m0 = magnet_->magnetization()->eval();
-  if (nsteps_ == 0)
-    t0 = torque_.eval();
-  else
-    t0 = t1;
+  for (int i = 0; i < magnet_.size(); i++) {
 
-  m1 = Field(magnet_->system(), 3);
-  int N = m1.grid().ncells();
-  cudaLaunch(N, k_step, m1.cu(), m0.cu(), t0.cu(), stepsize_);
+    m0[i] = magnet_[i]->magnetization()->eval();
+
+    if (nsteps_ == 0)
+      t0[i] = torque_[i].eval();
+    else
+      t0[i] = t1[i];
+
+    m1[i] = Field(magnet_[i]->system(), 3);
+    int N = m1[i].grid().ncells();
+    cudaLaunch(N, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsize_[i]);
   
-  magnet_->magnetization()->set(m1);  // normalizes
+  }
+  for (int i = 0; i < magnet_.size(); i++)
+    magnet_[i]->magnetization()->set(m1[i]);  // normalizes
+  for (int i = 0; i < magnet_.size(); i++)
+    t1[i] = torque_[i].eval();
 
-  t1 = torque_.eval();
+  for (int i = 0; i < magnet_.size(); i++) {
+    Field dm = add(real(+1), m1[i], real(-1), m0[i]);
+    Field dt = add(real(-1), t1[i], real(+1), t0[i]);  // TODO: check sign difference
 
-  Field dm = add(real(+1), m1, real(-1), m0);
-  Field dt = add(real(-1), t1, real(+1), t0);  // TODO: check sign difference
+    stepsize_[i] = BarzilianBorweinStepSize(dm, dt, nsteps_);
 
-  stepsize_ = BarzilianBorweinStepSize(dm, dt, nsteps_);
-
-  addMagDiff(maxVecNorm(dm));
+    addMagDiff(maxVecNorm(dm));
+  }
 
   nsteps_ += 1;
 }
