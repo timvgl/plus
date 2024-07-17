@@ -36,7 +36,7 @@ Minimizer::Minimizer(const Antiferromagnet* magnet,
       m1(magnet_.size()) {
   // Necessary to make stepsize_ a vector? Sufficient to consider only smallest element?
   stepsize_ = {1e-14, 1e-14};
-  for (int i = 0; i < magnet->sublattices().size(); i++) {
+  for (size_t i = 0; i < magnet->sublattices().size(); i++) {
     torque_.push_back(relaxTorqueQuantity(magnet->sublattices()[i]));
   }
   // TODO: check if input arguments are sane
@@ -85,7 +85,7 @@ static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
 }
 
 void Minimizer::step() {
-  for (int i = 0; i < magnet_.size(); i++) {
+  for (size_t i = 0; i < magnet_.size(); i++) {
 
     m0[i] = magnet_[i]->magnetization()->eval();
 
@@ -99,12 +99,12 @@ void Minimizer::step() {
     cudaLaunch(N, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsize_[i]);
   }
   
-  for (int i = 0; i < magnet_.size(); i++)
+  for (size_t i = 0; i < magnet_.size(); i++)
     magnet_[i]->magnetization()->set(m1[i]);  // normalizes
-  for (int i = 0; i < magnet_.size(); i++)
+  for (size_t i = 0; i < magnet_.size(); i++)
     t1[i] = torque_[i].eval();
 
-  for (int i = 0; i < magnet_.size(); i++) {
+  for (size_t i = 0; i < magnet_.size(); i++) {
     Field dm = add(real(+1), m1[i], real(-1), m0[i]);
     Field dt = add(real(-1), t1[i], real(+1), t0[i]);  // TODO: check sign difference
 
