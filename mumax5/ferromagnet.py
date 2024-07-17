@@ -170,6 +170,7 @@ class Ferromagnet:
 
     def minimize(self):
         """Minimize the total energy.
+        
         Fast energy minimization, but less robust than "relax"
         when starting from a high energy state.
         """

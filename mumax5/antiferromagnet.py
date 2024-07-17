@@ -139,6 +139,7 @@ class Antiferromagnet:
 
     def minimize(self):
         """Minimize the total energy.
+        
         Fast energy minimization, but less robust than "relax"
         when starting from a high energy state.
         """
@@ -154,6 +155,9 @@ class Antiferromagnet:
         minimized.
 
         The tolerance argument corresponds to the maximum error of the timesolver.
+
+        Compared to "minimize", this function takes a longer time to execute,
+        but is more robust when starting from a high energy state (i.e. random).
 
         See also RelaxTorqueThreshold property of Ferromagnet.
         """
