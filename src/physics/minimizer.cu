@@ -29,7 +29,11 @@ Minimizer::Minimizer(const Antiferromagnet* magnet,
                      int nMagDiffSamples)
     : magnet_(magnet->sublattices()),
       nMagDiffSamples_(nMagDiffSamples),
-      stopMaxMagDiff_(stopMaxMagDiff) {
+      stopMaxMagDiff_(stopMaxMagDiff),
+      t0(magnet_.size()),
+      t1(magnet_.size()),
+      m0(magnet_.size()),
+      m1(magnet_.size()) {
   // Necessary to make stepsize_ a vector? Sufficient to consider only smallest element?
   stepsize_ = {1e-14, 1e-14};
   for (int i = 0; i < magnet->sublattices().size(); i++) {

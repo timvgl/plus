@@ -8,6 +8,7 @@
 
 #include "fieldquantity.hpp"
 #include "gpubuffer.hpp"
+#include "minimizer.hpp"
 #include "mumaxworld.hpp"
 #include "relaxer.hpp"
 
@@ -42,6 +43,11 @@ const Ferromagnet* Antiferromagnet::getOtherSublattice(const Ferromagnet* sub) c
 
 std::vector<const Ferromagnet*> Antiferromagnet::sublattices() const {
   return sublattices_;
+}
+
+void Antiferromagnet::minimize(real tol, int nSamples) {
+  Minimizer minimizer(this, tol, nSamples);
+  minimizer.exec();
 }
 
 void Antiferromagnet::relax(real tol) {

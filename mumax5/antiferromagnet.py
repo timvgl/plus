@@ -137,6 +137,13 @@ class Antiferromagnet:
         self.sub1.bias_magnetic_field.set(value)
         self.sub2.bias_magnetic_field.set(value)
 
+    def minimize(self):
+        """Minimize the total energy.
+        Fast energy minimization, but less robust than "relax"
+        when starting from a high energy state.
+        """
+        self._impl.minimize()
+
     def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
         -----
