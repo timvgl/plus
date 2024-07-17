@@ -183,35 +183,13 @@ __global__ void k_angle(CuField angleField,
     return;
   }
 
-  if (msat1.valueAt(idx) == 0 || msat2.valueAt(idx) == 0
-                              || afmex.valueAt(idx) == 0) {
+  if (msat1.valueAt(idx) == 0 || msat2.valueAt(idx) == 0 || afmex.valueAt(idx) == 0) {
     angleField.setValueInCell(idx, 0, 0);
     return;
   }
 
   angleField.setValueInCell(idx, 0, acos(dot(mField1.vectorAt(idx),
-                                                mField2.vectorAt(idx))));
-
-  /*real maxAngle{0};  // maximum angle in this cell
-
-  int3 neighborRelativeCoordinates[6] = {int3{-1, 0, 0}, int3{0, -1, 0},
-                                         int3{0, 0, -1}, int3{1, 0, 0},
-                                         int3{0, 1, 0},  int3{0, 0, 1}};
-
-#pragma unroll
-  for (int3 relcoo : neighborRelativeCoordinates) {
-    const int3 coo_ = coo + relcoo;
-    const int idx_ = grid.coord2index(coo_);
-    if (mField.cellInGeometry(coo_) && msat.valueAt(idx_) != 0) {
-      real a_ = aex.valueAt(idx_);
-      real3 m = mField.vectorAt(idx);
-      real3 m_ = mField.vectorAt(idx_);
-      real angle = m == m_ ? 0 : acos(dot(m, m_));
-      if (harmonicMean(a, a_) != 0 && angle > maxAngle)
-        maxAngle = angle;
-    }
-  }
-  maxAngleField.setValueInCell(idx, 0, maxAngle);*/
+                                             mField2.vectorAt(idx))));
 }
 
 Field evalAngleField(const Antiferromagnet* magnet) {
