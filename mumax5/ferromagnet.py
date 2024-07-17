@@ -168,16 +168,27 @@ class Ferromagnet:
     def bias_magnetic_field(self, value):
         self.bias_magnetic_field.set(value)
 
-    def minimize(self):
+    def minimize(self, tol=1e-6, nsamples=10):
         """Minimize the total energy.
-        
+
         Fast energy minimization, but less robust than "relax"
         when starting from a high energy state.
+
+        Parameters
+        ----------
+        tol : int / float (default=1e-6)
+            The maximum allowed difference between consecutive magnetization
+            evaluations when advancing in time.
+
+        nsamples : int (default=10)
+            The number of consecutive magnetization evaluations that must not
+            differ by more than the tolerance "tol".
         """
-        self._impl.minimize()
+        self._impl.minimize(tol, nsamples)
     
     def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
+        
         The system evolves in time without precession (pure damping) until
         the total energy hits the noise floor.
         Hereafter, relaxation keeps on going until the maximum torque is
@@ -186,7 +197,10 @@ class Ferromagnet:
         Compared to "minimize", this function takes a longer time to execute,
         but is more robust when starting from a high energy state (i.e. random).
 
-        The tolerance argument corresponds to the maximum error of the timesolver.
+        Parameter
+        ----------
+        tol : int / float (default=1e-9)
+            The maximum error of the timesolver.
 
         See also RelaxTorqueThreshold property.
         """

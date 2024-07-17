@@ -70,7 +70,6 @@ class World:
     
     def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
-        -----
 
         The system evolves in time without precession (pure damping) until
         the total energy (i.e. the sum of all magnets in this world) hits
@@ -78,7 +77,10 @@ class World:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        The tolerance argument corresponds to the maximum error of the timesolver.
+        Parameter
+        ----------
+        tol : int / float (default=1e-9)
+            The maximum error of the timesolver.
 
         See also RelaxTorqueThreshold property.
         """

@@ -21,8 +21,7 @@ void wrap_antiferromagnet(py::module& m) {
       .def_readonly("afmex_cell", &Antiferromagnet::afmex_cell)
       .def_readonly("afmex_nn", &Antiferromagnet::afmex_nn)
       .def_readonly("latcon", &Antiferromagnet::latcon)
-      .def("minimize", &Antiferromagnet::minimize, py::arg("tol") = 1e-6,
-           py::arg("nsamples") = 20)
+      .def("minimize", &Antiferromagnet::minimize, py::arg("tol"), py::arg("nsamples"))
       .def("relax", &Antiferromagnet::relax, py::arg("tol"));
       
   m.def("neel_vector", &neelVectorQuantity);

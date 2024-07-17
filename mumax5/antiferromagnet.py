@@ -137,27 +137,39 @@ class Antiferromagnet:
         self.sub1.bias_magnetic_field.set(value)
         self.sub2.bias_magnetic_field.set(value)
 
-    def minimize(self):
+    def minimize(self, tol=1e-6, nsamples=20):
         """Minimize the total energy.
-        
+
         Fast energy minimization, but less robust than "relax"
         when starting from a high energy state.
+
+        Parameters
+        ----------
+        tol : int / float (default=1e-6)
+            The maximum allowed difference between consecutive magnetization
+            evaluations when advancing in time.
+
+        nsamples : int (default=20)
+            The number of consecutive magnetization evaluations that must not
+            differ by more than the tolerance "tol".
         """
-        self._impl.minimize()
+        self._impl.minimize(tol, nsamples)
 
     def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
-        -----
 
         The system evolves in time without precession (pure damping) until
         the total energy (i.e. the sum of sublattices) hits the noise floor.
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        The tolerance argument corresponds to the maximum error of the timesolver.
-
         Compared to "minimize", this function takes a longer time to execute,
         but is more robust when starting from a high energy state (i.e. random).
+
+        Parameter
+        ----------
+        tol : int / float (default=1e-9)
+            The maximum error of the timesolver.
 
         See also RelaxTorqueThreshold property of Ferromagnet.
         """

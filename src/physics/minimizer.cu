@@ -98,6 +98,7 @@ void Minimizer::step() {
     int N = m1[i].grid().ncells();
     cudaLaunch(N, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsize_[i]);
   }
+  
   for (int i = 0; i < magnet_.size(); i++)
     magnet_[i]->magnetization()->set(m1[i]);  // normalizes
   for (int i = 0; i < magnet_.size(); i++)
@@ -111,7 +112,6 @@ void Minimizer::step() {
 
     addMagDiff(maxVecNorm(dm));
   }
-
   nsteps_ += 1;
 }
 
