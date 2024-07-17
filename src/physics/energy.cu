@@ -1,3 +1,4 @@
+#include "afmexchange.hpp"
 #include "anisotropy.hpp"
 #include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
@@ -51,6 +52,7 @@ Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   if (!externalFieldAssuredZero(magnet)) {edens += evalZeemanEnergyDensity(magnet);}
   if (!dmiAssuredZero(magnet)) {edens += evalDmiEnergyDensity(magnet);}
   if (!demagFieldAssuredZero(magnet)) {edens += evalDemagEnergyDensity(magnet);}
+  if (!afmExchangeAssuredZero(magnet)) {edens += evalAFMExchangeEnergyDensity(magnet);}
   return edens;
 }
 

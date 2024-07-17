@@ -9,6 +9,7 @@
 #include "world.hpp"
 
 bool afmExchangeAssuredZero(const Ferromagnet* magnet) {
+  if (!magnet->isSublattice()) { return true; }
 
   return ((magnet->hostMagnet()->afmex_cell.assuredZero()
         && magnet->hostMagnet()->afmex_nn.assuredZero())
