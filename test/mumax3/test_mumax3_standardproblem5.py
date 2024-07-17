@@ -15,7 +15,7 @@ def simulations(request):
     """Sets up and runs standard problem 5 for both mumax5 and mumax3, given
     a specific non-adiabacity xi. The magnetization throughout time can later
     be compared quickly.
-    This is very slow, but it rigorously tests spin transfer torque.
+    This is very slow, but it rigorously tests Zhang-Li spin transfer torque.
     """
 
     # === specifications ===
