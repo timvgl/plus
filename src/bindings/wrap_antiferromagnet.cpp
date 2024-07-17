@@ -1,6 +1,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "afmexchange.hpp"
 #include "antiferromagnet.hpp"
 #include "fieldquantity.hpp"
 #include "mumaxworld.hpp"
@@ -26,4 +27,7 @@ void wrap_antiferromagnet(py::module& m) {
       
   m.def("neel_vector", &neelVectorQuantity);
   m.def("total_magnetization", &totalMagnetizationQuantity);
+
+  m.def("angle_field", &angleFieldQuantity);
+  m.def("max_intracell_angle", &maxAngle);
 }

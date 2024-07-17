@@ -229,7 +229,7 @@ real evalMaxAngle(const Antiferromagnet* magnet) {
   return maxAbsValue(evalAngleField(magnet));
 }
 
-AFM_FieldQuantity angleField(const Antiferromagnet* magnet) {
+AFM_FieldQuantity angleFieldQuantity(const Antiferromagnet* magnet) {
   return AFM_FieldQuantity(magnet, evalAngleField, 1, "angle_field", "");
 }
 

@@ -22,7 +22,7 @@ FM_ScalarQuantity AFMexchangeEnergyQuantity(const Ferromagnet*);
 Field evalAngleField(const Antiferromagnet*);
 real evalMaxAngle(const Antiferromagnet*);
 
-AFM_FieldQuantity angleField(const Antiferromagnet*);
+AFM_FieldQuantity angleFieldQuantity(const Antiferromagnet*);
 AFM_ScalarQuantity maxAngle(const Antiferromagnet*);
 
 

@@ -9,6 +9,7 @@ from .fieldquantity import FieldQuantity
 from .ferromagnet import Ferromagnet
 from .grid import Grid
 from .parameter import Parameter
+from .scalarquantity import ScalarQuantity
 
 
 class Antiferromagnet:
@@ -209,3 +210,13 @@ class Antiferromagnet:
     def total_magnetization(self):
         """Total antiferromagnetic magnetization: M1 + M2."""
         return FieldQuantity(_cpp.total_magnetization(self._impl))
+    
+    @property
+    def angle_field(self):
+        return FieldQuantity(_cpp.angle_field(self._impl))
+    
+    @property
+    def max_intracell_angle(self):
+        """Maximal angle difference of the magnetization vectors in one
+        cell which are coupled by afmex_cell."""
+        return ScalarQuantity(_cpp.max_intracell_angle(self._impl))
