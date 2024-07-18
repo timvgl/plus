@@ -178,7 +178,7 @@ class Ferromagnet:
         ----------
         tol : int / float (default=1e-6)
             The maximum allowed difference between consecutive magnetization
-            evaluations when advancing in time.
+            evaluations when advancing toward an energy minimum.
 
         nsamples : int (default=10)
             The number of consecutive magnetization evaluations that must not
@@ -200,7 +200,7 @@ class Ferromagnet:
         Parameter
         ----------
         tol : int / float (default=1e-9)
-            The maximum error of the timesolver.
+            The lowest maximum error of the timesolver.
 
         See also RelaxTorqueThreshold property.
         """

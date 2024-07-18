@@ -80,7 +80,7 @@ class World:
         Parameter
         ----------
         tol : int / float (default=1e-9)
-            The maximum error of the timesolver.
+            The lowest maximum error of the timesolver.
 
         See also RelaxTorqueThreshold property.
         """
