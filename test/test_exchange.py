@@ -44,3 +44,42 @@ class TestExchange:
         max_relative_error = np.max(relative_error)
 
         assert max_relative_error < 1e-3
+
+    def test_exchange_spiral(self):
+        """This test compares numerical and analytical exchange energy for spiral
+        magnetizations as a function of the angle between neighboring spins.
+        This is a recreation of figure 5 of the paper "The design and
+        verification of MuMax3" up to 20°. https://doi.org/10.1063/1.4899186 """
+
+        msat = 800e3
+        aex = 5e-12
+        mu0 = 4 * np.pi * 1e-7
+
+        length, width, thickness = 100e-6, 1e-9, 1e-9
+        nx, ny, nz = int(length/1e-9), 1, 1
+        cx, cy, cz = length/nx, width/ny, thickness/nz
+        world = World(cellsize=(cx, cy, cz))
+        magnet = Ferromagnet(world, Grid((nx, ny, nz)))
+        magnet.msat = msat
+        magnet.aex = aex
+        magnet.magnetization = (1, 0, 0)
+
+        V = length * width * thickness
+        Km = 0.5 * mu0 * msat**2
+
+        # find exchange energy per angle
+        angles, E_mumax, E_analytical = [], [], []
+        kx = 0
+        kx_step = 1e7
+        X, _, _ = magnet.magnetization.meshgrid  # for fast magnetization setting
+        while (max_angle := magnet.max_angle.eval()) < (20*np.pi/180):  # to 20°
+            angles.append(max_angle * 180 / np.pi)
+            E_mumax.append(magnet.exchange_energy.eval() / (Km * V))
+            E_analytical.append(aex * kx**2 / Km)
+
+            kx += kx_step
+            magnet.magnetization = (np.cos(kx*X), np.sin(kx*X), np.zeros(shape=X.shape))
+
+        # relative error
+        error = [np.abs(a-e)/a for (e,a) in zip(E_mumax[1:], E_analytical[1:])]
+        assert max(error) < 1e-2
