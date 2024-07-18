@@ -31,7 +31,7 @@ class Antiferromagnet : public Magnet {
  const Ferromagnet* sub2() const;
  const Ferromagnet* getOtherSublattice(const Ferromagnet* sub) const;
  
- void minimize(real tol, int nSamples);
+ void minimize(real tol = 1e-6, int nSamples = 20);
  void relax(real tol);
 
  public:
