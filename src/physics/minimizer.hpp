@@ -19,11 +19,11 @@ class Minimizer {
 
  private:
   void step();
-  std::vector<const Ferromagnet*> magnet_;
-  std::vector<real> stepsize_;
+  std::vector<const Ferromagnet*> magnets_;
+  std::vector<real> stepsizes_;
   int nsteps_;
 
-  std::vector<FM_FieldQuantity> torque_;
+  std::vector<FM_FieldQuantity> torques_;
   std::vector<Field> t0, t1, m0, m1;
 
   real stopMaxMagDiff_;
