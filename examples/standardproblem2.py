@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import tqdm  # progress bar
 
 from mumax5 import Ferromagnet, Grid, World
+from mumax5.util.constants import MU0
 
 calculate_coercivity = False  # set to True for coercivity, but takes very long
 
@@ -21,8 +22,7 @@ L_p_d = 5.0  # length/width ratio
 # taking realistic parameters, but does not matter
 msat = 800e3
 aex = 13e-12
-mu0 = 1.25663706212e-6
-l_ex = np.sqrt(2*aex / (mu0 * msat**2))
+l_ex = np.sqrt(2*aex / (MU0 * msat**2))
 
 def get_next_power_of_2(x):
     y = 1
@@ -66,7 +66,7 @@ for d in tqdm(d_array):
 
         # non-normalized magnetization along [1,1,1] direction
         m_prev = np.sum(magnet.magnetization.average())
-        world.bias_magnetic_field = mu0 * rHmag * msat * H_direction  # B field in Tesla
+        world.bias_magnetic_field = MU0 * rHmag * msat * H_direction  # B field in Tesla
         magnet.minimize()
         m_cur = np.sum(magnet.magnetization.average())
         # keep raising the magnetic field magnitude until the magnet flips
@@ -76,7 +76,7 @@ for d in tqdm(d_array):
             m_prev = m_cur
 
             rHmag += rH_step  # raise field magnitude
-            world.bias_magnetic_field = mu0 * rHmag * msat * H_direction
+            world.bias_magnetic_field = MU0 * rHmag * msat * H_direction
             magnet.minimize()
 
             m_cur = np.sum(magnet.magnetization.average())  # find m projection

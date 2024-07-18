@@ -56,9 +56,7 @@ for L in tqdm(L_array):
 # linearly interpolate cross-over point
 E_diff = np.asarray(flower_E_tots) - np.asarray(vortex_E_tots)
 i = np.where(E_diff > 0)[0][0]  # cross over index
-print(i)
 L_cross = (L_array[i-1]*E_diff[i] - L_array[i]*E_diff[i-1]) / (E_diff[i] - E_diff[i-1])
-print(L_cross)
 
 # plot energies
 fig, ax = plt.subplots()

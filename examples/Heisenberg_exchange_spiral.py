@@ -11,8 +11,8 @@ from mumax5 import Ferromagnet, Grid, World
 
 
 def spiral(x, kx):
-    mx = np.cos(kx*x)
-    my = np.sin(kx*x)
+    mx = np.cos(kx * x)
+    my = np.sin(kx * x)
     mz = np.zeros(shape=x.shape)
     return mx, my, mz
 
@@ -32,7 +32,7 @@ magnet.msat = msat
 magnet.aex = aex
 
 V = length * width * thickness
-Km = 0.5 * mu0 * msat**2
+Km = 0.5 * mu0 * msat**2  # magnetostatic energy density
 
 # --- Find exchange energy per angle ---
 angles, E_mumax, E_analytical = [], [], []

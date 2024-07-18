@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mumax5 import Ferromagnet, Grid, World
+from mumax5.util.constants import GAMMALL
 
 
 def analytical(t, Bz):
-    gammaLL = 1.7595e11
-    return np.cos(Bz * gammaLL * t)
+    return np.cos(Bz * GAMMALL * t)
 
 
 length, width, thickness = 1e-9, 1e-9, 1e-9
