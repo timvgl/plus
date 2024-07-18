@@ -14,6 +14,7 @@ __all__ = [
     "blochskyrmion",
     "show_field",
     "show_layer",
+    "show_neel",
     "show_magnet_geometry",
     "show_field_3D"
 ]
