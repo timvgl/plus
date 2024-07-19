@@ -79,8 +79,8 @@ def l_ex(aex, msat):
 
 
 def wall_width(aex, K_eff):
-    """Bloch wall width (m). Mind the lack of any prefactor, as different
-    definitions exist!
+    """Bloch wall width (m). Mind the lack of any prefactor! Different
+    definitions exist, for example with a prefactor π.
     √(aex/K_eff)
 
     Parameters
@@ -96,6 +96,25 @@ def wall_width(aex, K_eff):
         Wall width (m).
     """
     return _np.sqrt(aex/K_eff)
+
+def wall_energy(aex, K_eff):
+    """Bloch wall energy (J/m²): the energy per unit of Bloch domain wall area.
+    Mind the lack of any prefactor, different definitions exist!
+    √(aex*K_eff)
+
+    Parameters
+    ----------
+    aex : float
+        Exchange stiffness (J/m).
+    K_eff : float
+        Effective anisotropy constant (J/m³), for example Ku1.
+
+    Returns
+    -------
+    float
+        Wall energy (J/m²).
+    """
+    return _np.sqrt(aex*K_eff)
 
 
 def helical_length(aex, D):
