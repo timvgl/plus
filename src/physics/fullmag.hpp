@@ -1,9 +1,14 @@
 #pragma once
 
 #include "antiferromagnetquantity.hpp"
+#include "ferromagnetquantity.hpp"
 
 class Antiferromagnet;
+class Ferromagnet;
 class Field;
 
-Field evalFullMag(const Antiferromagnet*);
-AFM_FieldQuantity fullMagnetizationQuantity(const Antiferromagnet*);
+Field evalFullMag(const Ferromagnet*);
+FM_FieldQuantity fullMagnetizationQuantity(const Ferromagnet*);
+
+Field evalAFMFullMag(const Antiferromagnet*);
+AFM_FieldQuantity afmFullMagnetizationQuantity(const Antiferromagnet*);

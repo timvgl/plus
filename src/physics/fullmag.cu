@@ -6,13 +6,21 @@
 #include "fullmag.hpp"
 
 
-Field evalFullMag(const Antiferromagnet* magnet) {
+Field evalFullMag(const Ferromagnet* magnet) {
+  return magnet->msat.eval() * magnet->magnetization()->field();
+}
+
+FM_FieldQuantity fullMagnetizationQuantity(const Ferromagnet* magnet) {
+    return FM_FieldQuantity(magnet, evalFullMag, 3, "full_magnetization", "A/m");
+}
+
+Field evalAFMFullMag(const Antiferromagnet* magnet) {
   return add(magnet->sub1()->msat.eval(),
              magnet->sub1()->magnetization()->field(),
              magnet->sub2()->msat.eval(),
              magnet->sub2()->magnetization()->field());
 }
 
-AFM_FieldQuantity fullMagnetizationQuantity(const Antiferromagnet* magnet) {
-    return AFM_FieldQuantity(magnet, evalFullMag, 3, "full_magnetization", "A/m");
+AFM_FieldQuantity afmFullMagnetizationQuantity(const Antiferromagnet* magnet) {
+    return AFM_FieldQuantity(magnet, evalAFMFullMag, 3, "full_magnetization", "A/m");
 }

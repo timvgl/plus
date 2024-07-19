@@ -23,5 +23,5 @@ void wrap_antiferromagnet(py::module& m) {
       .def_readonly("latcon", &Antiferromagnet::latcon);
       
   m.def("neel_vector", &neelVectorQuantity);
-  m.def("full_magnetization", &fullMagnetizationQuantity);
+  m.def("full_magnetization", &afmFullMagnetizationQuantity);
 }

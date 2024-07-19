@@ -11,6 +11,7 @@
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
 #include "fieldquantity.hpp"
+#include "fullmag.hpp"
 #include "mumaxworld.hpp"
 #include "parameter.hpp"
 #include "strayfieldkernel.hpp"
@@ -112,4 +113,6 @@ void wrap_ferromagnet(py::module& m) {
     StrayFieldKernel demagKernel(grid, grid, fm->world());
     return fieldToArray(demagKernel.field());
   });
+
+  m.def("full_magnetization", &fullMagnetizationQuantity);
 }
