@@ -9,6 +9,7 @@ from .fieldquantity import FieldQuantity
 from .ferromagnet import Ferromagnet
 from .grid import Grid
 from .parameter import Parameter
+from .scalarquantity import ScalarQuantity
 
 
 class Antiferromagnet:
@@ -209,3 +210,17 @@ class Antiferromagnet:
     def total_magnetization(self):
         """Total antiferromagnetic magnetization: M1 + M2."""
         return FieldQuantity(_cpp.total_magnetization(self._impl))
+    
+    @property
+    def angle_field(self):
+        """Returns the deviation from the optimal angle (180°) between magnetization
+        vectors in the same cell which are coupled by the intracell exchange interaction.
+        """
+        return FieldQuantity(_cpp.angle_field(self._impl))
+    
+    @property
+    def max_intracell_angle(self):
+        """The maximal deviation from 180° between AFM-exchange coupled magnetization
+        vectors in the same simulation cell.
+        """
+        return ScalarQuantity(_cpp.max_intracell_angle(self._impl))
