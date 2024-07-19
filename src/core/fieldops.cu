@@ -117,7 +117,7 @@ inline void add(Field& y,
         "Fields can not be multiplied and added together because they belong to "
         "different systems.");
   }
-  if (x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) {
+  if (x1.ncomp() != y.ncomp() || x2.ncomp() != y.ncomp()) {
     throw std::invalid_argument(
         "Fields can not be added because they do not have the same number of "
         "components.");
