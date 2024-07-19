@@ -17,9 +17,10 @@ FM_FieldQuantity AFMexchangeFieldQuantity(const Ferromagnet*);
 FM_FieldQuantity AFMexchangeEnergyDensityQuantity(const Ferromagnet*);
 FM_ScalarQuantity AFMexchangeEnergyQuantity(const Ferromagnet*);
 
-// returns the (maximal) angle between magnetization vectors in the same cell
-// which are coupled by the intracell exchange interaction.
+// returns the deviation from the optimal angle (180°) between magnetization
+// vectors in the same cell which are coupled by the intracell exchange interaction.
 Field evalAngleField(const Antiferromagnet*);
+// The maximal deviation from 180*.
 real evalMaxAngle(const Antiferromagnet*);
 
 AFM_FieldQuantity angleFieldQuantity(const Antiferromagnet*);

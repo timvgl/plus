@@ -188,8 +188,9 @@ __global__ void k_angle(CuField angleField,
     return;
   }
 
-  angleField.setValueInCell(idx, 0, acos(dot(mField1.vectorAt(idx),
-                                             mField2.vectorAt(idx))));
+  angleField.setValueInCell(idx, 0, acos(copysign(1.0, afmex.valueAt(idx))
+                                            * dot(mField1.vectorAt(idx),
+                                                  mField2.vectorAt(idx))));
 }
 
 Field evalAngleField(const Antiferromagnet* magnet) {

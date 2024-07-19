@@ -213,10 +213,14 @@ class Antiferromagnet:
     
     @property
     def angle_field(self):
+        """Returns the deviation from the optimal angle (180°) between magnetization
+        vectors in the same cell which are coupled by the intracell exchange interaction.
+        """
         return FieldQuantity(_cpp.angle_field(self._impl))
     
     @property
     def max_intracell_angle(self):
-        """Maximal angle difference of the magnetization vectors in one
-        cell which are coupled by afmex_cell."""
+        """The maximal deviation from 180° between AFM-exchange coupled magnetization
+        vectors in the same simulation cell.
+        """
         return ScalarQuantity(_cpp.max_intracell_angle(self._impl))
