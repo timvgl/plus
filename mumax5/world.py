@@ -68,9 +68,27 @@ class World:
         return {key: Antiferromagnet._from_impl(impl) for key, impl in
                 self._impl.antiferromagnets.items()}
     
+    def minimize(self, tol=1e-6, nsamples=10):
+        """Minimize the total energy.
+
+        Fast energy minimization of the world as a whole, but less
+        robust than "relax" when starting from a high energy state.
+
+        Parameters
+        ----------
+        tol : int / float (default=1e-6)
+            The maximum allowed difference between consecutive magnetization
+            evaluations when advancing toward an energy minimum.
+
+        nsamples : int (default=10)
+            The number of consecutive magnetization evaluations that must not
+            differ by more than the tolerance "tol".
+            The algorithm considers "nsamples" per magnet in world.
+        """
+        self._impl.minimize(tol, nsamples)
+    
     def relax(self, tol=1e-9):
         """Relax the state to an energy minimum.
-        -----
 
         The system evolves in time without precession (pure damping) until
         the total energy (i.e. the sum of all magnets in this world) hits
@@ -78,7 +96,10 @@ class World:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        The tolerance argument corresponds to the maximum error of the timesolver.
+        Parameter
+        ----------
+        tol : int / float (default=1e-9)
+            The lowest maximum error of the timesolver.
 
         See also RelaxTorqueThreshold property.
         """

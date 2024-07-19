@@ -73,6 +73,8 @@ class MumaxWorld : public World {
   /** Get map of all Antiferromagnets in this world. */
   const std::map<std::string, Antiferromagnet*> antiferromagnets() const;
 
+  /** Minimize the current energy state of the world with every magnet in it. */
+  void minimize(real tol = 1e-6, int nSamples = 10);
   /** Relax the current state of the world with every magnet in it. */
   void relax(real tol);
   real RelaxTorqueThreshold;
