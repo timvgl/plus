@@ -186,6 +186,6 @@ class Antiferromagnet:
         return FieldQuantity(_cpp.neel_vector(self._impl))
     
     @property
-    def total_magnetization(self):
-        """Total antiferromagnetic magnetization: M1 + M2."""
-        return FieldQuantity(_cpp.total_magnetization(self._impl))
+    def full_magnetization(self):
+        """Full antiferromagnetic magnetization: M1 + M2."""
+        return FieldQuantity(_cpp.full_magnetization(self._impl))

@@ -6,7 +6,7 @@
 #include "mumaxworld.hpp"
 #include "neel.hpp"
 #include "parameter.hpp"
-#include "totalmag.hpp"
+#include "fullmag.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
 
@@ -23,5 +23,5 @@ void wrap_antiferromagnet(py::module& m) {
       .def_readonly("latcon", &Antiferromagnet::latcon);
       
   m.def("neel_vector", &neelVectorQuantity);
-  m.def("total_magnetization", &totalMagnetizationQuantity);
+  m.def("full_magnetization", &fullMagnetizationQuantity);
 }
