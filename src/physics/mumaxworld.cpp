@@ -11,6 +11,7 @@
 #include "gpubuffer.hpp"
 #include "grid.hpp"
 #include "magnet.hpp"
+#include "minimizer.hpp"
 #include "relaxer.hpp"
 #include "system.hpp"
 #include "thermalnoise.hpp"
@@ -178,7 +179,12 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
   timesolver_->setEquations(equations);
 }
 
+void MumaxWorld::minimize(real tol, int nSamples) {
+  Minimizer minimizer(this, tol, nSamples);
+  minimizer.exec();
+}
+
 void MumaxWorld::relax(real tol) {
-    Relaxer relaxer(this, this->RelaxTorqueThreshold, tol);
-    relaxer.exec();
+  Relaxer relaxer(this, this->RelaxTorqueThreshold, tol);
+  relaxer.exec();
 }

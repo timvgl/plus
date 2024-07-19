@@ -85,6 +85,8 @@ void wrap_world(py::module& m) {
 
       .def_property_readonly("timesolver", &MumaxWorld::timesolver,
                              py::return_value_policy::reference)
+                             
+      .def("minimize", &MumaxWorld::minimize, py::arg("tol"), py::arg("nsamples"))
       .def("relax", &MumaxWorld::relax, py::arg("tol"));
 
 }

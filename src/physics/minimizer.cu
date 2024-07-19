@@ -4,6 +4,7 @@
 #include "field.hpp"
 #include "fieldops.hpp"
 #include "minimizer.hpp"
+#include "mumaxworld.hpp"
 #include "reduce.hpp"
 #include "torque.hpp"
 
@@ -39,10 +40,36 @@ Minimizer::Minimizer(const Antiferromagnet* magnet,
   // TODO: check if input arguments are sane
 }
 
+Minimizer::Minimizer(const MumaxWorld* world,
+                     real stopMaxMagDiff,
+                     int nMagDiffSamples)
+    : N(world->ferromagnets().size() + 2 * world->antiferromagnets().size()),
+      nMagDiffSamples_(nMagDiffSamples * N),
+      stopMaxMagDiff_(stopMaxMagDiff) {
+
+  t0.resize(N);
+  t1.resize(N);
+  m0.resize(N);
+  m1.resize(N);
+
+  for (const auto pair : world->magnets()) {
+    if (const Antiferromagnet* mag = pair.second->asAFM()) {
+      magnets_.push_back(mag->sub1());
+      magnets_.push_back(mag->sub2());
+    }
+    else if (const Ferromagnet* mag = pair.second->asFM())
+      magnets_.push_back(mag);
+  }
+
+  for (auto magnet : magnets_)
+    torques_.push_back(relaxTorqueQuantity(magnet));
+    
+  stepsizes_.assign(N, 1e-14);
+}
+      
 void Minimizer::exec() {
   nsteps_ = 0;
   lastMagDiffs_.clear();
-
   while (!converged())
     step();
 }
@@ -92,6 +119,7 @@ void Minimizer::step() {
 
     m1[i] = Field(magnets_[i]->system(), 3);
     int N = m1[i].grid().ncells();
+
     cudaLaunch(N, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
   }
   
