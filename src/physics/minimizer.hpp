@@ -28,7 +28,6 @@ class Minimizer {
   std::vector<FM_FieldQuantity> torques_;
   std::vector<Field> t0, t1, m0, m1;
 
-  size_t N; // Number of magnets in world.
   real stopMaxMagDiff_;
   int nMagDiffSamples_;
   bool converged() const;

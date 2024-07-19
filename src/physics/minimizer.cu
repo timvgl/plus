@@ -43,9 +43,11 @@ Minimizer::Minimizer(const Antiferromagnet* magnet,
 Minimizer::Minimizer(const MumaxWorld* world,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
-    : N(world->ferromagnets().size() + 2 * world->antiferromagnets().size()),
-      nMagDiffSamples_(nMagDiffSamples * N),
-      stopMaxMagDiff_(stopMaxMagDiff) {
+    : stopMaxMagDiff_(stopMaxMagDiff) {
+  // Total number of ferromagnets (FM instances or sublattices)
+  size_t N = world->ferromagnets().size() + 2 * world->antiferromagnets().size();
+  
+  nMagDiffSamples_ = nMagDiffSamples * N;
 
   t0.resize(N);
   t1.resize(N);
@@ -118,9 +120,9 @@ void Minimizer::step() {
       t0[i] = t1[i];
 
     m1[i] = Field(magnets_[i]->system(), 3);
-    int N = m1[i].grid().ncells();
+    int ncells = m1[i].grid().ncells();
 
-    cudaLaunch(N, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
+    cudaLaunch(ncells, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
   }
   
   for (size_t i = 0; i < magnets_.size(); i++)

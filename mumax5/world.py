@@ -83,6 +83,7 @@ class World:
         nsamples : int (default=10)
             The number of consecutive magnetization evaluations that must not
             differ by more than the tolerance "tol".
+            The algorithm considers "nsamples" per magnet in world.
         """
         self._impl.minimize(tol, nsamples)
     
