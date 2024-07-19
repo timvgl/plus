@@ -60,7 +60,7 @@ class Antiferromagnet:
                     + "of the grid."
                 )
 
-        self._impl = world._impl.add_antiferromagnet(grid._impl, name)
+        self._impl = world._impl.add_antiferromagnet(grid._impl, geometry_array, name)
 
     def __repr__(self):
         """Return Antiferromagnet string representation."""
