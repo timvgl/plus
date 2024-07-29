@@ -231,7 +231,7 @@ class Ferromagnet:
 
     @property
     def msat(self):
-        """Saturation magnetization."""
+        """Saturation magnetization (A/m)."""
         return Parameter(self._impl.msat)
 
     @msat.setter
@@ -249,7 +249,7 @@ class Ferromagnet:
 
     @property
     def aex(self):
-        """Exchange constant."""
+        """Exchange constant (J/m)."""
         return Parameter(self._impl.aex)
 
     @aex.setter
@@ -258,7 +258,7 @@ class Ferromagnet:
 
     @property
     def ku1(self):
-        """Uniaxial anisotropy parameter Ku1."""
+        """Uniaxial anisotropy parameter Ku1 (J/m³)."""
         return Parameter(self._impl.ku1)
 
     @ku1.setter
@@ -267,7 +267,7 @@ class Ferromagnet:
 
     @property
     def ku2(self):
-        """Uniaxial anisotropy parameter Ku2."""
+        """Uniaxial anisotropy parameter Ku2 (J/m³)."""
         return Parameter(self._impl.ku2)
 
     @ku2.setter
@@ -285,7 +285,7 @@ class Ferromagnet:
 
     @property
     def kc1(self):
-        """Cubic anisotropy parameter Kc1."""
+        """Cubic anisotropy parameter Kc1 (J/m³)."""
         return Parameter(self._impl.kc1)
     
     @kc1.setter
@@ -294,7 +294,7 @@ class Ferromagnet:
 
     @property
     def kc2(self):
-        """Cubic anisotropy parameter Kc2."""
+        """Cubic anisotropy parameter Kc2 (J/m³)."""
         return Parameter(self._impl.kc2)
     
     @kc2.setter
@@ -303,7 +303,7 @@ class Ferromagnet:
         
     @property
     def kc3(self):
-        """Cubic anisotropy parameter Kc3."""
+        """Cubic anisotropy parameter Kc3 (J/m³)."""
         return Parameter(self._impl.kc3)
     
     @kc3.setter
@@ -312,7 +312,7 @@ class Ferromagnet:
 
     @property
     def anisC1(self):
-        """First cubic anisotropy direction"""
+        """First cubic anisotropy direction."""
         return Parameter(self._impl.anisC1)
     
     @anisC1.setter
@@ -321,7 +321,7 @@ class Ferromagnet:
 
     @ property
     def anisC2(self):
-        """Second cubic anisotropy direction"""
+        """Second cubic anisotropy direction."""
         return Parameter(self._impl.anisC2)
     
     @anisC2.setter
@@ -330,7 +330,7 @@ class Ferromagnet:
 
     @property
     def Lambda(self):
-        """Slonczewski \Lambda parameter."""
+        """Slonczewski \\Lambda parameter."""
         return Parameter(self._impl.Lambda)
     
     @Lambda.setter
@@ -339,7 +339,7 @@ class Ferromagnet:
     
     @property
     def FreeLayerThickness(self):
-        """Slonczewski free layer thickness. If set to zero (default),
+        """Slonczewski free layer thickness (m). If set to zero (default),
         then the thickness will be deduced from the mesh size."""
         return Parameter(self._impl.FreeLayerThickness)
     
@@ -349,7 +349,7 @@ class Ferromagnet:
 
     @property
     def eps_prime(self):
-        """Slonczewski secondary STT term \epsilon'."""
+        """Slonczewski secondary STT term \\epsilon'."""
         return Parameter(self._impl.eps_prime)
     
     @eps_prime.setter
@@ -386,7 +386,7 @@ class Ferromagnet:
 
     @property
     def jcur(self):
-        """Electrical current density."""
+        """Electrical current density (A/m²)."""
         return Parameter(self._impl.jcur)
 
     @jcur.setter
@@ -395,7 +395,7 @@ class Ferromagnet:
 
     @property
     def temperature(self):
-        """Temperature."""
+        """Temperature (K)."""
         return Parameter(self._impl.temperature)
 
     @temperature.setter
@@ -419,7 +419,7 @@ class Ferromagnet:
 
     @property
     def applied_potential(self):
-        """Get the applied electrical potential.
+        """Get the applied electrical potential (V).
 
         Cells with Nan values do not have an applied potential.
         """
@@ -473,58 +473,58 @@ class Ferromagnet:
     
     @property
     def demag_field(self):
-        """Demagnetization field."""
+        """Demagnetization field (T)."""
         return FieldQuantity(_cpp.demag_field(self._impl))
 
     @property
     def demag_energy_density(self):
-        """Energy density related to the demag field."""
+        """Energy density related to the demag field (J/m³)."""
         return FieldQuantity(_cpp.demag_energy_density(self._impl))
 
     @property
     def demag_energy(self):
-        """Energy related to the demag field."""
+        """Energy related to the demag field (J)."""
         return ScalarQuantity(_cpp.demag_energy(self._impl))
 
     @property
     def anisotropy_field(self):
-        """Anisotropic effective field term."""
+        """Anisotropic effective field term (T)."""
         return FieldQuantity(_cpp.anisotropy_field(self._impl))
 
     @property
     def anisotropy_energy_density(self):
-        """Energy density related to the magnetic anisotropy."""
+        """Energy density related to the magnetic anisotropy (J/m³)."""
         return FieldQuantity(_cpp.anisotropy_energy_density(self._impl))
 
     @property
     def anisotropy_energy(self):
-        """Energy related to the magnetic anisotropy."""
+        """Energy related to the magnetic anisotropy (J)."""
         return ScalarQuantity(_cpp.anisotropy_energy(self._impl))
 
     @property
     def exchange_field(self):
-        """Effective field of the exchange interaction."""
+        """Effective field of the exchange interaction (T)."""
         return FieldQuantity(_cpp.exchange_field(self._impl))
 
     @property
     def exchange_energy_density(self):
-        """Energy density related to the exchange interaction."""
+        """Energy density related to the exchange interaction (J/m³)."""
         return FieldQuantity(_cpp.exchange_energy_density(self._impl))
 
     @property
     def exchange_energy(self):
-        """Energy related to the exchange interaction."""
+        """Energy related to the exchange interaction (J)."""
         return ScalarQuantity(_cpp.exchange_energy(self._impl))
 
     @property
     def max_angle(self):
         """Maximal angle difference of the magnetization between exchange\
-         coupled cells."""
+         coupled cells (rad)."""
         return ScalarQuantity(_cpp.max_angle(self._impl))
 
     @property
     def dmi_field(self):
-        """Effective field of the Dzyaloshinskii-Moriya interaction.
+        """Effective field of the Dzyaloshinskii-Moriya interaction (T).
 
         Returns a FieldQuantity which evaluates the effective field corresponding to the
         DMI energy density.
@@ -537,7 +537,7 @@ class Ferromagnet:
 
     @property
     def dmi_energy_density(self):
-        r"""Energy density related to the Dzyaloshinskii-Moriya interaction.
+        r"""Energy density related to the Dzyaloshinskii-Moriya interaction (J/m³).
 
         Returns a FieldQuantity which evaluates the Dzyaloshinskii-Moriya energy
         density:
@@ -553,7 +553,7 @@ class Ferromagnet:
 
     @property
     def dmi_energy(self):
-        """Energy related to the Dzyaloshinskii-Moriya interaction.
+        """Energy related to the Dzyaloshinskii-Moriya interaction (J).
 
         Returns
         -------
@@ -563,37 +563,37 @@ class Ferromagnet:
     
     @property
     def external_field(self):
-        """Sum of external field."""
+        """Sum of external field (T)."""
         return FieldQuantity(_cpp.external_field(self._impl))
 
     @property
     def zeeman_energy_density(self):
-        """Energy density related to external fields."""
+        """Energy density related to external fields (J/m³)."""
         return FieldQuantity(_cpp.zeeman_energy_density(self._impl))
 
     @property
     def zeeman_energy(self):
-        """Energy related to external fields."""
+        """Energy related to external fields (J)."""
         return ScalarQuantity(_cpp.zeeman_energy(self._impl))
 
     @property
     def effective_field(self):
-        """Sum of all effective field terms."""
+        """Sum of all effective field terms (T)."""
         return FieldQuantity(_cpp.effective_field(self._impl))
 
     @property
     def total_energy_density(self):
-        """Energy density related to the total effective field."""
+        """Energy density related to the total effective field (J/m³)."""
         return FieldQuantity(_cpp.total_energy_density(self._impl))
 
     @property
     def total_energy(self):
-        """Energy related to the total effective field."""
+        """Energy related to the total effective field (J)."""
         return ScalarQuantity(_cpp.total_energy(self._impl))
 
     @property
     def electrical_potential(self):
-        """Electrical potential."""
+        """Electrical potential (V)."""
         return FieldQuantity(_cpp.electrical_potential(self._impl))
 
     @property

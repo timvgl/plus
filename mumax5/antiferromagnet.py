@@ -184,7 +184,7 @@ class Antiferromagnet:
 
     @property
     def afmex_cell(self):
-        """Intercell antiferromagnetic exchange constant."""
+        """Intercell antiferromagnetic exchange constant (J/m)."""
         return Parameter(self._impl.afmex_cell)
 
     @afmex_cell.setter
@@ -197,7 +197,7 @@ class Antiferromagnet:
 
     @property
     def afmex_nn(self):
-        """Intracell antiferromagnetic exchange constant."""
+        """Intracell antiferromagnetic exchange constant (J/m)."""
         return Parameter(self._impl.afmex_nn)
 
     @afmex_nn.setter
@@ -210,7 +210,7 @@ class Antiferromagnet:
 
     @property
     def latcon(self):
-        """Lattice constant.
+        """Lattice constant (m).
         Default = 0.35 nm.
         """
         return Parameter(self._impl.latcon)
@@ -235,14 +235,15 @@ class Antiferromagnet:
     
     @property
     def angle_field(self):
-        """Returns the deviation from the optimal angle (180°) between magnetization
-        vectors in the same cell which are coupled by the intracell exchange interaction.
+        """Returns the deviation from the optimal angle (180°) between
+        magnetization vectors in the same cell which are coupled by the
+        intracell exchange interaction (rad).
         """
         return FieldQuantity(_cpp.angle_field(self._impl))
     
     @property
     def max_intracell_angle(self):
         """The maximal deviation from 180° between AFM-exchange coupled magnetization
-        vectors in the same simulation cell.
+        vectors in the same simulation cell (rad).
         """
         return ScalarQuantity(_cpp.max_intracell_angle(self._impl))
