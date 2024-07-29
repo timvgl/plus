@@ -14,7 +14,6 @@ from .scalarquantity import ScalarQuantity
 
 class Antiferromagnet:
     """Create an antiferromagnet instance.
-
     This class can also be used to create a Ferrimagnet instance since both sublattices
     are independently modifiable.
 
