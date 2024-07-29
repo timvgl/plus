@@ -58,8 +58,8 @@ add_library(physics STATIC
     thermalnoise.hpp
     torque.cu 
     torque.hpp
-    totalmag.cu
-    totalmag.hpp 
+    fullmag.cu
+    fullmag.hpp 
     zeeman.cu
     zeeman.hpp
 )
