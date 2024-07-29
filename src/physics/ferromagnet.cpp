@@ -67,7 +67,8 @@ Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr,
   }
   // TODO: move the generator to somewhere else
   curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);
-  curandSetPseudoRandomGeneratorSeed(randomGenerator, 1234);
+  curandSetPseudoRandomGeneratorSeed(randomGenerator,
+        static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
   }
 Ferromagnet::Ferromagnet(MumaxWorld* world,
                          Grid grid,
