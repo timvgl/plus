@@ -223,8 +223,8 @@ class Antiferromagnet:
 
     @property
     def neel_vector(self):
-        """Neel vector of an antiferromagnet instance.
-        This quantity is defined as L = (M1 - M2) / 2
+        """Weighted dimensionless Neel vector of an antiferromagnet/ferrimagnet.
+        (msat1*m1 - msat2*m2) / (msat1 + msat2)
         """
         return FieldQuantity(_cpp.neel_vector(self._impl))
     

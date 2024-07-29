@@ -41,5 +41,5 @@ Field evalNeelvector(const Antiferromagnet* magnet) {
 }
 
 AFM_FieldQuantity neelVectorQuantity(const Antiferromagnet* magnet) {
-    return AFM_FieldQuantity(magnet, evalNeelvector, 3, "neel_vector", "A/m");
+    return AFM_FieldQuantity(magnet, evalNeelvector, 3, "neel_vector", "");
 }
