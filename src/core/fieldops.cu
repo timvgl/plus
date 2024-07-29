@@ -53,7 +53,7 @@ __global__ void k_addFields(CuField y,
   }
 }
 
-// same as above, but without a1. Otherwise need to make a whole zerofield first
+// same as above, but without a1. Otherwise need to make a whole onefield first
 __global__ void k_addFields(CuField y,
                             const CuField x1,
                             const CuField a2,
@@ -122,15 +122,11 @@ inline void add(Field& y,
         "Fields can not be added because they do not have the same number of "
         "components.");
   }
-  if (a1.ncomp() != a2.ncomp()) {
+  if (!(a1.ncomp() == 1 || a1.ncomp() == x1.ncomp()) ||
+      !(a2.ncomp() == 1 || a2.ncomp() == x2.ncomp())) {
     throw std::invalid_argument(
-        "Weights need to have the same number of components."
-    );
-  }
-  if (a1.ncomp() > x1.ncomp()) {
-    throw std::invalid_argument(
-        "Weights should not have more components than fields, so no vector "
-        "weights times scalar fields."
+        "Weights need to be scalar (1 component) or have the same number of "
+        "components as the fields."
     );
   }
 
@@ -184,10 +180,10 @@ void addTo(Field& y, const Field& a, const Field& x) {
         "Fields can not be added because they do not have the same number of "
         "components.");
   }
-  if (a.ncomp() > x.ncomp()) {
+  if (!(a.ncomp() == 1 || a.ncomp() == x.ncomp())) {
     throw std::invalid_argument(
-        "Weights should not have more components than fields, so no vector "
-        "weights times scalar fields."
+        "Weights need to be scalar (1 component) or have the same number of "
+        "components as the fields."
     );
   }
 
@@ -283,9 +279,11 @@ inline void multiply(Field& y, const Field& a, const Field& x) {
         "Fields can not be added because they do not have the same number of "
         "components.");
   }
-  if (a.ncomp() > x.ncomp()) {
+  if (!(a.ncomp() == 1 || a.ncomp() == x.ncomp())) {
     throw std::invalid_argument(
-        "First field should not have more components than second field.");
+        "Weights need to be scalar (1 component) or have the same number of "
+        "components as the fields."
+    );
   }
   int ncells = y.grid().ncells();
   cudaLaunch(ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());

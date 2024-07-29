@@ -187,5 +187,5 @@ class Antiferromagnet:
     
     @property
     def full_magnetization(self):
-        """Full antiferromagnetic magnetization: M1 + M2."""
+        """Full antiferromagnetic magnetization M1 + M2 (A/m)."""
         return FieldQuantity(_cpp.full_magnetization(self._impl))

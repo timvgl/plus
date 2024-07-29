@@ -34,10 +34,8 @@ Field operator*(real a, const Field& x);
 Field operator*(real3 a, const Field& x);
 
 /// positional multiplication
-/// Convenient but slow! Dedicated kernel functions will be faster!
 Field multiply(const Field& a, const Field& x);
 /// positional x*y
-/// Convenient but slow! Dedicated kernel functions will be faster!
 Field operator*(const Field& a, const Field& x);
 
 Field normalized(const Field& src);
