@@ -4,7 +4,9 @@
 
 #include "ferromagnetquantity.hpp"
 
+class Antiferromagnet;
 class Ferromagnet;
+class MumaxWorld;
 
 // Minimize follows the steepest descent method as per Exl et al., JAP 115,
 // 17D118 (2014).
@@ -12,17 +14,19 @@ class Ferromagnet;
 class Minimizer {
  public:
   Minimizer(const Ferromagnet*, real stopMaxMagDiff, int nMagDiffSamples);
+  Minimizer(const Antiferromagnet*, real stopMaxMagDiff, int nMagDiffSamples);
+  Minimizer(const MumaxWorld*, real stopMaxMagDiff, int nMagDiffSamples);
 
   void exec();
 
  private:
   void step();
-  const Ferromagnet* magnet_;
-  real stepsize_;
+  std::vector<const Ferromagnet*> magnets_;
+  std::vector<real> stepsizes_;
   int nsteps_;
 
-  FM_FieldQuantity torque_;
-  Field t0, t1, m0, m1;
+  std::vector<FM_FieldQuantity> torques_;
+  std::vector<Field> t0, t1, m0, m1;
 
   real stopMaxMagDiff_;
   int nMagDiffSamples_;

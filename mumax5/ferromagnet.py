@@ -11,6 +11,8 @@ from .parameter import Parameter
 from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
 from .variable import Variable
+
+import warnings
 # from .world import World  # imported below to avoid circular imports
 
 
@@ -166,9 +168,64 @@ class Ferromagnet:
     def bias_magnetic_field(self, value):
         self.bias_magnetic_field.set(value)
 
-    def minimize(self):
-        """Minimize the total energy."""
-        self._impl.minimize()
+    def minimize(self, tol=1e-6, nsamples=10):
+        """Minimize the total energy.
+
+        Fast energy minimization, but less robust than "relax"
+        when starting from a high energy state.
+
+        Parameters
+        ----------
+        tol : int / float (default=1e-6)
+            The maximum allowed difference between consecutive magnetization
+            evaluations when advancing toward an energy minimum.
+
+        nsamples : int (default=10)
+            The number of consecutive magnetization evaluations that must not
+            differ by more than the tolerance "tol".
+        """
+        self._impl.minimize(tol, nsamples)
+    
+    def relax(self, tol=1e-9):
+        """Relax the state to an energy minimum.
+        
+        The system evolves in time without precession (pure damping) until
+        the total energy hits the noise floor.
+        Hereafter, relaxation keeps on going until the maximum torque is
+        minimized.
+
+        Compared to "minimize", this function takes a longer time to execute,
+        but is more robust when starting from a high energy state (i.e. random).
+
+        Parameter
+        ----------
+        tol : int / float (default=1e-9)
+            The lowest maximum error of the timesolver.
+
+        See also RelaxTorqueThreshold property.
+        """
+
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
+        self._impl.relax(tol)
+
+    @property
+    def RelaxTorqueThreshold(self):
+        """Threshold torque used for relaxing the system (default = -1).
+        If set to a negative value (default behaviour),
+            the system relaxes until the torque is steady or increasing.
+        If set to a positive value,
+            the system relaxes until the torque is smaller than or equal
+            to this threshold.
+        """
+        return self._impl.RelaxTorqueThreshold
+        
+    @RelaxTorqueThreshold.setter
+    def RelaxTorqueThreshold(self, value):
+        assert value != 0, "The relax threshold should not be zero."
+        self._impl.RelaxTorqueThreshold = value
 
     # ----- MATERIAL PARAMETERS -----------
 

@@ -111,7 +111,7 @@ __global__ void k_Slonczewski(CuField torque,
   real3 m = mField.vectorAt(idx);
  
   const real3 jj = jcurParam.vectorAt(idx);
-  const real j = norm(jj);
+  const real jz = jj.z;  // consistent with mumax3 TODO: make more general?
 
   const real msat = msatParam.valueAt(idx);
   const real pol = polParam.valueAt(idx);
@@ -127,15 +127,15 @@ __global__ void k_Slonczewski(CuField torque,
     return;
   }
 
-  const real B = (HBAR / QE) * j / (msat * d); // in Tesla
+  const real B = (HBAR / QE) * jz / (msat * d); // in Tesla
   const real lambda2 = lambda * lambda;
   const real eps = pol * lambda2 / ((lambda2 + 1) + (lambda2 - 1) * dot(m, p));
 
  
-  const real3 mxp = cross(m, p);
-  const real3 mxmxp = cross(m, mxp);
-  const real3 t = (- (eps  + eps_p * alpha) * mxmxp 
-                   - (eps_p - eps  * alpha) * mxp) * (B / (1 + alpha * alpha)) * GAMMALL;
+  const real3 pxm = cross(p, m);
+  const real3 mxpxm = cross(m, pxm);
+  const real3 t = ((eps  + eps_p * alpha) * mxpxm 
+                   + (eps_p - eps  * alpha) * pxm) * (B / (1 + alpha * alpha)) * GAMMALL;
 
   torque.setVectorInCell(idx, t);
 }

@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import show_field_3D
-
 
 def get_initial_config(position, Radius):
     x0, y0, _ = position

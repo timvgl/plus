@@ -9,6 +9,7 @@ from .fieldquantity import FieldQuantity
 from .ferromagnet import Ferromagnet
 from .grid import Grid
 from .parameter import Parameter
+from .scalarquantity import ScalarQuantity
 
 
 class Antiferromagnet:
@@ -137,6 +138,49 @@ class Antiferromagnet:
         self.sub1.bias_magnetic_field.set(value)
         self.sub2.bias_magnetic_field.set(value)
 
+    def minimize(self, tol=1e-6, nsamples=20):
+        """Minimize the total energy.
+
+        Fast energy minimization, but less robust than "relax"
+        when starting from a high energy state.
+
+        Parameters
+        ----------
+        tol : int / float (default=1e-6)
+            The maximum allowed difference between consecutive magnetization
+            evaluations when advancing toward an energy minimum.
+
+        nsamples : int (default=20)
+            The number of consecutive magnetization evaluations that must not
+            differ by more than the tolerance "tol".
+        """
+        self._impl.minimize(tol, nsamples)
+
+    def relax(self, tol=1e-9):
+        """Relax the state to an energy minimum.
+
+        The system evolves in time without precession (pure damping) until
+        the total energy (i.e. the sum of sublattices) hits the noise floor.
+        Hereafter, relaxation keeps on going until the maximum torque is
+        minimized.
+
+        Compared to "minimize", this function takes a longer time to execute,
+        but is more robust when starting from a high energy state (i.e. random).
+
+        Parameter
+        ----------
+        tol : int / float (default=1e-9)
+            The lowest maximum error of the timesolver.
+
+        See also RelaxTorqueThreshold property of Ferromagnet.
+        """
+        if tol >= 1e-5:
+            warnings.warn("The set tolerance is greater than or equal to the default value"
+                          + " used for the timesolver (1e-5). Using this value results"
+                          + " in no torque minimization, only energy minimization.", UserWarning)
+        self._impl.relax(tol)
+
+
     # ----- MATERIAL PARAMETERS -----------
 
     @property
@@ -189,3 +233,17 @@ class Antiferromagnet:
     def full_magnetization(self):
         """Full antiferromagnetic magnetization M1 + M2 (A/m)."""
         return FieldQuantity(_cpp.full_magnetization(self._impl))
+    
+    @property
+    def angle_field(self):
+        """Returns the deviation from the optimal angle (180°) between magnetization
+        vectors in the same cell which are coupled by the intracell exchange interaction.
+        """
+        return FieldQuantity(_cpp.angle_field(self._impl))
+    
+    @property
+    def max_intracell_angle(self):
+        """The maximal deviation from 180° between AFM-exchange coupled magnetization
+        vectors in the same simulation cell.
+        """
+        return ScalarQuantity(_cpp.max_intracell_angle(self._impl))

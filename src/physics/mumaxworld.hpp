@@ -1,19 +1,25 @@
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 
 #include "datatypes.hpp"
+#include "ferromagnetquantity.hpp"
 #include "gpubuffer.hpp"
 #include "grid.hpp"
+#include "torque.hpp"
 #include "world.hpp"
 
 class Antiferromagnet;
 class Ferromagnet;
+class FM_FieldQuantity;
 class Magnet;
 class TimeSolver;
+
+typedef std::function<FM_FieldQuantity(const Ferromagnet*)> FM_Field;
 
 /** MumaxWorld is World with additional functionalities for the actual physics
  *  of mumax5.
@@ -67,8 +73,13 @@ class MumaxWorld : public World {
   /** Get map of all Antiferromagnets in this world. */
   const std::map<std::string, Antiferromagnet*> antiferromagnets() const;
 
- private:
-  void resetTimeSolverEquations();
+  /** Minimize the current energy state of the world with every magnet in it. */
+  void minimize(real tol = 1e-6, int nSamples = 10);
+  /** Relax the current state of the world with every magnet in it. */
+  void relax(real tol);
+  real RelaxTorqueThreshold;
+
+  void resetTimeSolverEquations(FM_Field torque = torqueQuantity) const;
 
  private:
   std::map<std::string, Magnet*> magnets_;
