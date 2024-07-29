@@ -79,13 +79,13 @@ Field evalRelaxTorque(const Ferromagnet* magnet) {
 }
 
 FM_FieldQuantity torqueQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalTorque, 3, "torque", "1/s");
+  return FM_FieldQuantity(magnet, evalTorque, 3, "torque", "rad/s");
 }
 
 FM_FieldQuantity llgTorqueQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalLlgTorque, 3, "llg_torque", "1/s");
+  return FM_FieldQuantity(magnet, evalLlgTorque, 3, "llg_torque", "rad/s");
 }
 
 FM_FieldQuantity relaxTorqueQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalRelaxTorque, 3, "damping_torque", "1/s");
+  return FM_FieldQuantity(magnet, evalRelaxTorque, 3, "damping_torque", "rad/s");
 }

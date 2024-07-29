@@ -458,17 +458,17 @@ class Ferromagnet:
 
     @property
     def torque(self):
-        """Total torque on the magnetization."""
+        """Total torque on the magnetization (rad/s)."""
         return FieldQuantity(_cpp.torque(self._impl))
 
     @property
     def llg_torque(self):
-        """Torque on the magnetization exerted by the total effective field."""
+        """Torque on the magnetization exerted by the total effective field (rad/s)."""
         return FieldQuantity(_cpp.llg_torque(self._impl))
 
     @property
     def spin_transfer_torque(self):
-        """Spin transfer torque exerted on the magnetization."""
+        """Spin transfer torque exerted on the magnetization (rad/s)."""
         return FieldQuantity(_cpp.spin_transfer_torque(self._impl))
     
     @property
