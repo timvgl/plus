@@ -42,5 +42,5 @@ Field evalConductivityTensor(const Ferromagnet* magnet) {
 FM_FieldQuantity conductivityTensorQuantity(const Ferromagnet* magnet) {
   int comp = magnet->magnetization()->field().cu().ncomp;
   return FM_FieldQuantity(magnet, evalConductivityTensor, 3,
-                          "conductivity_tensor", "T");
+                          "conductivity_tensor", "S/m");
 }

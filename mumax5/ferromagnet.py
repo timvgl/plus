@@ -531,7 +531,7 @@ class Ferromagnet:
 
     @property
     def conductivity(self):
-        """Conductivity without considering anisotropic magneto resistance.
+        """Conductivity without considering anisotropic magneto resistance (S/m).
         
         See Also
         --------
@@ -804,7 +804,7 @@ class Ferromagnet:
 
     @property
     def conductivity_tensor(self):
-        """Conductivity tensor taking into account AMR.
+        """Conductivity tensor taking into account AMR (S/m).
 
         This quantity has six components (Cxx, Cyy, Czz, Cxy, Cxz, Cyz)
         which forms the symmetric conductivity tensor::
