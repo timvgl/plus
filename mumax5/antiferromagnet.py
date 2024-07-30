@@ -192,7 +192,12 @@ class Antiferromagnet:
 
     @property
     def afmex_cell(self):
-        """Intercell antiferromagnetic exchange constant (J/m)."""
+        """Intercell antiferromagnetic exchange constant (J/m).
+        
+        See Also
+        --------
+        afmex_nn
+        """
         return Parameter(self._impl.afmex_cell)
 
     @afmex_cell.setter
@@ -205,7 +210,13 @@ class Antiferromagnet:
 
     @property
     def afmex_nn(self):
-        """Intracell antiferromagnetic exchange constant (J/m)."""
+        """Intracell antiferromagnetic exchange constant (J/m).
+        
+        See Also
+        --------
+        afmex_cell
+        latcon
+        """
         return Parameter(self._impl.afmex_nn)
 
     @afmex_nn.setter
@@ -220,6 +231,10 @@ class Antiferromagnet:
     def latcon(self):
         """Lattice constant (m).
         Default = 0.35 nm.
+
+        See Also
+        --------
+        afmex_cell
         """
         return Parameter(self._impl.latcon)
     
@@ -238,7 +253,12 @@ class Antiferromagnet:
     
     @property
     def full_magnetization(self):
-        """Full antiferromagnetic magnetization M1 + M2 (A/m)."""
+        """Full antiferromagnetic magnetization M1 + M2 (A/m).
+        
+        See Also
+        --------
+        Ferromagnet.full_magnetization
+        """
         return FieldQuantity(_cpp.full_magnetization(self._impl))
     
     @property
@@ -246,6 +266,11 @@ class Antiferromagnet:
         """Returns the deviation from the optimal angle (180°) between
         magnetization vectors in the same cell which are coupled by the
         intracell exchange interaction (rad).
+
+        See Also
+        --------
+        max_intracell_angle
+        afmex_cell
         """
         return FieldQuantity(_cpp.angle_field(self._impl))
     
@@ -253,5 +278,10 @@ class Antiferromagnet:
     def max_intracell_angle(self):
         """The maximal deviation from 180° between AFM-exchange coupled magnetization
         vectors in the same simulation cell (rad).
+
+        See Also
+        --------
+        angle_field
+        afmex_cell
         """
         return ScalarQuantity(_cpp.max_intracell_angle(self._impl))
