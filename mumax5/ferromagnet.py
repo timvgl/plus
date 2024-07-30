@@ -27,11 +27,13 @@ class Ferromagnet:
         The number of cells in x, y, z the ferromagnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
         The geometry of the ferromagnet can be set in three ways.
+
         1. If the geometry contains all cells in the grid, then use None (the default)
         2. Use an ndarray which specifies for each cell wheter or not it is in the
            geometry.
         3. Use a function which takes x, y, and z coordinates as arguments and returns
            true if this position is inside the geometry and false otherwise.
+
     name : str (default="")
         The ferromagnet's identifier. If the name is empty (the default), a name for the
         ferromagnet will be created.
@@ -171,7 +173,7 @@ class Ferromagnet:
     def minimize(self, tol=1e-6, nsamples=10):
         """Minimize the total energy.
 
-        Fast energy minimization, but less robust than "relax"
+        Fast energy minimization, but less robust than `relax`
         when starting from a high energy state.
 
         Parameters
@@ -183,6 +185,10 @@ class Ferromagnet:
         nsamples : int (default=10)
             The number of consecutive magnetization evaluations that must not
             differ by more than the tolerance "tol".
+
+        See Also
+        --------
+        relax
         """
         self._impl.minimize(tol, nsamples)
     
@@ -194,15 +200,18 @@ class Ferromagnet:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        Compared to "minimize", this function takes a longer time to execute,
+        Compared to `minimize`, this function takes a longer time to execute,
         but is more robust when starting from a high energy state (i.e. random).
 
-        Parameter
+        Parameters
         ----------
-        tol : int / float (default=1e-9)
+        tol : float, default=1e-9
             The lowest maximum error of the timesolver.
 
-        See also RelaxTorqueThreshold property.
+        See Also
+        --------
+        RelaxTorqueThreshold
+        minimize
         """
 
         if tol >= 1e-5:
@@ -214,11 +223,17 @@ class Ferromagnet:
     @property
     def RelaxTorqueThreshold(self):
         """Threshold torque used for relaxing the system (default = -1).
+        
         If set to a negative value (default behaviour),
-            the system relaxes until the torque is steady or increasing.
+        the system relaxes until the torque is steady or increasing.
+        
         If set to a positive value,
-            the system relaxes until the torque is smaller than or equal
-            to this threshold.
+        the system relaxes until the torque is smaller than or equal
+        to this threshold.
+
+        See Also
+        --------
+        relax
         """
         return self._impl.RelaxTorqueThreshold
         
@@ -330,7 +345,7 @@ class Ferromagnet:
 
     @property
     def Lambda(self):
-        """Slonczewski \\Lambda parameter."""
+        """Slonczewski Λ parameter."""
         return Parameter(self._impl.Lambda)
     
     @Lambda.setter
@@ -349,7 +364,7 @@ class Ferromagnet:
 
     @property
     def eps_prime(self):
-        """Slonczewski secondary STT term \\epsilon'."""
+        """Slonczewski secondary STT term ε'."""
         return Parameter(self._impl.eps_prime)
     
     @eps_prime.setter
@@ -601,7 +616,8 @@ class Ferromagnet:
         """Conductivity tensor taking into account AMR.
 
         This quantity has six components (Cxx, Cyy, Czz, Cxy, Cxz, Cyz)
-        which forms the symmetric conductivity tensor:
+        which forms the symmetric conductivity tensor::
+
                Cxx Cxy Cxz
                Cxy Cyy Cyz
                Cxz Cyz Czz

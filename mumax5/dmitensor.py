@@ -19,8 +19,8 @@ class DmiTensor:
     ``yxz``, ``yyz``, ``zxy``, ``zxz``, and ``zyz``. These 9 parameters fully define the
     dmi tensor of a ferromagnet. The parameters can be set separately, or can be set
     through one of the following methods:
-        - ``DmiTensor.set_interfacial_dmi``
-        - ``DmiTensor.set_bulk_dmi``
+    - ``DmiTensor.set_interfacial_dmi``
+    - ``DmiTensor.set_bulk_dmi``
 
     Examples
     --------

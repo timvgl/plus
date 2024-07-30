@@ -90,7 +90,7 @@ Several automated tests are located inside the `test/` directory. Type `pytest` 
 
 # Building the documentation
 
-Documentation for mumax5 can be generated using [Sphinx](https://www.sphinx-doc.org). Run the following command in the docs directory to let Sphinx build the HTML documentation pages:
+Documentation for mumax5 follows the [NumPy style guide](https://numpydoc.readthedocs.io/en/latest/format.html) and can be generated using [Sphinx](https://www.sphinx-doc.org). Run the following command in the docs directory to let Sphinx build the HTML documentation pages:
 ```
 make html
 ```

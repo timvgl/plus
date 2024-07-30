@@ -25,11 +25,13 @@ class Antiferromagnet:
         The number of cells in x, y, z the antiferromagnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
         The geometry of the antiferromagnet can be set in three ways.
+
         1. If the geometry contains all cells in the grid, then use None (the default)
         2. Use an ndarray which specifies for each cell wheter or not it is in the
            geometry.
         3. Use a function which takes x, y, and z coordinates as arguments and returns
            true if this position is inside the geometry and false otherwise.
+
     name : str (default="")
         The antiferromagnet's identifier. If the name is empty (the default), a name for the
         antiferromagnet will be created.
@@ -140,7 +142,7 @@ class Antiferromagnet:
     def minimize(self, tol=1e-6, nsamples=20):
         """Minimize the total energy.
 
-        Fast energy minimization, but less robust than "relax"
+        Fast energy minimization, but less robust than `relax`
         when starting from a high energy state.
 
         Parameters
@@ -152,6 +154,10 @@ class Antiferromagnet:
         nsamples : int (default=20)
             The number of consecutive magnetization evaluations that must not
             differ by more than the tolerance "tol".
+
+        See Also
+        --------
+        relax
         """
         self._impl.minimize(tol, nsamples)
 
@@ -163,15 +169,17 @@ class Antiferromagnet:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        Compared to "minimize", this function takes a longer time to execute,
+        Compared to `minimize`, this function takes a longer time to execute,
         but is more robust when starting from a high energy state (i.e. random).
 
-        Parameter
+        Parameters
         ----------
-        tol : int / float (default=1e-9)
+        tol : float, default=1e-9
             The lowest maximum error of the timesolver.
 
-        See also RelaxTorqueThreshold property of Ferromagnet.
+        See Also
+        --------
+        minimize
         """
         if tol >= 1e-5:
             warnings.warn("The set tolerance is greater than or equal to the default value"
