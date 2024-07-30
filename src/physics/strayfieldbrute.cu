@@ -11,7 +11,6 @@
 #include "parameter.hpp"
 #include "strayfieldbrute.hpp"
 #include "system.hpp"
-#include "totalmag.hpp"
 
 __global__ void k_demagfield(CuField hField,
                              const CuField mField1,

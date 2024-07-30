@@ -7,7 +7,7 @@
 #include "mumaxworld.hpp"
 #include "neel.hpp"
 #include "parameter.hpp"
-#include "totalmag.hpp"
+#include "fullmag.hpp"
 #include "world.hpp"
 #include "wrappers.hpp"
 
@@ -26,7 +26,7 @@ void wrap_antiferromagnet(py::module& m) {
       .def("relax", &Antiferromagnet::relax, py::arg("tol"));
       
   m.def("neel_vector", &neelVectorQuantity);
-  m.def("total_magnetization", &totalMagnetizationQuantity);
+  m.def("full_magnetization", &afmFullMagnetizationQuantity);
 
   m.def("angle_field", &angleFieldQuantity);
   m.def("max_intracell_angle", &maxAngle);

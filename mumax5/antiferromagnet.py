@@ -61,7 +61,7 @@ class Antiferromagnet:
                     + "of the grid."
                 )
 
-        self._impl = world._impl.add_antiferromagnet(grid._impl, name)
+        self._impl = world._impl.add_antiferromagnet(grid._impl, geometry_array, name)
 
     def __repr__(self):
         """Return Antiferromagnet string representation."""
@@ -230,9 +230,9 @@ class Antiferromagnet:
         return FieldQuantity(_cpp.neel_vector(self._impl))
     
     @property
-    def total_magnetization(self):
-        """Total antiferromagnetic magnetization: M1 + M2."""
-        return FieldQuantity(_cpp.total_magnetization(self._impl))
+    def full_magnetization(self):
+        """Full antiferromagnetic magnetization M1 + M2 (A/m)."""
+        return FieldQuantity(_cpp.full_magnetization(self._impl))
     
     @property
     def angle_field(self):

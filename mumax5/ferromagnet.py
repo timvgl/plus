@@ -612,3 +612,8 @@ class Ferromagnet:
     def thermal_noise(self):
         """Thermal noise on the magnetization."""
         return FieldQuantity(_cpp.thermal_noise(self._impl))
+
+    @property
+    def full_magnetization(self):
+        """Unnormalized magnetization (A/m)."""
+        return FieldQuantity(_cpp.full_magnetization(self._impl))

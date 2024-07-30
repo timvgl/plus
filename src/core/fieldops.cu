@@ -35,16 +35,50 @@ __global__ void k_addFields(CuField y,
   y.setVectorInCell(idx, term1 + term2);
 }
 
+__global__ void k_addFields(CuField y,
+                            const CuField a1,
+                            const CuField x1,
+                            const CuField a2,
+                            const CuField x2) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGeometry(idx))
+    return;
+
+  for (int c = 0; c < y.ncomp; c++) {
+    int c_a1 = (a1.ncomp == y.ncomp) ? c : 0;  // follow comp or be scalar
+    real term1 = a1.valueAt(idx, c_a1) * x1.valueAt(idx, c);
+    int c_a2 = (a2.ncomp == y.ncomp) ? c : 0;
+    real term2 = a2.valueAt(idx, c_a2) * x2.valueAt(idx, c);
+    y.setValueInCell(idx, c, term1 + term2);
+  }
+}
+
+// same as above, but without a1. Otherwise need to make a whole onefield first
+__global__ void k_addFields(CuField y,
+                            const CuField x1,
+                            const CuField a2,
+                            const CuField x2) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGeometry(idx))
+    return;
+
+  for (int c = 0; c < y.ncomp; c++) {
+    int c_a2 = (a2.ncomp == y.ncomp) ? c : 0;
+    y.setValueInCell(idx, c, x1.valueAt(idx, c)
+                            + a2.valueAt(idx, c_a2) * x2.valueAt(idx, c));
+  }
+}
+
 inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
   if (x1.system() != y.system() || x2.system() != y.system()) {
     throw std::invalid_argument(
         "Fields can not be added together because they belong to different "
-        "systems)");
+        "systems.");
   }
   if ((x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) ) {
     throw std::invalid_argument(
         "Fields can not be added because they do not have the same number of "
-        "components");
+        "components.");
   }
   int ncells = y.grid().ncells();
   cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
@@ -58,12 +92,12 @@ inline void add(Field& y,
   if (x1.system() != y.system() || x2.system() != y.system()) {
     throw std::invalid_argument(
         "Fields can not be added together because they belong to different "
-        "systems)");
+        "systems.");
   }
   if (x1.ncomp() != y.ncomp() || x1.ncomp() != y.ncomp()) {
     throw std::invalid_argument(
         "Fields can not be added because they do not have the same number of "
-        "components");
+        "components.");
   }
   if (x1.ncomp() != 3) {
     throw std::invalid_argument("Fields should have 3 components.");
@@ -72,7 +106,47 @@ inline void add(Field& y,
   cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
 }
 
+inline void add(Field& y,
+                const Field& a1,
+                const Field& x1,
+                const Field& a2,
+                const Field& x2) {
+  if (x1.system() != y.system() || x2.system() != y.system() ||
+      a1.system() != y.system() || a2.system() != y.system()) {
+    throw std::invalid_argument(
+        "Fields can not be multiplied and added together because they belong to "
+        "different systems.");
+  }
+  if (x1.ncomp() != y.ncomp() || x2.ncomp() != y.ncomp()) {
+    throw std::invalid_argument(
+        "Fields can not be added because they do not have the same number of "
+        "components.");
+  }
+  if (!(a1.ncomp() == 1 || a1.ncomp() == x1.ncomp()) ||
+      !(a2.ncomp() == 1 || a2.ncomp() == x2.ncomp())) {
+    throw std::invalid_argument(
+        "Weights need to be scalar (1 component) or have the same number of "
+        "components as the fields."
+    );
+  }
+
+  int ncells = y.grid().ncells();
+  cudaLaunch(ncells, k_addFields, y.cu(), a1.cu(), x1.cu(), a2.cu(), x2.cu());
+}
+
 Field add(real a1, const Field& x1, real a2, const Field& x2) {
+  Field y(x1.system(), x1.ncomp());
+  add(y, a1, x1, a2, x2);
+  return y;
+}
+
+Field add(real3 a1, const Field& x1, real3 a2, const Field& x2) {
+  Field y(x1.system(), x1.ncomp());
+  add(y, a1, x1, a2, x2);
+  return y;
+}
+
+Field add(const Field& a1, const Field& x1, const Field& a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
   return y;
@@ -82,6 +156,10 @@ Field add(const Field& x1, const Field& x2) {
   return add(1, x1, 1, x2);
 }
 
+Field operator+(const Field& x1, const Field& x2) {
+  return add(x1, x2);
+}
+
 void addTo(Field& y, real a, const Field& x) {
   add(y, 1, y, a, x);
 }
@@ -89,6 +167,28 @@ void addTo(Field& y, real a, const Field& x) {
 void addTo(Field& y, real3 a, const Field& x) {
   real3 a0 = real3{1, 1, 1};
   add(y, a0, y, a, x);
+}
+
+void addTo(Field& y, const Field& a, const Field& x) {
+  if (x.system() != y.system() || a.system() != y.system()) {
+    throw std::invalid_argument(
+        "Fields can not be multiplied and added together because they belong to "
+        "different systems.");
+  }
+  if (x.ncomp() != y.ncomp()) {
+    throw std::invalid_argument(
+        "Fields can not be added because they do not have the same number of "
+        "components.");
+  }
+  if (!(a.ncomp() == 1 || a.ncomp() == x.ncomp())) {
+    throw std::invalid_argument(
+        "Weights need to be scalar (1 component) or have the same number of "
+        "components as the fields."
+    );
+  }
+
+  int ncells = y.grid().ncells();
+  cudaLaunch(ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
 }
 
 // TODO: this can be done much more efficient
@@ -154,6 +254,49 @@ Field operator*(real3 a, const Field& x) {
   real3 a0 = real3{0, 0, 0};
   add(y, a0, x, a, x);
   return y;
+}
+
+__global__ void k_multiplyFields(CuField y,
+                            const CuField a,
+                            const CuField x) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (!y.cellInGeometry(idx))
+    return;
+  for (int c = 0; c < y.ncomp; c++) {
+    int c_a = (a.ncomp == y.ncomp) ? c : 0;  // follow comp or be scalar
+    y.setValueInCell(idx, c, a.valueAt(idx, c_a) * x.valueAt(idx, c));
+  }
+}
+
+inline void multiply(Field& y, const Field& a, const Field& x) {
+  if (x.system() != y.system() || a.system() != y.system()) {
+    throw std::invalid_argument(
+        "Fields can not be added together because they belong to different "
+        "systems.");
+  }
+  if (x.ncomp() != y.ncomp()) {
+    throw std::invalid_argument(
+        "Fields can not be added because they do not have the same number of "
+        "components.");
+  }
+  if (!(a.ncomp() == 1 || a.ncomp() == x.ncomp())) {
+    throw std::invalid_argument(
+        "Weights need to be scalar (1 component) or have the same number of "
+        "components as the fields."
+    );
+  }
+  int ncells = y.grid().ncells();
+  cudaLaunch(ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());
+}
+
+Field multiply(const Field& a, const Field& x) {
+  Field y(x.system(), x.ncomp());
+  multiply(y, a, x);
+  return y;
+}
+
+Field operator*(const Field& a, const Field& x) {
+  return multiply(a, x);
 }
 
 // --------------------------------------------------
