@@ -9,7 +9,7 @@ world = World(cellsize, mastergrid)
 
 magnet = Ferromagnet(world, grid=Grid((128, 128, 1)))
 magnet.enable_demag = False
-magnet.idmi = 1.5
+magnet.dmi_tensor.set_interfacial_dmi(1.5)
 magnet.msat = 1.0
 magnet.aex = 1.0
 magnet.ku1 = 1.0

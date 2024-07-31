@@ -17,13 +17,18 @@ class World:
     cellsize : tuple[float] of size 3
         A tuple of three floating pointing numbers which represent the dimensions
         of the cells in the x, y, and z direction.
+    mastergrid : Grid, default=Grid((0, 0, 0))
+        Mastergrid optionally defines a periodic simulation box. If it has zero
+        size in a direction (default for all directions), then it is considered
+        to be infinitely large (no periocity) in that direction.
+        All added magnets need to fit inside this mastergrid.
     """
 
     def __init__(self, cellsize, mastergrid=Grid((0, 0, 0))):
         if len(cellsize) != 3:
             raise ValueError("'cellsize' should have three dimensions.")
 
-        self._impl = _cpp.World(cellsize)
+        self._impl = _cpp.World(cellsize, mastergrid._impl)
 
     def __repr__(self):
         """Return World string representation."""
