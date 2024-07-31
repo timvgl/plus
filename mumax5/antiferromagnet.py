@@ -197,6 +197,7 @@ class Antiferromagnet:
         See Also
         --------
         afmex_nn
+        latcon
         """
         return Parameter(self._impl.afmex_cell)
 
@@ -215,7 +216,6 @@ class Antiferromagnet:
         See Also
         --------
         afmex_cell
-        latcon
         """
         return Parameter(self._impl.afmex_nn)
 
@@ -283,5 +283,6 @@ class Antiferromagnet:
         --------
         angle_field
         afmex_cell
+        Ferromagnet.max_angle
         """
         return ScalarQuantity(_cpp.max_intracell_angle(self._impl))
