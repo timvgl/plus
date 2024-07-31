@@ -59,8 +59,7 @@ __global__ void k_dmiField(CuField hField,
 
     // If we assume open boundary conditions and if there is no neighbor, 
     // then simply continue without adding to the effective field.    
-    if ((!system.inGeometry(neighbor_coo) && enableOpenBC)
-       || (msat.valueAt(neighbor_idx) == 0))
+    if ((!system.inGeometry(neighbor_coo) && enableOpenBC))
       continue;
     
     
@@ -109,32 +108,23 @@ __global__ void k_dmiField(CuField hField,
                  relative_coo.y * system.cellsize.y +
                  relative_coo.z * system.cellsize.z;
 
-    real3 m_ = mField.vectorAt(neighbor_idx);
+    real3 m_;
     
-    /* TO DO: implement DMI BC (also in case of AFM)
-
-    if (!system.inGeometry(neighbor_coo)) {
+    if (!system.inGeometry(neighbor_coo) && !enableOpenBC) {
     // DMI-BC
       real a = aex.valueAt(idx);
-      real fac = afmex_nn.valueAt(idx) / (2 * a);
-      real Ax = Dxz * system.cellsize.x / (2 * a * (1 - fac * fac));
-      real Ay = Dyz * system.cellsize.y / (2 * a * (1 - fac * fac));
+      real Ax = Dxz * system.cellsize.x / (2 * a);
+      real Ay = Dyz * system.cellsize.y / (2 * a);
 
       if (relative_coo.x) {
-        m_.x1 = m.x1 - relative_coo.x * Ax * (m.z1 - fac * m.z2);
-        m_.y1 = m.y1;
-        m_.z1 = m.z1 + relative_coo.x * Ax * (m.x1 - fac * m.x2);
-        m_.x2 = m.x2 - relative_coo.x * Ax * (m.z2 - fac * m.z1);
-        m_.y2 = m.y2;
-        m_.z2 = m.z2 + relative_coo.x * Ax * (m.x2 - fac * m.x1);
+        m_.x = m.x - relative_coo.x * Ax * (m.z);
+        m_.y = m.y;
+        m_.z = m.z + relative_coo.x * Ax * (m.x);
       }
       else if (relative_coo.y) {
-        m_.x1 = m.x1;
-        m_.y1 = m.y1 - relative_coo.y * Ay * (m.z1 - fac * m.z2);
-        m_.z1 = m.z1 + relative_coo.y * Ay * (m.y1 - fac * m.y2);
-        m_.x2 = m.x2;
-        m_.y2 = m.y2 - relative_coo.y * Ay * (m.z2 - fac * m.z1);
-        m_.z2 = m.z2 + relative_coo.y * Ay * (m.y2 - fac * m.y1);
+        m_.x = m.x;
+        m_.y = m.y - relative_coo.y * Ay * (m.z);
+        m_.z = m.z + relative_coo.y * Ay * (m.y);
       }
       else if (relative_coo.z) {
         m_ = m;
@@ -142,7 +132,7 @@ __global__ void k_dmiField(CuField hField,
     }
     else {
       m_ = mField.vectorAt(neighbor_idx);
-    }*/
+    }
 
     
     // Compute the effective field contribution of the DMI with the neighbor
