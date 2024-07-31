@@ -37,13 +37,16 @@ class Parameter(FieldQuantity):
 
         If mask is None, then the value of the time-dependent term will be the same for
         every grid cell and the final parameter value will be:
-            a) uniform_value + term(t)
-            b) cell_value + term(t)
+
+        - uniform_value + term(t)
+        - cell_value + term(t)
+
         where t is a time value in seconds.
         If mask is not None, then the value of the time-dependent term will be
         multiplied by the mask values and the parameter instance will be estimated as:
-            a) uniform_value + term(t) * mask
-            b) cell_value + term(t) * cell_mask_value
+
+        - uniform_value + term(t) * mask
+        - cell_value + term(t) * cell_mask_value
 
         Parameter can have multiple time-dependent terms. All their values will be
         weighted by their mask values and summed, prior to being added to the static

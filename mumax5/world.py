@@ -72,7 +72,7 @@ class World:
         """Minimize the total energy.
 
         Fast energy minimization of the world as a whole, but less
-        robust than "relax" when starting from a high energy state.
+        robust than `relax` when starting from a high energy state.
 
         Parameters
         ----------
@@ -83,7 +83,10 @@ class World:
         nsamples : int (default=10)
             The number of consecutive magnetization evaluations that must not
             differ by more than the tolerance "tol".
-            The algorithm considers "nsamples" per magnet in world.
+
+        See Also
+        --------
+        relax
         """
         self._impl.minimize(tol, nsamples)
     
@@ -96,12 +99,15 @@ class World:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        Parameter
+        Parameters
         ----------
-        tol : int / float (default=1e-9)
+        tol : float, default=1e-9
             The lowest maximum error of the timesolver.
 
-        See also RelaxTorqueThreshold property.
+        See Also
+        --------
+        RelaxTorqueThreshold
+        minimize
         """
 
         if tol >= 1e-5:
@@ -113,12 +119,18 @@ class World:
     @property
     def RelaxTorqueThreshold(self):
         """Threshold torque used for relaxing the system (default = -1).
+
         If set to a negative value (default behaviour),
-            the system relaxes until the total torque (i.e. the sum of all
-            magnets in this world) is steady or increasing.
+        the system relaxes until the total torque (i.e. the sum of all
+        magnets in this world) is steady or increasing.
+
         If set to a positive value,
-            the system relaxes until the total torque is smaller than or
-            equal to this threshold.
+        the system relaxes until the total torque is smaller than or
+        equal to this threshold.
+
+        See Also
+        --------
+        relax
         """
         return self._impl.RelaxTorqueThreshold
         
