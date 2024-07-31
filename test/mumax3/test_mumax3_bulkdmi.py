@@ -16,7 +16,7 @@ class TestBulkDMI:
     @pytest.fixture(autouse=True)
     def setup_class(self, openbc):
         # arbitrarily chosen parameters
-        msat, dbulk = 800e3, 3e-3
+        msat, dbulk, aex = 800e3, 3e-3, 13e-12
         cellsize = (1e-9, 2e-9, 3.2e-9)
         gridsize = (30, 16, 4)
 
@@ -25,6 +25,7 @@ class TestBulkDMI:
                 setcellsize{cellsize}
                 setgridsize{gridsize}
                 msat = {msat}
+                aex = {aex}
                 Dbulk = {dbulk}
 
                 m = randommag()
@@ -46,41 +47,36 @@ class TestBulkDMI:
         self.magnet.enable_demag = False
         self.magnet.enable_openbc = openbc
         self.magnet.msat = msat
+        self.magnet.aex = aex
         self.magnet.dmi_tensor.set_bulk_dmi(dbulk)
         self.magnet.magnetization.set(self.mumax3sim.get_field("m"))
 
-    def test_dmi_field(self, openbc):
-        if not openbc: pytest.xfail("Known failure for closed BC")
+    def test_dmi_field(self):
         wanted = self.mumax3sim.get_field("b_dmi")
-        result = self.magnet.dmi_field()
+        result = np.add(self.magnet.dmi_field(), self.magnet.exchange_field())
         assert np.allclose(result, wanted, rtol=RTOL)
 
-    def test_dmi_in_effective_field(self, openbc):
-        if not openbc: pytest.xfail("Known failure for closed BC")
-        wanted = self.magnet.dmi_field()
+    def test_dmi_in_effective_field(self):
+        wanted = np.add(self.magnet.dmi_field(), self.magnet.exchange_field())
         result = self.magnet.effective_field()
         assert np.allclose(result, wanted, rtol=RTOL)
 
-    def test_dmi_energy_density(self, openbc):
-        if not openbc: pytest.xfail("Known failure for closed BC")
+    def test_dmi_energy_density(self):
         wanted = self.mumax3sim.get_field("edens_dmi")
-        result = self.magnet.dmi_energy_density()
+        result = np.add(self.magnet.dmi_energy_density(), self.magnet.exchange_energy_density())
         assert np.allclose(result, wanted, rtol=RTOL)
 
-    def test_dmi_in_total_energy_density(self, openbc):
-        if not openbc: pytest.xfail("Known failure for closed BC")
-        wanted = self.magnet.dmi_energy_density()
+    def test_dmi_in_total_energy_density(self):
+        wanted = np.add(self.magnet.dmi_energy_density(), self.magnet.exchange_energy_density())
         result = self.magnet.total_energy_density()
         assert np.allclose(result, wanted, rtol=RTOL)
 
-    def test_dmi_energy(self, openbc):
-        if not openbc: pytest.xfail("Known failure for closed BC")
+    def test_dmi_energy(self):
         wanted = self.mumax3sim.get_field("e_dmi").flat[0]  # same value in all cells
-        result = self.magnet.dmi_energy()
+        result = np.add(self.magnet.dmi_energy(), self.magnet.exchange_energy())
         assert np.isclose(result, wanted, rtol=RTOL)
 
-    def test_dmi_in_total_energy(self, openbc):
-        if not openbc: pytest.xfail("Known failure for closed BC")
-        wanted = self.magnet.dmi_energy()
+    def test_dmi_in_total_energy(self):
+        wanted = np.add(self.magnet.dmi_energy(), self.magnet.exchange_energy())
         result = self.magnet.total_energy()
         assert np.isclose(result, wanted, rtol=RTOL)
