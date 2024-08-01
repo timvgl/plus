@@ -24,7 +24,8 @@ __global__ void k_ZhangLi(CuField torque,
                                      const CuParameter polParam,
                                      const CuParameter xiParam,
                                      const CuParameter alphaParam,
-                                     const CuVectorParameter jcurParam) {
+                                     const CuVectorParameter jcurParam,
+                                     const Grid mastergrid) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   const Grid grid = torque.system.grid;
@@ -58,7 +59,7 @@ __global__ void k_ZhangLi(CuField torque,
 
   // x derivative
   for (int sign : {-1, 1}) {  // left and right neighbor
-    const int3 coo_ = coo + int3{sign, 0, 0};
+    const int3 coo_ = mastergrid.wrap(coo + int3{sign, 0, 0});
     if (grid.cellInGrid(coo_) && msatParam.valueAt(coo_) != 0) {
       real3 m_ = mField.vectorAt(coo_);
       hspin += sign * u.x * m_ / (2 * cellsize.x);  // central finite difference
@@ -66,7 +67,7 @@ __global__ void k_ZhangLi(CuField torque,
   }
   // y derivative
   for (int sign : {-1, 1}) {
-    const int3 coo_ = coo + int3{0, sign, 0};
+    const int3 coo_ = mastergrid.wrap(coo + int3{0, sign, 0});
     if (grid.cellInGrid(coo_) && msatParam.valueAt(coo_) != 0) {
       real3 m_ = mField.vectorAt(coo_);
       hspin += sign * u.y * m_ / (2 * cellsize.y);
@@ -74,7 +75,7 @@ __global__ void k_ZhangLi(CuField torque,
   }
   // z derivative
   for (int sign : {-1, 1}) {
-    const int3 coo_ = coo + int3{0, 0, sign};
+    const int3 coo_ = mastergrid.wrap(coo + int3{0, 0, sign});
     if (grid.cellInGrid(coo_) && msatParam.valueAt(coo_) != 0) {
       real3 m_ = mField.vectorAt(coo_);
       hspin += sign * u.z * m_ / (2 * cellsize.z);  // central finite difference
@@ -163,7 +164,8 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
   auto cellsize = magnet->world()->cellsize();
 
   if (magnet->Lambda.assuredZero() && magnet->eps_prime.assuredZero())
-    cudaLaunch(ncells, k_ZhangLi, torque.cu(), m, msat, pol, xi, alpha, jcur);
+    cudaLaunch(ncells, k_ZhangLi, torque.cu(), m, msat, pol, xi, alpha, jcur,
+               magnet->world()->mastergrid());
   else
     cudaLaunch(ncells, k_Slonczewski, torque.cu(), m, msat, pol, lambda, alpha,
              jcur, eps_prime, FixedLayer, FreeLayerThickness);
