@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from mumax3 import Mumax3Simulation
 from mumax5 import Ferromagnet, Grid, World
+from mumax5.util import formulary
 
 RTOL = 1e-3
 
@@ -16,7 +17,7 @@ class TestBulkDMI:
     @pytest.fixture(autouse=True)
     def setup_class(self, openbc):
         # arbitrarily chosen parameters
-        msat, dbulk, aex = 800e3, 3e-3, 13e-12
+        msat, dbulk, aex = 800e3, 3e-3, 10e-12
         cellsize = (1e-9, 2e-9, 3.2e-9)
         gridsize = (30, 16, 4)
 

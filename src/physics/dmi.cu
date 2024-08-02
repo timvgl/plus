@@ -30,7 +30,9 @@ __global__ void k_dmiField(CuField hField,
                            const CuParameter msat,
                            Grid mastergrid,
                            const CuParameter aex,
-                           const bool enableOpenBC) {
+                           const bool enableOpenBC,
+                           const bool Dint,
+                           const bool Dbulk) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
   const auto system = hField.system;
  
@@ -59,7 +61,8 @@ __global__ void k_dmiField(CuField hField,
 
     // If we assume open boundary conditions and if there is no neighbor, 
     // then simply continue without adding to the effective field.    
-    if ((!system.inGeometry(neighbor_coo) && enableOpenBC))
+    if ((!system.inGeometry(neighbor_coo) && enableOpenBC) || 
+        ((msat.valueAt(neighbor_idx) == 0) && enableOpenBC))
       continue;
     
     
@@ -102,7 +105,6 @@ __global__ void k_dmiField(CuField hField,
     Dyx = -Dxy;
     Dzy = -Dyz;
 
-
     // Distance between neighbors (the finite difference)
     real delta = relative_coo.x * system.cellsize.x +
                  relative_coo.y * system.cellsize.y +
@@ -113,21 +115,26 @@ __global__ void k_dmiField(CuField hField,
     if (!system.inGeometry(neighbor_coo) && !enableOpenBC) {
     // DMI-BC
       real a = aex.valueAt(idx);
-      real Ax = Dxz * system.cellsize.x / (2 * a);
-      real Ay = Dyz * system.cellsize.y / (2 * a);
+      real D = Dxy + Dxz + Dyz - 2 * Dbulk * Dxz;
+      real D_2A = D / (2 * a);
+      real Ax = D_2A * system.cellsize.x * relative_coo.x;
+      real Ay = D_2A * system.cellsize.y * relative_coo.y;
+      real Az = D_2A * system.cellsize.z * relative_coo.z;
 
       if (relative_coo.x) {
-        m_.x = m.x - relative_coo.x * Ax * (m.z);
-        m_.y = m.y;
-        m_.z = m.z + relative_coo.x * Ax * (m.x);
+        m_.x = m.x - Dint  * (Ax * m.z);
+        m_.y = m.y - Dbulk * (Ax * m.z);
+        m_.z = m.z + Dbulk * (Ax * m.y) + Dint * (Ax * m.x);
       }
       else if (relative_coo.y) {
-        m_.x = m.x;
-        m_.y = m.y - relative_coo.y * Ay * (m.z);
-        m_.z = m.z + relative_coo.y * Ay * (m.y);
+        m_.x = m.x + Dbulk * (Ay * m.z);
+        m_.y = m.y - Dint  * (Ay * m.z);
+        m_.z = m.z - Dbulk * (Ay * m.x) + Dint * (Ay * m.y);
       }
       else if (relative_coo.z) {
-        m_ = m;
+        m_.x = m.x - Dbulk * (Az * m.y);
+        m_.y = m.y + Dbulk * (Az * m.x);
+        m_.z = m.z;
       }
     }
     else {
@@ -142,7 +149,7 @@ __global__ void k_dmiField(CuField hField,
 
   }  // end loop over neighbors
 
-  /* TO DO: implement DMI-contribution to afm-exchange
+  /* TO DO: implement DMI-contribution to afm-exchange at a single site
   if (comp == 6) {
     // Compute effective field contribution of the DMI between sublattices at a single site
     real Dyz = dmiTensor.xyz.valueAt(idx);
@@ -171,10 +178,13 @@ Field evalDmiField(const Ferromagnet* magnet) {
     hField.makeZero();
     return hField;
   }
+  
   cudaLaunch(hField.grid().ncells(), k_dmiField, hField.cu(),
              magnet->magnetization()->field().cu(), magnet->dmiTensor.cu(),
              magnet->msat.cu(), magnet->world()->mastergrid(),
-             magnet->aex.cu(), magnet->enableOpenBC);
+             magnet->aex.cu(), magnet->enableOpenBC,
+             magnet->dmiTensor.isInterfacial(),
+             magnet->dmiTensor.isBulk());
   return hField;
 }
 

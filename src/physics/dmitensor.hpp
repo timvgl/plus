@@ -28,6 +28,10 @@ struct DmiTensor {
 
   /** Returns true if all 9 DMI parameters are equal to zero. */
   bool assuredZero() const;
+  /** Returns true if interfacial DMI is set. */
+  bool isInterfacial() const;
+  /** Returns true if bulk DMI is set. */
+  bool isBulk() const;
 };
 
 struct CuDmiTensor {

@@ -29,3 +29,15 @@ bool DmiTensor::assuredZero() const {
          yxy.assuredZero() && yyz.assuredZero() && yxz.assuredZero() &&
          zxy.assuredZero() && zyz.assuredZero() && zxz.assuredZero();
 }
+
+bool DmiTensor::isInterfacial() const {
+  return xxy.assuredZero() && xyz.assuredZero() && !xxz.assuredZero() &&
+         yxy.assuredZero() && !yyz.assuredZero() && yxz.assuredZero() &&
+         zxy.assuredZero() && zyz.assuredZero() && zxz.assuredZero();
+}
+
+bool DmiTensor::isBulk() const {
+  return xxy.assuredZero() && !xyz.assuredZero() && xxz.assuredZero() &&
+         yxy.assuredZero() && yyz.assuredZero() && !yxz.assuredZero() &&
+         !zxy.assuredZero() && zyz.assuredZero() && zxz.assuredZero();
+}
