@@ -13,6 +13,16 @@ World::World(real3 cellsize, Grid mastergrid)
   if (cellsize.x <= 0 || cellsize.y <= 0 || cellsize.z <= 0) {
     throw std::invalid_argument("The cell size should be larger than 0");
   }
+
+  // TODO: move this code and make user accessible! This does not belong here!
+  pbcRepetitions_ = int3{0,0,0};
+  int repeat = 4;
+  if (this->mastergrid().size().x > 0)
+    pbcRepetitions_.x = repeat;
+  if (this->mastergrid().size().y > 0)
+    pbcRepetitions_.y = repeat;
+  if (this->mastergrid().size().z > 0)
+    pbcRepetitions_.z = repeat;
 }
 
 World::~World() {}
@@ -31,6 +41,10 @@ real World::cellVolume() const {
 
 Grid World::mastergrid() const {
   return mastergrid_;
+}
+
+const int3 World::pbcRepetitions() const {
+  return pbcRepetitions_;
 }
 
 bool World::inMastergrid(Grid grid) const {
