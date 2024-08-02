@@ -24,7 +24,7 @@ __global__ void k_exchangeField(CuField hField,
                                 const CuParameter aex,
                                 const CuParameter msat,
                                 const real3 w,  // w = 1/cellsize^2
-                                Grid mastergrid) {
+                                const Grid mastergrid) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry, set to zero and return early
