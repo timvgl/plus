@@ -26,7 +26,7 @@ __global__ void k_exchangeField(CuField hField,
                                 const CuParameter msat,
                                 const real3 w,  // w = 1/cellsize^2
                                 Grid mastergrid,
-                                const bool openBC,
+                                bool openBC,
                                 const CuDmiTensor dmiTensor,
                                 const bool Dint,
                                 const bool Dbulk) {
@@ -59,6 +59,8 @@ __global__ void k_exchangeField(CuField hField,
 
   // accumulate exchange field in h for cell at idx, divide by msat at the end
   real3 h{0, 0, 0};
+  // Assume open boundary conditions when DMI is not interfacial or bulk.
+  openBC = (!Dint && !Dbulk) ? true : openBC;
   
   // FM exchange in NN cells
   // X direction

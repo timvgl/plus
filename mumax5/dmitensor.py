@@ -21,6 +21,11 @@ class DmiTensor:
     through one of the following methods:
         - ``DmiTensor.set_interfacial_dmi``
         - ``DmiTensor.set_bulk_dmi``
+    
+    ! Warning: Neumann boundary conditions are only applied when interfacial or bulk DMI
+    is set (and magnet.enable_openbc = false)! When general tensor elements are set
+    (which don't correspond to these two cases), then open boundary conditions are assumed.
+
 
     Examples
     --------

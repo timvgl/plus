@@ -30,7 +30,7 @@ __global__ void k_dmiField(CuField hField,
                            const CuParameter msat,
                            Grid mastergrid,
                            const CuParameter aex,
-                           const bool enableOpenBC,
+                           bool enableOpenBC,
                            const bool Dint,
                            const bool Dbulk) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -50,6 +50,8 @@ __global__ void k_dmiField(CuField hField,
 
   // Accumulate DMI field of cell at idx in h. Divide by msat at the end.
   real3 h{0, 0, 0};
+  // Assume open boundary conditions when DMI is not interfacial or bulk.
+  enableOpenBC = (!Dint && !Dbulk) ? true : enableOpenBC;
 
 // Loop over the 6 nearest neighbors using the neighbor's relative coordinate.
 // Compute for each neighbor the DMI effective field term.
