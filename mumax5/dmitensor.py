@@ -12,8 +12,9 @@ class DmiTensor:
               \left[ m_j \frac{d}{dx_i} m_k - m_k \frac{d}{dx_i} m_j \right]
 
     with summation indices running over `x`, `y`, and `z`. The DMI strengths and chiral
-    properties are contained in the dmi tensor `D_ijk`. This tensor is antisymmetric
-    (`D_ijk = - D_ikj`) and hence can be fully described by only 9 elements.
+    properties are contained in the dmi tensor `D_ijk`. This tensor is antisymmetric in
+    it's magnetic indices (`D_ijk = - D_ikj`) and hence can be fully described by
+    only 9 elements.
 
     ``DmiTensor`` has 9 Parameter properties: ``xxy``, ``xxz``, ``xyz``, ``yxy``,
     ``yxz``, ``yyz``, ``zxy``, ``zxz``, and ``zyz``. These 9 parameters fully define the
@@ -22,10 +23,11 @@ class DmiTensor:
         - ``DmiTensor.set_interfacial_dmi``
         - ``DmiTensor.set_bulk_dmi``
     
-    ! Warning: Neumann boundary conditions are only applied when interfacial or bulk DMI
-    is set (and magnet.enable_openbc = false)! When general tensor elements are set
-    (which don't correspond to these two cases), then open boundary conditions are assumed.
-
+    Neumann boundary conditions are determined by 
+    .. math:: 2 A n_i\partial_i\vb{m} = \vb{\Gamma},
+    where `A` is the exchange constant (``ferromagnet.aex``) and
+    .. math:: (\vb{\Gamma})_k = m_in_jD_{ijk}
+    with `n_i` being the component of the surface normal in the `i`th direction.
 
     Examples
     --------
