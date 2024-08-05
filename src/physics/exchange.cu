@@ -12,6 +12,24 @@ bool exchangeAssuredZero(const Ferromagnet* magnet) {
   return (magnet->aex.assuredZero() || magnet->msat.assuredZero());
 }
 
+__device__ static inline real3 getGamma(const CuDmiTensor dmiTensor,
+                                        const int idx, int3 n, real3 m) {
+  // returns the DMI field at the boundary
+  real Dxxz = dmiTensor.xxz.valueAt(idx);
+  real Dxxy = dmiTensor.xxy.valueAt(idx);
+  real Dxyz = dmiTensor.xyz.valueAt(idx);
+  real Dyxz = dmiTensor.yxz.valueAt(idx);
+  real Dyxy = dmiTensor.yxy.valueAt(idx);
+  real Dyyz = dmiTensor.yyz.valueAt(idx);
+  real Dzxz = dmiTensor.zxz.valueAt(idx);
+  real Dzxy = dmiTensor.zxy.valueAt(idx);
+  real Dzyz = dmiTensor.zyz.valueAt(idx);
+  return real3{
+        -Dxxy*n.x*m.y - Dxxz*n.x*m.z - Dyxz*n.y*m.z - Dzxy*n.z*m.y - Dyxy*n.y*m.y - Dzxz*n.z*m.z,
+         Dxxy*n.x*m.x - Dzyz*n.z*m.z + Dyxy*n.y*m.x - Dxyz*n.x*m.z + Dzxy*n.z*m.x - Dyyz*n.y*m.z,   
+         Dxxz*n.x*m.x + Dyyz*n.y*m.y + Dxyz*n.x*m.y + Dyxz*n.y*m.x + Dzxz*n.z*m.x + Dzyz*n.z*m.y};
+}
+
 __device__ static inline real harmonicMean(real a, real b) {
   if (a + b == 0.0)
     return 0.0;
@@ -27,9 +45,7 @@ __global__ void k_exchangeField(CuField hField,
                                 const real3 w,  // w = 1/cellsize^2
                                 Grid mastergrid,
                                 bool openBC,
-                                const CuDmiTensor dmiTensor,
-                                const bool Dint,
-                                const bool Dbulk) {
+                                const CuDmiTensor dmiTensor) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
   const auto system = hField.system;
 
@@ -54,14 +70,10 @@ __global__ void k_exchangeField(CuField hField,
   const int3 coo = grid.index2coord(idx);
   const real3 m = mField.vectorAt(idx);
   const real a = aex.valueAt(idx);
-
-  real Dxz, Dyz, Dxy;
-
+  
   // accumulate exchange field in h for cell at idx, divide by msat at the end
   real3 h{0, 0, 0};
-  // Assume open boundary conditions when DMI is not interfacial or bulk.
-  openBC = (!Dint && !Dbulk) ? true : openBC;
-  
+
   // FM exchange in NN cells
   // X direction
 #pragma unroll
@@ -70,14 +82,7 @@ __global__ void k_exchangeField(CuField hField,
     if (!hField.cellInGeometry(coo_) && openBC)
       continue;
     
-    Dxz = dmiTensor.xxz.valueAt(idx);
-    Dyz = dmiTensor.xyz.valueAt(idx);
-    Dxy = dmiTensor.xxy.valueAt(idx);
-    real D = Dxz + Dyz + Dxy - 2 * Dbulk * Dxz;
-    real Ax = D / (2 * a) * system.cellsize.x * sgn;
-
     const int idx_ = grid.coord2index(coo_);
-
     if (msat.valueAt(idx_) != 0 || !openBC) {
       real3 m_;
       real a_;
@@ -86,10 +91,9 @@ __global__ void k_exchangeField(CuField hField,
         m_ = mField.vectorAt(idx_);
         a_ = aex.valueAt(idx_);
       }
-      else {
-        m_.x = m.x - Dint  * (Ax * m.z);
-        m_.y = m.y - Dbulk * (Ax * m.z);
-        m_.z = m.z + Dbulk * (Ax * m.y) + Dint * (Ax * m.x);
+      else { // Neumann BC
+        real3 Gamma = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m);
+        m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.x;
         a_ = a;
       }
       h += 2 * harmonicMean(a, a_) * w.x * (m_ - m);      
@@ -103,12 +107,6 @@ __global__ void k_exchangeField(CuField hField,
     if (!hField.cellInGeometry(coo_) && openBC)
       continue;
 
-    Dxz = dmiTensor.yxz.valueAt(idx);
-    Dyz = dmiTensor.yyz.valueAt(idx);
-    Dxy = dmiTensor.yxy.valueAt(idx);
-    real D = Dxz + Dyz + Dxy - 2 * Dbulk * Dxz;
-    real Ay = D / (2 * a) * system.cellsize.y * sgn;
-
     const int idx_ = grid.coord2index(coo_);
 
     if (msat.valueAt(idx_) != 0 || !openBC) {
@@ -119,10 +117,9 @@ __global__ void k_exchangeField(CuField hField,
         m_ = mField.vectorAt(idx_);
         a_ = aex.valueAt(idx_);
       }
-      else {
-        m_.x = m.x + Dbulk * (Ay * m.z);
-        m_.y = m.y - Dint  * (Ay * m.z);
-        m_.z = m.z - Dbulk * (Ay * m.x) + Dint * (Ay * m.y);
+      else { // Neumann BC
+        real3 Gamma = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m);
+        m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.y;
         a_ = a;
       }
       h += 2 * harmonicMean(a, a_) * w.y * (m_ - m);
@@ -137,12 +134,6 @@ __global__ void k_exchangeField(CuField hField,
       if (!hField.cellInGeometry(coo_) && openBC)
         continue;
 
-      Dxz = dmiTensor.zxz.valueAt(idx);
-      Dyz = dmiTensor.zyz.valueAt(idx);
-      Dxy = dmiTensor.zxy.valueAt(idx);
-      real D = Dxz + Dyz + Dxy - 2 * Dbulk * Dxz;
-      real Az = D / (2 * a) * system.cellsize.z * sgn;
-
       const int idx_ = grid.coord2index(coo_);
       
       if (msat.valueAt(idx_) != 0 || !openBC) {      
@@ -153,11 +144,10 @@ __global__ void k_exchangeField(CuField hField,
           m_ = mField.vectorAt(idx_);
           a_ = aex.valueAt(idx_);
         }
-        else {
-          m_.x = m.x - Dbulk * (Az * m.y);
-          m_.y = m.y + Dbulk * (Az * m.x);
-          m_.z = m.z;
-          a_ = a;
+        else { // Neumann BC
+        real3 Gamma = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m);
+        m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.z;
+        a_ = a;
         }
         h += 2 * harmonicMean(a, a_) * w.z * (m_ - m);        
       }
@@ -206,8 +196,7 @@ Field evalExchangeField(const Ferromagnet* magnet) {
 
   cudaLaunch(hField.grid().ncells(), k_exchangeField, hField.cu(),
              magnetization, aex, msat, w, magnet->world()->mastergrid(),
-             magnet->enableOpenBC, magnet->dmiTensor.cu(),
-             magnet->dmiTensor.isInterfacial(), magnet->dmiTensor.isBulk());
+             magnet->enableOpenBC, magnet->dmiTensor.cu());
   return hField;
 }
 
