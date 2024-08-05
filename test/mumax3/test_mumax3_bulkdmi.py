@@ -37,9 +37,9 @@ class TestBulkDMI:
 
                 // The dmi is included in the exchange in mumax3
                 // because Aex is set to zero here, b_exch is the dmi field
-                saveas(b_exch, "b_dmi.ovf")      
-                saveas(edens_exch, "edens_dmi.ovf") 
-                saveas(e_exch, "e_dmi.ovf")
+                saveas(b_exch, "b_exch_dmi.ovf")      
+                saveas(edens_exch, "edens_exch_dmi.ovf") 
+                saveas(e_exch, "e_exch_dmi.ovf")
             """
         )
 
@@ -53,7 +53,7 @@ class TestBulkDMI:
         self.magnet.magnetization.set(self.mumax3sim.get_field("m"))
 
     def test_dmi_field(self):
-        wanted = self.mumax3sim.get_field("b_dmi")
+        wanted = self.mumax3sim.get_field("b_exch_dmi")
         result = np.add(self.magnet.dmi_field(), self.magnet.exchange_field())
         assert np.allclose(result, wanted, rtol=RTOL)
 
@@ -63,7 +63,7 @@ class TestBulkDMI:
         assert np.allclose(result, wanted, rtol=RTOL)
 
     def test_dmi_energy_density(self):
-        wanted = self.mumax3sim.get_field("edens_dmi")
+        wanted = self.mumax3sim.get_field("edens_exch_dmi")
         result = np.add(self.magnet.dmi_energy_density(), self.magnet.exchange_energy_density())
         assert np.allclose(result, wanted, rtol=RTOL)
 
@@ -73,7 +73,7 @@ class TestBulkDMI:
         assert np.allclose(result, wanted, rtol=RTOL)
 
     def test_dmi_energy(self):
-        wanted = self.mumax3sim.get_field("e_dmi").flat[0]  # same value in all cells
+        wanted = self.mumax3sim.get_field("e_exch_dmi").flat[0]  # same value in all cells
         result = np.add(self.magnet.dmi_energy(), self.magnet.exchange_energy())
         assert np.isclose(result, wanted, rtol=RTOL)
 
