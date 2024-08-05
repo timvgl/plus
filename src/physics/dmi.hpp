@@ -46,7 +46,7 @@ FM_FieldQuantity dmiEnergyDensityQuantity(const Ferromagnet*);
 FM_ScalarQuantity dmiEnergyQuantity(const Ferromagnet*);
 
 //------------------------- HELPER FUNCTIONS -----------------------------
-//     Device functions declared here to be used both here and elsewhere.
+//     Device functions defined here to be used both here and elsewhere.
 //------------------------------------------------------------------------
 
 __device__ static inline real3 getGamma(const CuDmiTensor dmiTensor,
