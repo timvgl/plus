@@ -12,21 +12,6 @@ bool dmiAssuredZero(const Ferromagnet* magnet) {
   return (magnet->dmiTensor.assuredZero() || magnet->msat.assuredZero());
 }
 
-__device__ static inline real harmonicMean(real a, real b) {
-  if (a + b == 0.0)
-    return 0.0;
-  return 2 * a * b / (a + b);
-}
-
-__device__ static inline real harmonicMean(const CuParameter& param,
-                                           int idx1,
-                                           int idx2) {
-  if (idx1 == idx2)
-    return param.valueAt(idx1);                                       
-  else
-    return harmonicMean(param.valueAt(idx1), param.valueAt(idx2));
-}
-
 __global__ void k_dmiField(CuField hField,
                            const CuField mField,
                            const CuDmiTensor dmiTensor,
@@ -96,24 +81,9 @@ __global__ void k_dmiField(CuField hField,
                  relative_coo.z * system.cellsize.z;
 
     real3 m_;
-    if (!system.inGeometry(neighbor_coo) && !openBC) {
-      // Need full tensorial character of DMI for Neumann boundaries
-      real Dxxz = dmiTensor.xxz.valueAt(idx);
-      real Dxxy = dmiTensor.xxy.valueAt(idx);
-      real Dxyz = dmiTensor.xyz.valueAt(idx);
-      real Dyxz = dmiTensor.yxz.valueAt(idx);
-      real Dyxy = dmiTensor.yxy.valueAt(idx);
-      real Dyyz = dmiTensor.yyz.valueAt(idx);
-      real Dzxz = dmiTensor.zxz.valueAt(idx);
-      real Dzxy = dmiTensor.zxy.valueAt(idx);
-      real Dzyz = dmiTensor.zyz.valueAt(idx);
-      
+    if (!system.inGeometry(neighbor_coo) && !openBC) { // Neumann BC
       int3 n = relative_coo * relative_coo;
-      real3 Gamma = real3{
-        -Dxxy*n.x*m.y - Dxxz*n.x*m.z - Dyxz*n.y*m.z - Dzxy*n.z*m.y - Dyxy*n.y*m.y - Dzxz*n.z*m.z,
-         Dxxy*n.x*m.x - Dzyz*n.z*m.z + Dyxy*n.y*m.x - Dxyz*n.x*m.z + Dzxy*n.z*m.x - Dyyz*n.y*m.z,   
-         Dxxz*n.x*m.x + Dyyz*n.y*m.y + Dxyz*n.x*m.y + Dyxz*n.y*m.x + Dzxz*n.z*m.x + Dzyz*n.z*m.y};
-
+      real3 Gamma = getGamma(dmiTensor, idx, n, m);
       real a = aex.valueAt(idx);
       m_ = m + (Gamma / (2*a)) * delta;
     }

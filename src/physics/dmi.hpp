@@ -11,6 +11,9 @@
  *   -  i,j,k summation indices over x, y, and z.
  *   -  DMI tensor D_ijk, which is assymetric on j and k (D_ijk = - D_ikj)
  *   -  spatial derivative d_i(..) along direction i
+ *
+ * Neumann boundary conditions are assumed, unless specified otherwise (i.e. open
+ * boundaries).
  */
 
 #pragma once
@@ -30,18 +33,50 @@ bool dmiAssuredZero(const Ferromagnet*);
 
 /** Evaluate the effective magnetic field related to DMI. */
 Field evalDmiField(const Ferromagnet*);
-
 /** Evaluate the DMI energy density field of a ferromagnet. */
 Field evalDmiEnergyDensity(const Ferromagnet*);
-
 /** Integrate the DMI energy density field over the ferromagnet. */
 real evalDmiEnergy(const Ferromagnet*);
 
 /** Construct FM_FieldQuantity around evalDmiField(const * Ferromagnet). */
 FM_FieldQuantity dmiFieldQuantity(const Ferromagnet*);
-
 /** Construct FM_FieldQuantity around evalEnergyDensity(const * Ferromagnet).*/
 FM_FieldQuantity dmiEnergyDensityQuantity(const Ferromagnet*);
-
 /** Construct FM_FieldQuantity around evalDmiEnergy(const * Ferromagnet).*/
 FM_ScalarQuantity dmiEnergyQuantity(const Ferromagnet*);
+
+//------------------------- HELPER FUNCTIONS -----------------------------
+//     Device functions declared here to be used both here and elsewhere.
+//------------------------------------------------------------------------
+
+__device__ static inline real3 getGamma(const CuDmiTensor dmiTensor,
+                                        const int idx, int3 n, real3 m) {
+  // returns the DMI field at the boundary
+  real Dxxz = dmiTensor.xxz.valueAt(idx);
+  real Dxxy = dmiTensor.xxy.valueAt(idx);
+  real Dxyz = dmiTensor.xyz.valueAt(idx);
+  real Dyxz = dmiTensor.yxz.valueAt(idx);
+  real Dyxy = dmiTensor.yxy.valueAt(idx);
+  real Dyyz = dmiTensor.yyz.valueAt(idx);
+  real Dzxz = dmiTensor.zxz.valueAt(idx);
+  real Dzxy = dmiTensor.zxy.valueAt(idx);
+  real Dzyz = dmiTensor.zyz.valueAt(idx);
+  return real3{
+        -Dxxy*n.x*m.y - Dxxz*n.x*m.z - Dyxz*n.y*m.z - Dzxy*n.z*m.y - Dyxy*n.y*m.y - Dzxz*n.z*m.z,
+         Dxxy*n.x*m.x - Dzyz*n.z*m.z + Dyxy*n.y*m.x - Dxyz*n.x*m.z + Dzxy*n.z*m.x - Dyyz*n.y*m.z,
+         Dxxz*n.x*m.x + Dyyz*n.y*m.y + Dxyz*n.x*m.y + Dyxz*n.y*m.x + Dzxz*n.z*m.x + Dzyz*n.z*m.y};
+}
+
+__device__ static inline real harmonicMean(real a, real b) {
+  if (a + b == 0.0)
+    return 0.0;
+  if (a == b)
+    return a;
+  return 2 * a * b / (a + b);
+}
+
+__device__ static inline real harmonicMean(const CuParameter& param,
+                                           int idx1, int idx2) {
+  if (idx1 == idx2) { return param.valueAt(idx1); }
+  else { return harmonicMean(param.valueAt(idx1), param.valueAt(idx2)); }
+}

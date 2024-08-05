@@ -1,4 +1,5 @@
 #include "cudalaunch.hpp"
+#include "dmi.hpp" // used for Neumann BC and harmonicMean
 #include "dmitensor.hpp"
 #include "energy.hpp"
 #include "exchange.hpp"
@@ -10,32 +11,6 @@
 
 bool exchangeAssuredZero(const Ferromagnet* magnet) {
   return (magnet->aex.assuredZero() || magnet->msat.assuredZero());
-}
-
-__device__ static inline real3 getGamma(const CuDmiTensor dmiTensor,
-                                        const int idx, int3 n, real3 m) {
-  // returns the DMI field at the boundary
-  real Dxxz = dmiTensor.xxz.valueAt(idx);
-  real Dxxy = dmiTensor.xxy.valueAt(idx);
-  real Dxyz = dmiTensor.xyz.valueAt(idx);
-  real Dyxz = dmiTensor.yxz.valueAt(idx);
-  real Dyxy = dmiTensor.yxy.valueAt(idx);
-  real Dyyz = dmiTensor.yyz.valueAt(idx);
-  real Dzxz = dmiTensor.zxz.valueAt(idx);
-  real Dzxy = dmiTensor.zxy.valueAt(idx);
-  real Dzyz = dmiTensor.zyz.valueAt(idx);
-  return real3{
-        -Dxxy*n.x*m.y - Dxxz*n.x*m.z - Dyxz*n.y*m.z - Dzxy*n.z*m.y - Dyxy*n.y*m.y - Dzxz*n.z*m.z,
-         Dxxy*n.x*m.x - Dzyz*n.z*m.z + Dyxy*n.y*m.x - Dxyz*n.x*m.z + Dzxy*n.z*m.x - Dyyz*n.y*m.z,   
-         Dxxz*n.x*m.x + Dyyz*n.y*m.y + Dxyz*n.x*m.y + Dyxz*n.y*m.x + Dzxz*n.z*m.x + Dzyz*n.z*m.y};
-}
-
-__device__ static inline real harmonicMean(real a, real b) {
-  if (a + b == 0.0)
-    return 0.0;
-  if (a == b)
-    return a;
-  return 2 * a * b / (a + b);
 }
 
 __global__ void k_exchangeField(CuField hField,
