@@ -13,7 +13,7 @@ bool dmiAssuredZero(const Ferromagnet* magnet) {
   return (magnet->dmiTensor.assuredZero() || magnet->msat.assuredZero());
 }
 
-__global__ void k_dmiField_FM(CuField hField,
+__global__ void k_dmiField(CuField hField,
                            const CuField mField,
                            const CuDmiTensor dmiTensor,
                            const CuParameter msat,
@@ -103,7 +103,7 @@ __global__ void k_dmiField_FM(CuField hField,
   hField.setVectorInCell(idx, h);
 }
 
-__global__ void k_dmiField_AFM(CuField hField,
+__global__ void k_dmiField(CuField hField,
                            const CuField m1Field,
                            const CuField m2Field,
                            const CuDmiTensor dmiTensor,
@@ -226,14 +226,14 @@ Field evalDmiField(const Ferromagnet* magnet) {
   auto BC = magnet->enableOpenBC;
   
   if (!magnet->isSublattice() || magnet->enableOpenBC)
-    cudaLaunch(ncells, k_dmiField_FM, hField.cu(),
+    cudaLaunch(ncells, k_dmiField, hField.cu(),
               mag, dmiTensor, msat, grid, aex, BC);
   else {
     // In case `magnet` is a sublattice, it's sister sublattice affects
     // the Neumann BC. There are no open boundaries when in this scope.
     auto mag2 = magnet->hostMagnet()->getOtherSublattice(magnet)->magnetization()->field().cu();
     auto afmex_nn = magnet->hostMagnet()->afmex_nn.cu();
-    cudaLaunch(ncells, k_dmiField_AFM, hField.cu(), mag, mag2,
+    cudaLaunch(ncells, k_dmiField, hField.cu(), mag, mag2,
               dmiTensor, msat, grid, aex, afmex_nn);
   }
   return hField;
