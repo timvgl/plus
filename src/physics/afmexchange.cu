@@ -1,5 +1,6 @@
 #include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
+#include "dmi.hpp" // used for Neumann BC and harmonicMean
 #include "energy.hpp"
 #include "afmexchange.hpp"
 #include "ferromagnet.hpp"
@@ -17,23 +18,20 @@ bool afmExchangeAssuredZero(const Ferromagnet* magnet) {
         && magnet->hostMagnet()->getOtherSublattice(magnet)->msat.assuredZero()));
 }
 
-__device__ static inline real harmonicMean(real a, real b) {
-  if (a + b == 0.0)
-    return 0.0;
-  if (a == b)
-    return a;
-  return 2 * a * b / (a + b);
-}
-
 __global__ void k_afmExchangeField(CuField hField,
-                                const CuField mField,
+                                const CuField m1Field,
+                                const CuField m2Field,
+                                const CuParameter aex,
                                 const CuParameter afmex_cell,
                                 const CuParameter afmex_nn,
                                 const CuParameter msat2,
                                 const CuParameter latcon,
                                 const real3 w,  // w = 1/cellsize^2
-                                Grid mastergrid) {
+                                Grid mastergrid,
+                                const CuDmiTensor dmiTensor,
+                                const bool openBC) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  const auto system = hField.system;
 
   // When outside the geometry, set to zero and return early
   if (!hField.cellInGeometry(idx)) {
@@ -42,7 +40,7 @@ __global__ void k_afmExchangeField(CuField hField,
     return;
   }
 
-  const Grid grid = mField.system.grid;
+  const Grid grid = m2Field.system.grid;
 
   if (!grid.cellInGrid(idx))
     return;
@@ -53,10 +51,8 @@ __global__ void k_afmExchangeField(CuField hField,
   }
 
   const int3 coo = grid.index2coord(idx);
-
-
-  const real3 m2 = mField.vectorAt(idx);
-
+  const real3 m2 = m2Field.vectorAt(idx);
+  const real a = aex.valueAt(idx);
   const real ac = afmex_cell.valueAt(idx);
   const real ann = afmex_nn.valueAt(idx);
 
@@ -72,12 +68,25 @@ __global__ void k_afmExchangeField(CuField hField,
 #pragma unroll
   for (int sgn : {-1, 1}) {
     const int3 coo_ = mastergrid.wrap(coo + int3{sgn, 0, 0});
-    if (!hField.cellInGeometry(coo_))
+    if (!hField.cellInGeometry(coo_) && openBC)
       continue;
+
     const int idx_ = grid.coord2index(coo_);
-    if (msat2.valueAt(idx_) != 0) {
-      const real3 m2_ = mField.vectorAt(idx_);
-      const real ann_ = afmex_nn.valueAt(idx_);
+    if (msat2.valueAt(idx_) != 0 || !openBC) {
+      real3 m2_;
+      real ann_;
+
+      if(hField.cellInGeometry(coo_)) {
+        m2_ = m2Field.vectorAt(idx_);
+        ann_ = afmex_nn.valueAt(idx_);
+      }
+      else { // Neumann BC
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m1Field.vectorAt(idx));
+        real3 Gamma2 = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m2);
+        real fac = ann / (2 * a);
+        m2_ = m2 + sgn * system.cellsize.x / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        ann_ = ann;
+      }
       h += harmonicMean(ann, ann_) * w.x * (m2_ - m2);
     }
   }
@@ -86,12 +95,25 @@ __global__ void k_afmExchangeField(CuField hField,
 #pragma unroll
   for (int sgn : {-1, 1}) {
     const int3 coo_ = mastergrid.wrap(coo + int3{0, sgn, 0});
-    if (!hField.cellInGeometry(coo_))
+    if (!hField.cellInGeometry(coo_) && openBC)
       continue;
+
     const int idx_ = grid.coord2index(coo_);
-    if (msat2.valueAt(idx_) != 0) {
-      const real3 m2_ = mField.vectorAt(idx_);
-      const real ann_ = afmex_nn.valueAt(idx_);
+    if (msat2.valueAt(idx_) != 0 || !openBC) {
+      real3 m2_;
+      real ann_;
+
+      if(hField.cellInGeometry(coo_)) {
+        m2_ = m2Field.vectorAt(idx_);
+        ann_ = afmex_nn.valueAt(idx_);
+      }
+      else { // Neumann BC
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m1Field.vectorAt(idx));
+        real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m2);
+        real fac = ann / (2 * a);
+        m2_ = m2 + sgn * system.cellsize.y / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        ann_ = ann;
+      }
       h += harmonicMean(ann, ann_) * w.y * (m2_ - m2);
     }
   }
@@ -101,12 +123,25 @@ __global__ void k_afmExchangeField(CuField hField,
 #pragma unroll
     for (int sgn : {-1, 1}) {
       const int3 coo_ = mastergrid.wrap(coo + int3{0, 0, sgn});
-      if (!hField.cellInGeometry(coo_))
+      if (!hField.cellInGeometry(coo_) && openBC)
         continue;
+
       const int idx_ = grid.coord2index(coo_);
-      if (msat2.valueAt(idx_) != 0) {
-        const real3 m2_ = mField.vectorAt(idx_);
-        const real ann_ = afmex_nn.valueAt(idx_);
+      if (msat2.valueAt(idx_) != 0 || !openBC) {
+        real3 m2_;
+        real ann_;
+
+        if(hField.cellInGeometry(coo_)) {
+          m2_ = m2Field.vectorAt(idx_);
+          ann_ = afmex_nn.valueAt(idx_);
+        }
+        else { //Neumann BC
+          real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m1Field.vectorAt(idx));
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m2);
+          real fac = ann / (2 * a);
+          m2_ = m2 + sgn * system.cellsize.z / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+          ann_ = ann;
+        }
         h += harmonicMean(ann, ann_) * w.z * (m2_ - m2);
       }
     }
@@ -127,14 +162,19 @@ Field evalAFMExchangeField(const Ferromagnet* magnet) {
   real3 w = {1 / (c.x * c.x), 1 / (c.y * c.y), 1 / (c.z * c.z)};
   
   auto otherSub = magnet->hostMagnet()->getOtherSublattice(magnet);
+  auto mag = magnet->magnetization()->field().cu();
   auto otherMag = otherSub->magnetization()->field().cu();
   auto msat2 = otherSub->msat.cu();
+  auto aex = magnet->aex.cu();
   auto afmex_cell = magnet->hostMagnet()->afmex_cell.cu();
   auto afmex_nn = magnet->hostMagnet()->afmex_nn.cu();
   auto latcon = magnet->hostMagnet()->latcon.cu();
+  auto BC = magnet->enableOpenBC;
+  auto dmiTensor = magnet->dmiTensor.cu();
 
-  cudaLaunch(hField.grid().ncells(), k_afmExchangeField, hField.cu(), otherMag,
-             afmex_cell, afmex_nn, msat2, latcon, w, magnet->world()->mastergrid());
+  cudaLaunch(hField.grid().ncells(), k_afmExchangeField, hField.cu(),
+            mag, otherMag, aex, afmex_cell, afmex_nn, msat2, latcon,
+            w, magnet->world()->mastergrid(), dmiTensor, BC);
   return hField;
 }
 
