@@ -41,3 +41,10 @@ def test_magnet_bias_field(test_parameters):
 
     magnet.bias_magnetic_field = bias_field_new
     assert_almost_equal(magnet.external_field.eval(), expected_field)
+
+
+@pytest.mark.parametrize("size", [(2, 4, 0), (-1, 2, 3), (1, 0, 1)])
+def test_invalid_grid_size(size):
+    world = World((1,1,1))
+    with pytest.raises(ValueError):
+        magnet = Ferromagnet(world, Grid(size))

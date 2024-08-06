@@ -18,7 +18,13 @@
 Magnet::Magnet(std::shared_ptr<System> system_ptr,
                std::string name)
     : system_(system_ptr),
-      name_(name) {}
+      name_(name) {
+  // Check that the system has at least size 1
+  int3 size = system_->grid().size();
+  if (size.x < 1 || size.y < 1 || size.z < 1)
+    throw std::invalid_argument("The grid of a magnet should have size >= 1 "
+                                "in all directions.");
+}
 
 Magnet::Magnet(MumaxWorld* world,
                Grid grid,
