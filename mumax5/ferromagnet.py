@@ -148,8 +148,8 @@ class Ferromagnet:
     def enable_openbc(self):
         """Enable/disable open boundary conditions.
         
-        When set to False (default), Neumann boundary conditions
-        are used.
+        When set to False (default), Neumann boundary conditions are applied.
+        These affect the calculation of DMI and exchange field terms.
         """
         return self._impl.enable_openbc
     
