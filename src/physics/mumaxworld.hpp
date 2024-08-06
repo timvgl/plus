@@ -86,6 +86,11 @@ class MumaxWorld : public World {
   // --------------------------------------------------
   // PBC
 
+  /** Check if all magnets fit inside the given grid.
+   * @throws std:out_of_range Thrown not all magnets fit inside the given grid.
+   */
+  void checkAllMagnetsInMastergrid() const;
+
   /** Recalculate the kernels of all strayfields of all magnets in the world. */
   void recalculateStrayFields();
 
@@ -117,6 +122,7 @@ class MumaxWorld : public World {
    * repetitions.
    * @throws std::invalid_argument Thrown when 0 in mastergrid size does not
    * correspond to a 0 in pbcRepetitions.
+   * @throws std:out_of_range Thrown not all magnets fit inside the given grid.
    */
   void setPBC(const Grid mastergrid, const int3 pbcRepetitions);
 
@@ -174,6 +180,7 @@ class MumaxWorld : public World {
    * 
    * @throws std::invalid_argument Thrown when 0 in mastergrid size does not
    * correspond to a 0 in pbcRepetitions.
+   * @throws std:out_of_range Thrown not all magnets fit inside the given grid.
    */
   void setMastergrid(const Grid mastergrid);
 

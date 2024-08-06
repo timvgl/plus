@@ -198,6 +198,15 @@ void MumaxWorld::relax(real tol) {
 // --------------------------------------------------
 // PBC
 
+void MumaxWorld::checkAllMagnetsInMastergrid() const {
+  for (const auto& namedMagnet : magnets_) {
+    Magnet* magnet = namedMagnet.second;
+      if (!inMastergrid(magnet->grid()))
+        throw std::out_of_range(
+            "Not all magnets of the world fit inside the mastergrid.");
+  }
+}
+
 
 void MumaxWorld::recalculateStrayFields() {
   for (const auto& namedMagnet : magnets_) {
@@ -213,9 +222,10 @@ void MumaxWorld::recalculateStrayFields() {
 void MumaxWorld::setPBC(const Grid mastergrid, const int3 pbcRepetitions) {
   checkPbcRepetitions(pbcRepetitions);
   checkPbcCompatibility(mastergrid, pbcRepetitions);
+  pbcRepetitions_ = pbcRepetitions;
 
   mastergrid_ = mastergrid;
-  pbcRepetitions_ = pbcRepetitions;
+  checkAllMagnetsInMastergrid();
 
   recalculateStrayFields();
 }
@@ -276,8 +286,9 @@ void MumaxWorld::setPBC(const int3 pbcRepetitions) {
     size.z = 0;
   mastergrid.setSize(size);
 
-  checkPbcCompatibility(mastergrid, pbcRepetitions);
+  checkPbcCompatibility(mastergrid, pbcRepetitions);  // should be unnecessary
   mastergrid_ = mastergrid;
+  checkAllMagnetsInMastergrid();  // should be unnecessary
 
   recalculateStrayFields();
 }
@@ -293,6 +304,7 @@ void MumaxWorld::setPbcRepetitions(int3 pbcRepetitions) {
 void MumaxWorld::setMastergrid(Grid mastergrid) {
   checkPbcCompatibility(mastergrid, pbcRepetitions());
   mastergrid_ = mastergrid;
+  checkAllMagnetsInMastergrid();
   recalculateStrayFields();
 }
 
