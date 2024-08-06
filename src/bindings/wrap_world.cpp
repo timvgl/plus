@@ -17,14 +17,18 @@ void wrap_world(py::module& m) {
   // in mumax5 module, MumaxWorld is the World
   py::class_<MumaxWorld>(m, "World")
 
-      .def(py::init<real3, Grid>(), py::arg("cellsize"),
-           py::arg("mastergrid") = Grid(int3{0, 0, 0}),
-           "construct a World with a given cellsize, and optionally a "
-           "mastergrid which defines a periodic simulation box")
+      .def(py::init<real3>(), py::arg("cellsize"),
+           "construct a World with a given cellsize")
+      .def(py::init<real3, Grid, int3>(), py::arg("cellsize"),
+           py::arg("mastergrid"), py::arg("pbc_repetitions"),
+           "construct a World with a given cellsize, mastergrid and "
+           "pbcRepetitions which define a periodic simulation box")
       .def_property_readonly("cellsize", &MumaxWorld::cellsize,
                              "the cellsize of the world")
-      .def_property_readonly("mastergrid", &MumaxWorld::mastergrid,
-                             "mastergrid of the world")
+      .def_property("mastergrid", &MumaxWorld::mastergrid,
+                    &MumaxWorld::setMastergrid, "mastergrid of the world")
+      .def_property("pbc_repetitions", &MumaxWorld::pbcRepetitions,
+                    &MumaxWorld::setPbcRepetitions, "PBC repetitions of the world")
       .def_readwrite("bias_magnetic_field", &MumaxWorld::biasMagneticField,
                      "uniform external magnetic field")
       .def_readwrite("RelaxTorqueThreshold", &MumaxWorld::RelaxTorqueThreshold)
@@ -87,6 +91,16 @@ void wrap_world(py::module& m) {
                              py::return_value_policy::reference)
                              
       .def("minimize", &MumaxWorld::minimize, py::arg("tol"), py::arg("nsamples"))
-      .def("relax", &MumaxWorld::relax, py::arg("tol"));
+      .def("relax", &MumaxWorld::relax, py::arg("tol"))
 
+      .def_property_readonly("bounding_grid", &MumaxWorld::boundingGrid,
+           "Returns grid which is the minimum bounding box of all magnets "
+           "currently in the world.")
+      .def("set_pbc", py::overload_cast<const Grid, const int3>
+           (&MumaxWorld::setPBC), py::arg("mastergrid"),
+           py::arg("pbc_repetitions"), "Set the PBC")
+      .def("set_pbc", py::overload_cast<const int3>(&MumaxWorld::setPBC),
+           py::arg("pbc_repetitions"), "Set the PBC")
+      .def("unset_pbc", &MumaxWorld::unsetPBC, "Unset the PBC")
+     ;
 }

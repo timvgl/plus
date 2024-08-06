@@ -1,14 +1,22 @@
 from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import show_field
+import numpy as np
+import matplotlib.pyplot as plt
 
-# infinite grid in z direction, periodic in x and y
-mastergrid = Grid(size=(128, 128, 0), origin=(0, 0, 0))
+
+nx, ny, nz = 128, 128, 1
 cellsize = (0.1, 0.1, 0.1)
 
-world = World(cellsize, mastergrid)
+# infinite grid in z direction, periodic in x and y
+mastergrid = Grid(size=(nx, ny, 0), origin=(0, 0, 0))  # not actually necessary
+pbc_repetitions = (4, 4, 0)  # demagnetization repetitions
 
-magnet = Ferromagnet(world, grid=Grid((128, 128, 1)))
-magnet.enable_demag = False
+world = World(cellsize, pbc_repetitions=pbc_repetitions, mastergrid=mastergrid)
+magnet = Ferromagnet(world, grid=Grid((nx, ny, nz)))
+
+# this would automatically find a bounding mastergrid, but it would recalculate
+# the demagnetization kernel, which could take a while for larger systens
+# world.set_pbc(pbc_repetitions)
+
 magnet.dmi_tensor.set_interfacial_dmi(1.5)
 magnet.msat = 1.0
 magnet.aex = 1.0
@@ -18,4 +26,22 @@ magnet.alpha = 0.5
 
 world.timesolver.steps(500)
 
-show_field(magnet.magnetization)
+# --------------------------------------------------
+# show magnetization 3x3 times to see no boundaries
+
+# 3x1x128x128 to 128x128x3
+rgb = np.transpose(magnet.magnetization.get_rgb()[:,0,:,:], (1, 2, 0))
+rgb = np.tile(rgb, (3, 3, 1))  # tile to 3x3
+
+fig, ax = plt.subplots()
+ax.imshow(rgb, origin="lower")
+
+ticks = range(0, 3*nx, nx//4)
+labels = [f"{(i%nx)*cellsize[0]:.0f}" for i in ticks]
+ax.set_xticks(ticks, labels)
+ax.set_yticks(ticks, labels)
+
+ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
+ax.set_title("3x3 magnetiation")
+
+plt.show()

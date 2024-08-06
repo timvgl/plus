@@ -6,24 +6,20 @@
 #include "grid.hpp"
 #include "timesolver.hpp"
 
-World::World(real3 cellsize, Grid mastergrid)
+World::World(real3 cellsize, Grid mastergrid, int3 pbcRepetitions)
     : cellsize_(cellsize),
       mastergrid_(mastergrid),
+      pbcRepetitions_(pbcRepetitions),
       timesolver_(TimeSolver::Factory::create()) {
   if (cellsize.x <= 0 || cellsize.y <= 0 || cellsize.z <= 0) {
     throw std::invalid_argument("The cell size should be larger than 0");
   }
-
-  // TODO: move this code and make user accessible! This does not belong here!
-  pbcRepetitions_ = int3{0,0,0};
-  int repeat = 4;
-  if (this->mastergrid().size().x > 0)
-    pbcRepetitions_.x = repeat;
-  if (this->mastergrid().size().y > 0)
-    pbcRepetitions_.y = repeat;
-  if (this->mastergrid().size().z > 0)
-    pbcRepetitions_.z = repeat;
+  checkPbcRepetitions(pbcRepetitions);
+  checkPbcCompatibility(mastergrid, pbcRepetitions);
 }
+
+World::World(real3 cellsize)
+    : World(cellsize, Grid(int3{0,0,0}), int3{0,0,0}) {}
 
 World::~World() {}
 
@@ -61,4 +57,20 @@ bool World::inMastergrid(Grid grid) const {
 
 TimeSolver& World::timesolver() const {
   return *timesolver_;
+}
+
+void World::checkPbcRepetitions(const int3 pbcRepetitions) const {
+  if ((pbcRepetitions.x < 0) || (pbcRepetitions.y < 0) || (pbcRepetitions.z <0))
+    throw std::invalid_argument(
+        "Number of pbcRepetitions should not be negative.");
+}
+
+void World::checkPbcCompatibility(const Grid mastergrid,
+                                  const int3 pbcRepetitions) const {
+  if (((mastergrid.size().x == 0) ^ (pbcRepetitions.x == 0)) ||
+      ((mastergrid.size().y == 0) ^ (pbcRepetitions.y == 0)) ||
+      ((mastergrid.size().z == 0) ^ (pbcRepetitions.z == 0))) {
+    throw std::invalid_argument("0 in size of mastergrid should match 0 in "
+                                "pbcRepetitions.");
+  }
 }

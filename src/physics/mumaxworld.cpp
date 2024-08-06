@@ -18,8 +18,13 @@
 #include "timesolver.hpp"
 #include "torque.hpp"
 
-MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid)
-    : World(cellsize, mastergrid),
+MumaxWorld::MumaxWorld(real3 cellsize)
+    : World(cellsize),
+      biasMagneticField({0, 0, 0}),
+      RelaxTorqueThreshold(-1.0) {}
+
+MumaxWorld::MumaxWorld(real3 cellsize, Grid mastergrid, int3 pbcRepetitions)
+    : World(cellsize, mastergrid, pbcRepetitions),
       biasMagneticField({0, 0, 0}),
       RelaxTorqueThreshold(-1.0) {}
 
@@ -188,3 +193,113 @@ void MumaxWorld::relax(real tol) {
   Relaxer relaxer(this, this->RelaxTorqueThreshold, tol);
   relaxer.exec();
 }
+
+
+// --------------------------------------------------
+// PBC
+
+
+void MumaxWorld::recalculateStrayFields() {
+  for (const auto& namedMagnet : magnets_) {
+    Magnet* magnet = namedMagnet.second;
+    for (const auto& magnetStrayField : magnet->strayFields_) {
+      StrayField* strayField = magnetStrayField.second;
+      strayField->recreateStrayFieldExecutor();
+    }
+  }
+}
+
+
+void MumaxWorld::setPBC(const Grid mastergrid, const int3 pbcRepetitions) {
+  checkPbcRepetitions(pbcRepetitions);
+  checkPbcCompatibility(mastergrid, pbcRepetitions);
+
+  mastergrid_ = mastergrid;
+  pbcRepetitions_ = pbcRepetitions;
+
+  recalculateStrayFields();
+}
+
+
+// (very) possibly unnecessary
+int3 int3min(int3 a, int3 b) {
+  int x = std::min(a.x, b.x);
+  int y = std::min(a.y, b.y);
+  int z = std::min(a.z, b.z);
+  return int3{x, y, z};
+}
+int3 int3max(int3 a, int3 b) {
+  int x = std::max(a.x, b.x);
+  int y = std::max(a.y, b.y);
+  int z = std::max(a.z, b.z);
+  return int3{x, y, z};
+}
+
+Grid MumaxWorld::boundingGrid() const {
+  if (this->magnets_.size() == 0)
+    throw std::out_of_range("Cannot find minimum bounding box if there are "
+                            "no magnets in the world.");
+
+  if (magnets_.size() == 1)
+    return magnets_.begin()->second->grid();
+
+  // if more magnets
+  int3 minimum = magnets_.begin()->second->grid().origin();
+  int3 maximum = magnets_.begin()->second->grid().origin() +
+                 magnets_.begin()->second->grid().size();
+  
+  auto it = magnets_.begin();  // iterator
+  it++;  // go to second magnet
+  for (; it != magnets_.end(); it++) {
+    Magnet* magnet = it->second;
+    minimum = int3min(minimum, magnet->grid().origin());
+    maximum = int3max(maximum, magnet->grid().origin() + magnet->grid().size());
+  }
+
+  return Grid(maximum - minimum, minimum);  // size, origin
+}
+
+void MumaxWorld::setPBC(const int3 pbcRepetitions) {
+  checkPbcRepetitions(pbcRepetitions);
+  pbcRepetitions_ = pbcRepetitions;
+
+  // find smallest bounding box for all magnets
+  Grid mastergrid = boundingGrid();
+
+  // only periodic where specified by user
+  int3 size = mastergrid.size();
+  if (pbcRepetitions.x == 0)
+    size.x = 0;
+  if (pbcRepetitions.y == 0)
+    size.y = 0;
+  if (pbcRepetitions.z == 0)
+    size.z = 0;
+  mastergrid.setSize(size);
+
+  checkPbcCompatibility(mastergrid, pbcRepetitions);
+  mastergrid_ = mastergrid;
+
+  recalculateStrayFields();
+}
+
+
+void MumaxWorld::setPbcRepetitions(int3 pbcRepetitions) {
+  checkPbcRepetitions(pbcRepetitions);
+  checkPbcCompatibility(mastergrid(), pbcRepetitions);
+  pbcRepetitions_ = pbcRepetitions;
+  recalculateStrayFields();
+}
+
+void MumaxWorld::setMastergrid(Grid mastergrid) {
+  checkPbcCompatibility(mastergrid, pbcRepetitions());
+  mastergrid_ = mastergrid;
+  recalculateStrayFields();
+}
+
+void MumaxWorld::unsetPBC() {
+  mastergrid_ = Grid(int3{0,0,0});
+  pbcRepetitions_ = int3{0,0,0};
+  recalculateStrayFields();
+}
+
+// --------------------------------------------------

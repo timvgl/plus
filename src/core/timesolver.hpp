@@ -17,7 +17,7 @@ class TimeSolver {
  public:
   class Factory {  // Can only be used by the constructor of the world
     static std::unique_ptr<TimeSolver> create();
-    friend World::World(real3, Grid);
+    friend class World;
   };
 
  private:
