@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath("../mumax5"))
 # -- Project information -----------------------------------------------------
 
 project = "mumax5"
-author = "Oleh Kozynets, Jeroen Mulkers"
+author = "Oleh Kozynets, Ian Lateur, Lars Moreels, Jeroen Mulkers"
 release = "0.0.0"
 
 # -- General configuration ---------------------------------------------------
