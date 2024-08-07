@@ -29,7 +29,7 @@ __global__ void k_afmExchangeField(CuField hField,
                                 const real3 w,  // w = 1/cellsize^2
                                 Grid mastergrid,
                                 const CuDmiTensor dmiTensor,
-                                const bool openBC) {
+                                bool openBC) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
   const auto system = hField.system;
 
@@ -55,6 +55,9 @@ __global__ void k_afmExchangeField(CuField hField,
   const real a = aex.valueAt(idx);
   const real ac = afmex_cell.valueAt(idx);
   const real ann = afmex_nn.valueAt(idx);
+  
+  // If there is no FM-exchange at the boundary, open BC are assumed
+  openBC = (a == 0) ? true : openBC;
 
   // accumulate exchange field in h for cell at idx, divide by msat at the end
   real3 h{0, 0, 0};

@@ -48,6 +48,10 @@ __global__ void k_dmiField(CuField hField,
     if (!system.inGeometry(neighbor_coo)) { neighbor_idx = idx; }
     else { neighbor_idx = system.grid.coord2index(neighbor_coo); }
 
+    // If there is no FM-exchange at the boundary, open BC are assumed
+    real a = aex.valueAt(idx);
+    openBC = (a == 0) ? true : openBC;
+
     // If we assume open boundary conditions and if there is no neighbor, 
     // then simply continue without adding to the effective field.    
     if (openBC && (!system.inGeometry(neighbor_coo)
@@ -85,7 +89,6 @@ __global__ void k_dmiField(CuField hField,
     if (!system.inGeometry(neighbor_coo) && !openBC) { // Neumann BC
       int3 n = relative_coo * relative_coo;
       real3 Gamma = getGamma(dmiTensor, idx, n, m);
-      real a = aex.valueAt(idx);
       m_ = m + (Gamma / (2*a)) * delta;
     }
     else {
@@ -172,6 +175,8 @@ __global__ void k_dmiField(CuField hField,
       real3 Gamma1 = getGamma(dmiTensor, idx, n, m);
       real3 Gamma2 = getGamma(dmiTensor, idx, n, m2Field.vectorAt(idx));
       real a = aex.valueAt(idx);
+      if(a == 0) // Assume open BC
+          continue;
       real an = afmex_nn.valueAt(idx);
       real a2 = 2 * a;
       real an_a2 = an / a2;
