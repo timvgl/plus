@@ -56,6 +56,7 @@ class CuParameter {
   __device__ bool isUniform() const;
   __device__ real valueAt(int idx) const;
   __device__ real valueAt(int3 coo) const;
+  __device__ inline real harmonicMean(int idx1, int idx2) const;
 };
 
 inline CuParameter::CuParameter(const Parameter* p)
@@ -95,6 +96,12 @@ __device__ inline real CuParameter::valueAt(int idx) const {
 __device__ inline real CuParameter::valueAt(int3 coo) const {
   return valueAt(system.grid.coord2index(coo));
 }
+
+__device__ inline real CuParameter::harmonicMean(int idx1, int idx2) const {
+  if (idx1 == idx2) { return valueAt(idx1); }
+  else { return harmonicMean(valueAt(idx1), valueAt(idx2)); }
+}
+
 
 class CuVectorParameter;
 

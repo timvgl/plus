@@ -1,6 +1,6 @@
 #include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
-#include "dmi.hpp" // used for Neumann BC and harmonicMean
+#include "dmi.hpp" // used for Neumann BC
 #include "energy.hpp"
 #include "afmexchange.hpp"
 #include "ferromagnet.hpp"

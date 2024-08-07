@@ -59,17 +59,17 @@ __global__ void k_dmiField(CuField hField,
     real Dxz, Dxy, Dyz, Dzx, Dyx, Dzy;
     
     if (relative_coo.x) {  // derivative along x
-      Dxz = harmonicMean(dmiTensor.xxz, idx, neighbor_idx);
-      Dxy = harmonicMean(dmiTensor.xxy, idx, neighbor_idx);
-      Dyz = harmonicMean(dmiTensor.xyz, idx, neighbor_idx);
+      Dxz = dmiTensor.xxz.harmonicMean(idx, neighbor_idx);
+      Dxy = dmiTensor.xxy.harmonicMean(idx, neighbor_idx);
+      Dyz = dmiTensor.xyz.harmonicMean(idx, neighbor_idx);
     } else if (relative_coo.y) {  // derivative along y
-      Dxz = harmonicMean(dmiTensor.yxz, idx, neighbor_idx);
-      Dxy = harmonicMean(dmiTensor.yxy, idx, neighbor_idx);
-      Dyz = harmonicMean(dmiTensor.yyz, idx, neighbor_idx);
+      Dxz = dmiTensor.yxz.harmonicMean(idx, neighbor_idx);
+      Dxy = dmiTensor.yxy.harmonicMean(idx, neighbor_idx);
+      Dyz = dmiTensor.yyz.harmonicMean(idx, neighbor_idx);
     } else if (relative_coo.z) {  // derivative along z
-      Dxz = harmonicMean(dmiTensor.zxz, idx, neighbor_idx);
-      Dxy = harmonicMean(dmiTensor.zxy, idx, neighbor_idx);
-      Dyz = harmonicMean(dmiTensor.zyz, idx, neighbor_idx);
+      Dxz = dmiTensor.zxz.harmonicMean(idx, neighbor_idx);
+      Dxy = dmiTensor.zxy.harmonicMean(idx, neighbor_idx);
+      Dyz = dmiTensor.zyz.harmonicMean(idx, neighbor_idx);
     }
 
     Dzx = -Dxz;  // dmi tensor is assymetric
@@ -144,17 +144,17 @@ __global__ void k_dmiField(CuField hField,
     real Dxz, Dxy, Dyz, Dzx, Dyx, Dzy;
     
     if (relative_coo.x) {  // derivative along x
-      Dxz = harmonicMean(dmiTensor.xxz, idx, neighbor_idx);
-      Dxy = harmonicMean(dmiTensor.xxy, idx, neighbor_idx);
-      Dyz = harmonicMean(dmiTensor.xyz, idx, neighbor_idx);
+      Dxz = dmiTensor.xxz.harmonicMean(idx, neighbor_idx);
+      Dxy = dmiTensor.xxy.harmonicMean(idx, neighbor_idx);
+      Dyz = dmiTensor.xyz.harmonicMean(idx, neighbor_idx);
     } else if (relative_coo.y) {  // derivative along y
-      Dxz = harmonicMean(dmiTensor.yxz, idx, neighbor_idx);
-      Dxy = harmonicMean(dmiTensor.yxy, idx, neighbor_idx);
-      Dyz = harmonicMean(dmiTensor.yyz, idx, neighbor_idx);
+      Dxz = dmiTensor.yxz.harmonicMean(idx, neighbor_idx);
+      Dxy = dmiTensor.yxy.harmonicMean(idx, neighbor_idx);
+      Dyz = dmiTensor.yyz.harmonicMean(idx, neighbor_idx);
     } else if (relative_coo.z) {  // derivative along z
-      Dxz = harmonicMean(dmiTensor.zxz, idx, neighbor_idx);
-      Dxy = harmonicMean(dmiTensor.zxy, idx, neighbor_idx);
-      Dyz = harmonicMean(dmiTensor.zyz, idx, neighbor_idx);
+      Dxz = dmiTensor.zxz.harmonicMean(idx, neighbor_idx);
+      Dxy = dmiTensor.zxy.harmonicMean(idx, neighbor_idx);
+      Dyz = dmiTensor.zyz.harmonicMean(idx, neighbor_idx);
     }
 
     Dzx = -Dxz;  // dmi tensor is assymetric

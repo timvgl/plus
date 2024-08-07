@@ -187,3 +187,11 @@ inline __host__ std::ostream& operator<<(std::ostream& os, const real3 a) {
   os << "(" << a.x << "," << a.y << "," << a.z << ")";
   return os;
 }
+
+__CUDAOP__ real harmonicMean(real a, real b) {
+  if (a + b == 0.0)
+    return 0.0;
+  if (a == b)
+    return a;
+  return 2 * a * b / (a + b);
+}
