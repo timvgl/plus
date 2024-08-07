@@ -219,18 +219,6 @@ void MumaxWorld::recalculateStrayFields() {
 }
 
 
-void MumaxWorld::setPBC(const Grid mastergrid, const int3 pbcRepetitions) {
-  checkPbcRepetitions(pbcRepetitions);
-  checkPbcCompatibility(mastergrid, pbcRepetitions);
-  pbcRepetitions_ = pbcRepetitions;
-
-  mastergrid_ = mastergrid;
-  checkAllMagnetsInMastergrid();
-
-  recalculateStrayFields();
-}
-
-
 // (very) possibly unnecessary
 int3 int3min(int3 a, int3 b) {
   int x = std::min(a.x, b.x);
@@ -289,6 +277,17 @@ void MumaxWorld::setPBC(const int3 pbcRepetitions) {
   checkPbcCompatibility(mastergrid, pbcRepetitions);  // should be unnecessary
   mastergrid_ = mastergrid;
   checkAllMagnetsInMastergrid();  // should be unnecessary
+
+  recalculateStrayFields();
+}
+
+void MumaxWorld::setPBC(const Grid mastergrid, const int3 pbcRepetitions) {
+  checkPbcRepetitions(pbcRepetitions);
+  checkPbcCompatibility(mastergrid, pbcRepetitions);
+  pbcRepetitions_ = pbcRepetitions;
+
+  mastergrid_ = mastergrid;
+  checkAllMagnetsInMastergrid();
 
   recalculateStrayFields();
 }

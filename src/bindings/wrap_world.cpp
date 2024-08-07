@@ -25,10 +25,6 @@ void wrap_world(py::module& m) {
            "pbcRepetitions which define a periodic simulation box")
       .def_property_readonly("cellsize", &MumaxWorld::cellsize,
                              "the cellsize of the world")
-      .def_property("mastergrid", &MumaxWorld::mastergrid,
-                    &MumaxWorld::setMastergrid, "mastergrid of the world")
-      .def_property("pbc_repetitions", &MumaxWorld::pbcRepetitions,
-                    &MumaxWorld::setPbcRepetitions, "PBC repetitions of the world")
       .def_readwrite("bias_magnetic_field", &MumaxWorld::biasMagneticField,
                      "uniform external magnetic field")
       .def_readwrite("RelaxTorqueThreshold", &MumaxWorld::RelaxTorqueThreshold)
@@ -93,6 +89,7 @@ void wrap_world(py::module& m) {
       .def("minimize", &MumaxWorld::minimize, py::arg("tol"), py::arg("nsamples"))
       .def("relax", &MumaxWorld::relax, py::arg("tol"))
 
+      // PBC
       .def_property_readonly("bounding_grid", &MumaxWorld::boundingGrid,
            "Returns grid which is the minimum bounding box of all magnets "
            "currently in the world.")
@@ -102,5 +99,9 @@ void wrap_world(py::module& m) {
       .def("set_pbc", py::overload_cast<const int3>(&MumaxWorld::setPBC),
            py::arg("pbc_repetitions"), "Set the PBC")
       .def("unset_pbc", &MumaxWorld::unsetPBC, "Unset the PBC")
+      .def_property("mastergrid", &MumaxWorld::mastergrid,
+                    &MumaxWorld::setMastergrid, "mastergrid of the world")
+      .def_property("pbc_repetitions", &MumaxWorld::pbcRepetitions,
+                    &MumaxWorld::setPbcRepetitions, "PBC repetitions of the world")
      ;
 }

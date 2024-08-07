@@ -107,7 +107,7 @@ class MumaxWorld : public World {
    * 
    * @param mastergrid Mastergrid defines a periodic simulation box. If it has
    * zero size in a direction, then it is considered to be infinitely large
-   * (no periocity) in that direction.
+   * (no periodicity) in that direction.
    * 
    * @param pbcRepetitions The number of repetitions for everything inside
    * mastergrid in the x, y and z directions to create periodic boundary
@@ -173,7 +173,7 @@ class MumaxWorld : public World {
    * This does not change the `pbcRepetitions`.
    * 
    * @param mastergrid defines a periodic simulation box. If it has zero size in
-   * a direction, then it is considered to be infinitely large (no periocity) in
+   * a direction, then it is considered to be infinitely large (no periodicity) in
    * that direction.
    * 
    * This will recalculate all strayfield kernels of all magnets in the world.

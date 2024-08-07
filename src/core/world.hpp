@@ -13,7 +13,7 @@ class World {
    *
    * @param mastergrid Mastergrid defines a periodic simulation box. If it has
    * zero size in a direction, then it is considered to be infinitely large
-   * (no periocity) in that direction.
+   * (no periodicity) in that direction.
    * 
    * @param pbcRepetitions The number of repetitions for everything inside
    * mastergrid in the x, y and z directions to create periodic boundary
@@ -30,7 +30,7 @@ class World {
    * correspond to a 0 in pbcRepetitions.
    */
   explicit World(real3 cellsize, Grid mastergrid, int3 pbcRepetitions);
-  /** Create a world with a given cell size and no periodic boundry conditions. */
+  /** Create a world with a given cell size and no periodic boundary conditions. */
   explicit World(real3 cellsize);
 
   /** Destroy the world. */

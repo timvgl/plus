@@ -27,9 +27,11 @@ class World:
     mastergrid : Grid, default=Grid((0,0,0))
         Mastergrid defines a periodic simulation box. If it has zero size in
         a direction, then it is considered to be infinitely large
-        (no periocity) in that direction.
+        (no periodicity) in that direction.
         A 0 in `mastergrid` should correspond to a 0 in `pbc_repetitions`.
         All subsequently added magnets need to fit inside this mastergrid.
+
+    ``pbc_repetitions`` and ``mastergrid`` can be changed later using ``set_pbc``.
 
     See Also
     --------
@@ -42,6 +44,8 @@ class World:
             raise ValueError("'cellsize' should have three dimensions.")
         if len(pbc_repetitions) != 3:
             raise ValueError("'pbc_repetitions' should have three dimensions.")
+        if not all(isinstance(item, int) for item in pbc_repetitions):
+            raise ValueError("All elements of `pbc_repetitions` must be integers.")
 
         self._impl = _cpp.World(cellsize, mastergrid._impl, pbc_repetitions)
 
@@ -186,8 +190,10 @@ class World:
         """The master grid of the world.
 
         Mastergrid defines a periodic simulation box. If it has zero size in a
-        direction, then it is considered to be infinitely large (no periocity) in
+        direction, then it is considered to be infinitely large (no periodicity) in
         that direction.
+
+        It is advised to set ``mastergrid`` using ``set_pbc``.
 
         See Also
         --------
@@ -198,6 +204,8 @@ class World:
     @mastergrid.setter
     def mastergrid(self, mastergrid: 'Grid'):
         """Set the PBC mastergrid.
+
+        It is advised to set ``mastergrid`` using ``set_pbc``.
         
         This will recalculate all strayfield kernels of all magnets in the world.
 
@@ -219,6 +227,8 @@ class World:
         but not in the y direction. That row is then copied once up and once down,
         creating a 5x1x3 grid.
 
+        It is advised to set ``pbc_repetitions`` using ``set_pbc``.
+
         See Also
         --------
         mastergrid, set_pbc
@@ -231,6 +241,8 @@ class World:
 
         This will recalculate all strayfield kernels of all magnets in the world.
 
+        It is advised to set ``pbc_repetitions`` using ``set_pbc``.
+
         Parameters
         ----------
         value : tuple[int] of size 3
@@ -238,6 +250,8 @@ class World:
         """
         if len(value) != 3:
             raise ValueError("'pbc_repetitions' should have three dimensions.")
+        if not all(isinstance(item, int) for item in value):
+            raise ValueError("All elements of `pbc_repetitions` must be integers.")
         self._impl.pbc_repetitions = value
 
     @property
@@ -263,7 +277,7 @@ class World:
         mastergrid : Grid, default=None
             Mastergrid defines a periodic simulation box. If it has zero size in
             a direction, then it is considered to be infinitely large
-            (no periocity) in that direction.
+            (no periodicity) in that direction.
             A 0 in `mastergrid` should correspond to a 0 in `pbc_repetitions`.
 
             If set to `None` (default), the `mastergrid` will be set to the
@@ -280,6 +294,8 @@ class World:
         """
         if len(pbc_repetitions) != 3:
             raise ValueError("'pbc_repetitions' should have three dimensions.")
+        if not all(isinstance(item, int) for item in pbc_repetitions):
+            raise ValueError("All elements of `pbc_repetitions` must be integers.")
 
         if mastergrid is None:
             self._impl.set_pbc(pbc_repetitions)
