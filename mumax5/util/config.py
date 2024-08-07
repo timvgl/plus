@@ -42,7 +42,7 @@ def twodomain(m1, m2, mw, wallposition, wallthickness=0.):
     return func
 
 
-def vortex(position, diameter, circulation, polarization, comp=3):
+def vortex(position, diameter, circulation, polarization):
     """Return a vortex magnetization configuration.
 
     Parameters
@@ -79,14 +79,12 @@ def vortex(position, diameter, circulation, polarization, comp=3):
         mz = 2 * polarization * _np.exp(-r2 / diameter ** 2)
         nrm = _np.sqrt(mx ** 2 + my ** 2 + mz ** 2)
 
-        if comp == 6:
-            return (mx / nrm, my / nrm, mz / nrm, -mx / nrm, -my / nrm, -mz / nrm)
         return (mx / nrm, my / nrm, mz / nrm)
 
     return func
 
 
-def antivortex(position, diameter, circulation, polarization, comp=3):
+def antivortex(position, diameter, circulation, polarization):
     """Return a antivortex magnetization configuration.
 
     Parameters
@@ -123,8 +121,6 @@ def antivortex(position, diameter, circulation, polarization, comp=3):
         mz = 2 * polarization * _np.exp(-r2 / diameter ** 2)
         nrm = _np.sqrt(mx ** 2 + my ** 2 + mz ** 2)
 
-        if comp == 6:
-            return (mx / nrm, my / nrm, mz / nrm, -mx / nrm, -my / nrm, -mz / nrm)    
         return (mx / nrm, my / nrm, mz / nrm)
 
     return func
