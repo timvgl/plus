@@ -11,4 +11,4 @@ Field evalFullMag(const Ferromagnet*);
 Field evalAFMFullMag(const Antiferromagnet*);
 
 FM_FieldQuantity fullMagnetizationQuantity(const Ferromagnet*);
-AFM_FieldQuantity afmFullMagnetizationQuantity(const Antiferromagnet*);
+AFM_FieldQuantity fullMagnetizationQuantity(const Antiferromagnet*);

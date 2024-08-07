@@ -115,5 +115,6 @@ void wrap_ferromagnet(py::module& m) {
     return fieldToArray(demagKernel.field());
   });
 
-  m.def("full_magnetization", &fullMagnetizationQuantity);
+  m.def("full_magnetization",
+        py::overload_cast<const Ferromagnet*>(&fullMagnetizationQuantity));
 }

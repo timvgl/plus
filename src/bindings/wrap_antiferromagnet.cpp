@@ -26,7 +26,8 @@ void wrap_antiferromagnet(py::module& m) {
       .def("relax", &Antiferromagnet::relax, py::arg("tol"));
       
   m.def("neel_vector", &neelVectorQuantity);
-  m.def("full_magnetization", &afmFullMagnetizationQuantity);
+  m.def("full_magnetization",
+        py::overload_cast<const Antiferromagnet*>(&fullMagnetizationQuantity));
 
   m.def("angle_field", &angleFieldQuantity);
   m.def("max_intracell_angle", &maxAngle);

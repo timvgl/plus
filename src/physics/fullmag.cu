@@ -21,6 +21,6 @@ FM_FieldQuantity fullMagnetizationQuantity(const Ferromagnet* magnet) {
     return FM_FieldQuantity(magnet, evalFullMag, 3, "full_magnetization", "A/m");
 }
 
-AFM_FieldQuantity afmFullMagnetizationQuantity(const Antiferromagnet* magnet) {
+AFM_FieldQuantity fullMagnetizationQuantity(const Antiferromagnet* magnet) {
     return AFM_FieldQuantity(magnet, evalAFMFullMag, 3, "full_magnetization", "A/m");
 }
