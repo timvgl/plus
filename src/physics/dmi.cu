@@ -28,7 +28,7 @@ __global__ void k_dmiField(CuField hField,
                            const CuField mField,
                            const CuDmiTensor dmiTensor,
                            const CuParameter msat,
-                           Grid mastergrid,
+                           const Grid mastergrid,
                            const CuParameter aex,
                            const bool enableOpenBC) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
