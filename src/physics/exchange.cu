@@ -68,7 +68,7 @@ __global__ void k_exchangeField(CuField hField,
         a_ = aex.valueAt(idx_);
       }
       else { // Neumann BC
-        real3 Gamma = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m);
+        real3 Gamma = getGamma(dmiTensor, idx, int3{1, 0, 0}, m);
         m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.x;
         a_ = a;
       }
@@ -94,7 +94,7 @@ __global__ void k_exchangeField(CuField hField,
         a_ = aex.valueAt(idx_);
       }
       else { // Neumann BC
-        real3 Gamma = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m);
+        real3 Gamma = getGamma(dmiTensor, idx, int3{0, 1, 0}, m);
         m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.y;
         a_ = a;
       }
@@ -121,9 +121,9 @@ __global__ void k_exchangeField(CuField hField,
           a_ = aex.valueAt(idx_);
         }
         else { // Neumann BC
-        real3 Gamma = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m);
-        m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.z;
-        a_ = a;
+          real3 Gamma = getGamma(dmiTensor, idx, int3{0, 0, 1}, m);
+          m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.z;
+          a_ = a;
         }
         h += 2 * harmonicMean(a, a_) * w.z * (m_ - m);        
       }

@@ -81,8 +81,8 @@ __global__ void k_afmExchangeField(CuField hField,
         ann_ = afmex_nn.valueAt(idx_);
       }
       else { // Neumann BC
-        real3 Gamma1 = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m1Field.vectorAt(idx));
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m2);
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m1Field.vectorAt(idx));
+        real3 Gamma2 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m2);
         real fac = ann / (2 * a);
         m2_ = m2 + sgn * system.cellsize.x / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
         ann_ = ann;
@@ -108,8 +108,8 @@ __global__ void k_afmExchangeField(CuField hField,
         ann_ = afmex_nn.valueAt(idx_);
       }
       else { // Neumann BC
-        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m1Field.vectorAt(idx));
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m2);
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m1Field.vectorAt(idx));
+        real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m2);
         real fac = ann / (2 * a);
         m2_ = m2 + sgn * system.cellsize.y / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
         ann_ = ann;
@@ -136,8 +136,8 @@ __global__ void k_afmExchangeField(CuField hField,
           ann_ = afmex_nn.valueAt(idx_);
         }
         else { //Neumann BC
-          real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m1Field.vectorAt(idx));
-          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m2);
+          real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m1Field.vectorAt(idx));
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m2);
           real fac = ann / (2 * a);
           m2_ = m2 + sgn * system.cellsize.z / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
           ann_ = ann;
