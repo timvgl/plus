@@ -58,6 +58,10 @@ void StrayField::setMethod(StrayFieldExecutor::Method method) {
   }
 }
 
+void StrayField::recreateStrayFieldExecutor() {
+  executor_ = StrayFieldExecutor::create(magnet_, system_, executor_->method());
+}
+
 const Magnet* StrayField::source() const {
   return magnet_;
 }

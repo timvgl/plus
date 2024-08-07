@@ -17,6 +17,8 @@ class StrayFieldKernel {
   ~StrayFieldKernel();
 
   Grid grid() const;
+  Grid mastergrid() const;
+  const int3 pbcRepetitions() const;
   std::shared_ptr<const System> kernelSystem() const;
   real3 cellsize() const;
   const Field& field() const;

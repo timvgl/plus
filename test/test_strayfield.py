@@ -55,8 +55,9 @@ TESTCASES = [
 
 
 class TestStrayFields:
+    @pytest.mark.parametrize("pbc_repetitions", [None, (1, 2, 0)])
     @pytest.mark.parametrize("test_case", TESTCASES)
-    def test_fft_against_brute(self, test_case):
+    def test_fft_against_brute(self, test_case, pbc_repetitions):
         """Computes the H-field in hgrid of a magnet on mgrid using both the
         fft method and the brute method. Asserts that both methods yield the
         same results.
@@ -69,6 +70,9 @@ class TestStrayFields:
         magnet.msat = 800e3
         magnet.magnetization = (1, 0, 0)
 
+        if pbc_repetitions is not None:
+            world.set_pbc(pbc_repetitions)
+
         mf = StrayField(magnet, hgrid)
         mf.set_method("fft")
         result = mf.eval()
@@ -77,20 +81,24 @@ class TestStrayFields:
 
         assert max_relative_error(result, wanted) < 1e-4
 
+    @pytest.mark.parametrize("pbc_repetitions", [None, (1, 2, 1)])
     @pytest.mark.parametrize("test_case", TESTCASES)
-    def test_magnetfields(self, test_case):
+    def test_magnetfields(self, test_case, pbc_repetitions):
         """Asserts that the H-field in hgrid of a magnet on mgrid is computed
         correctly.
 
         This is done by comparing the result with the demag field of a magnet on
-        a grid which containds both the mgrid and the hgrid. The magnetization
+        a grid which contains both the mgrid and the hgrid. The magnetization
         is set to zero, except inside the mgrid in order to create an equivalent
         system as the system which is being checked.
         """
 
         mgrid, hgrid = test_case["mgrid"], test_case["hgrid"]
+        box = extended_grid(mgrid, hgrid)
 
-        world = World((1e-9, 2e-9, 3.1e-9))
+        world = World((1e-9, 2e-9, 3.1e-9),
+                      (0,0,0) if pbc_repetitions is None else pbc_repetitions,
+                      Grid((0,0,0)) if pbc_repetitions is None else box)
         magnet = Ferromagnet(world, mgrid)
         magnet.msat = 800e3
         magnet.magnetization = (1, -1, 2)
@@ -100,8 +108,9 @@ class TestStrayFields:
         hfield = StrayField(magnet, hgrid).eval()
 
         # Construct an equivalent system against we will check the result.
-        world2 = World(world.cellsize)
-        box = extended_grid(mgrid, hgrid)
+        world2 = World(world.cellsize,
+                      (0,0,0) if pbc_repetitions is None else pbc_repetitions,
+                      Grid((0,0,0)) if pbc_repetitions is None else box)
         magnet2 = Ferromagnet(world2, box)
 
         mxi, myi, mzi = [mgrid.origin[c] - box.origin[c] for c in [0, 1, 2]]
