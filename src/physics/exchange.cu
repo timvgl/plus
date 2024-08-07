@@ -208,11 +208,14 @@ __global__ void k_exchangeField(CuField hField,
         a_ = aex.valueAt(idx_);
       }
       else { // Neumann BC
-        real3 Gamma1 = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m);
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{sgn * sgn, 0, 0}, m2Field.vectorAt(idx));
-        real a2 = 2 * a;
-        real an_a2 = an / a2;
-        m_ = m + sgn * system.cellsize.x / (a2 * (1 - an_a2*an_a2)) * (Gamma1 - an_a2 * Gamma2);
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m1Field.vectorAt(idx));
+        real fac = an / (2 * a);
+        if (fac == -1)
+          m_ = m + Gamma1 / (4*a) * sgn * system.cellsize.x;
+        else {
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m2Field.vectorAt(idx));
+          m_ = m + sgn * system.cellsize.x / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        }
         a_ = a;
       }
       h += 2 * harmonicMean(a, a_) * w.x * (m_ - m);      
@@ -234,12 +237,15 @@ __global__ void k_exchangeField(CuField hField,
         a_ = aex.valueAt(idx_);
       }
       else { // Neumann BC
-        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m);
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, sgn * sgn, 0}, m2Field.vectorAt(idx));
-        real a2 = 2 * a;
-        real an_a2 = an / a2;
-        m_ = m + sgn * system.cellsize.y / (a2 * (1 - an_a2*an_a2)) * (Gamma1 - an_a2 * Gamma2);
-        a_ = a;
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m1Field.vectorAt(idx));
+        real fac = an / (2 * a);
+        if (fac == -1)
+          m_ = m + Gamma1 / (4*a) * sgn * system.cellsize.y;
+        else {
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m2Field.vectorAt(idx));
+          m_ = m + sgn * system.cellsize.y / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        }
+      a_ = a;
       }
       h += 2 * harmonicMean(a, a_) * w.y * (m_ - m);
     }
@@ -261,12 +267,15 @@ __global__ void k_exchangeField(CuField hField,
           a_ = aex.valueAt(idx_);
         }
         else { // Neumann BC
-        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m);
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, sgn * sgn}, m2Field.vectorAt(idx));
-        real a2 = 2 * a;
-        real an_a2 = an / a2;
-        m_ = m + sgn * system.cellsize.z / (a2 * (1 - an_a2*an_a2)) * (Gamma1 - an_a2 * Gamma2);
-        a_ = a;
+          real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m1Field.vectorAt(idx));
+          real fac = an / (2 * a);
+          if (fac == -1)
+            m_ = m + Gamma1 / (4*a) * sgn * system.cellsize.z;
+          else {
+            real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m2Field.vectorAt(idx));
+            m_ = m + sgn * system.cellsize.z / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+          }
+          a_ = a;
         }
         h += 2 * harmonicMean(a, a_) * w.z * (m_ - m);        
       }

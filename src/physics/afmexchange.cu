@@ -85,9 +85,13 @@ __global__ void k_afmExchangeField(CuField hField,
       }
       else { // Neumann BC
         real3 Gamma1 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m1Field.vectorAt(idx));
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m2);
         real fac = ann / (2 * a);
-        m2_ = m2 + sgn * system.cellsize.x / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        if (fac == -1)
+          m2_ = m2 + Gamma1 / (4*a) * sgn * system.cellsize.x;
+        else {
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m2);
+          m2_ = m2 + sgn * system.cellsize.x / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        }
         ann_ = ann;
       }
       h += harmonicMean(ann, ann_) * w.x * (m2_ - m2);
@@ -112,9 +116,13 @@ __global__ void k_afmExchangeField(CuField hField,
       }
       else { // Neumann BC
         real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m1Field.vectorAt(idx));
-        real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m2);
         real fac = ann / (2 * a);
-        m2_ = m2 + sgn * system.cellsize.y / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        if (fac == -1)
+          m2_ = m2 + Gamma1 / (4*a) * sgn * system.cellsize.y;
+        else {
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m2);
+          m2_ = m2 + sgn * system.cellsize.y / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        }
         ann_ = ann;
       }
       h += harmonicMean(ann, ann_) * w.y * (m2_ - m2);
@@ -138,11 +146,15 @@ __global__ void k_afmExchangeField(CuField hField,
           m2_ = m2Field.vectorAt(idx_);
           ann_ = afmex_nn.valueAt(idx_);
         }
-        else { //Neumann BC
+        else { // Neumann BC
           real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m1Field.vectorAt(idx));
-          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m2);
           real fac = ann / (2 * a);
-          m2_ = m2 + sgn * system.cellsize.z / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+          if (fac == -1)
+            m2_ = m2 + Gamma1 / (4*a) * sgn * system.cellsize.z;
+          else {
+            real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m2);
+            m2_ = m2 + sgn * system.cellsize.z / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+          }
           ann_ = ann;
         }
         h += harmonicMean(ann, ann_) * w.z * (m2_ - m2);
