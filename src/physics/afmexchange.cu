@@ -27,7 +27,7 @@ __global__ void k_afmExchangeField(CuField hField,
                                 const CuParameter msat2,
                                 const CuParameter latcon,
                                 const real3 w,  // w = 1/cellsize^2
-                                Grid mastergrid,
+                                const Grid mastergrid,
                                 const CuDmiTensor dmiTensor,
                                 bool openBC) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;

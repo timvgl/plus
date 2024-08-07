@@ -27,6 +27,12 @@ class Grid:
         """Return Grid string representation."""
         return f"Grid(size={self.size}, origin={self.origin})"
 
+    def __eq__(self, other: "Grid") -> bool:
+        return self._impl == other._impl
+
+    def __ne__(self, other: "Grid") -> bool:
+        return self._impl != other._impl
+
     @classmethod
     def _from_impl(cls, impl):
         grid = cls.__new__(cls)
@@ -56,5 +62,4 @@ class Grid:
     @property
     def ncells(self):
         """Return the total number of cells in this grid."""
-        Nx, Ny, Nz = self.size
-        return Nx * Ny * Nz
+        return self._impl.ncells

@@ -22,29 +22,55 @@ std::shared_ptr<const System> StrayFieldKernel::kernelSystem() const {
   return kernel_->system();
 }
 
-__global__ void k_strayFieldKernel(CuField kernel) {
+__global__ void k_strayFieldKernel(CuField kernel, const Grid mastergrid,
+                                   const int3 pbcRepetitions) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if (!kernel.cellInGrid(idx))
     return;
+
   const real3 cellsize = kernel.system.cellsize;
   int3 coo = kernel.system.grid.index2coord(idx);
-  kernel.setValueInCell(idx, 0, calcNewellNxx(coo, cellsize));
-  kernel.setValueInCell(idx, 1, calcNewellNyy(coo, cellsize));
-  kernel.setValueInCell(idx, 2, calcNewellNzz(coo, cellsize));
-  kernel.setValueInCell(idx, 3, calcNewellNxy(coo, cellsize));
-  kernel.setValueInCell(idx, 4, calcNewellNxz(coo, cellsize));
-  kernel.setValueInCell(idx, 5, calcNewellNyz(coo, cellsize));
+  real Nxx = 0, Nyy = 0, Nzz = 0, Nxy = 0, Nxz = 0, Nyz = 0;
+  
+  // pbcRepetitions.c should not be > 0 if mastergrid.size().c == 0
+  // but no sanity check here, World should keep track of such things
+  for (int i = -pbcRepetitions.x; i <= pbcRepetitions.x; i++) {
+    for (int j = -pbcRepetitions.y; j <= pbcRepetitions.y; j++) {
+      for (int k = -pbcRepetitions.z; k <= pbcRepetitions.z; k++) {
+          int3 coo_ = coo + (int3{i,j,k} * mastergrid.size());
+          Nxx += calcNewellNxx(coo_, cellsize);
+          Nyy += calcNewellNyy(coo_, cellsize);
+          Nzz += calcNewellNzz(coo_, cellsize);
+          Nxy += calcNewellNxy(coo_, cellsize);
+          Nxz += calcNewellNxz(coo_, cellsize);
+          Nyz += calcNewellNyz(coo_, cellsize);
+      }
+    }
+  }
+  kernel.setValueInCell(idx, 0, Nxx);
+  kernel.setValueInCell(idx, 1, Nyy);
+  kernel.setValueInCell(idx, 2, Nzz);
+  kernel.setValueInCell(idx, 3, Nxy);
+  kernel.setValueInCell(idx, 4, Nxz);
+  kernel.setValueInCell(idx, 5, Nyz);
 }
 
 void StrayFieldKernel::compute() {
-  cudaLaunch(grid().ncells(), k_strayFieldKernel, kernel_->cu());
+  cudaLaunch(grid().ncells(), k_strayFieldKernel, kernel_->cu(),
+             mastergrid(), pbcRepetitions());
 }
 
 Grid StrayFieldKernel::grid() const {
   return kernelSystem()->grid();
 }
+Grid StrayFieldKernel::mastergrid() const {
+  return kernelSystem()->world()->mastergrid();
+}
 real3 StrayFieldKernel::cellsize() const {
   return kernelSystem()->cellsize();
+}
+const int3 StrayFieldKernel::pbcRepetitions() const {
+  return kernelSystem()->world()->pbcRepetitions();
 }
 
 const Field& StrayFieldKernel::field() const {

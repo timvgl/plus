@@ -19,7 +19,7 @@ __global__ void k_exchangeField(CuField hField,
                                 const CuParameter aex,
                                 const CuParameter msat,
                                 const real3 w,  // w = 1/cellsize^2
-                                Grid mastergrid,
+                                const Grid mastergrid,
                                 bool openBC,
                                 const CuDmiTensor dmiTensor) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -341,7 +341,8 @@ FM_ScalarQuantity exchangeEnergyQuantity(const Ferromagnet* magnet) {
 __global__ void k_maxangle(CuField maxAngleField,
                            const CuField mField,
                            const CuParameter aex,
-                           const CuParameter msat) {
+                           const CuParameter msat,
+                           const Grid mastergrid) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   // When outside the geometry, set to zero and return early
@@ -369,9 +370,11 @@ __global__ void k_maxangle(CuField maxAngleField,
 
 #pragma unroll
   for (int3 relcoo : neighborRelativeCoordinates) {
-    const int3 coo_ = coo + relcoo;
+    const int3 coo_ = mastergrid.wrap(coo + relcoo);
+    if (!mField.cellInGeometry(coo_))
+      continue;
     const int idx_ = grid.coord2index(coo_);
-    if (mField.cellInGeometry(coo_) && msat.valueAt(idx_) != 0) {
+    if (msat.valueAt(idx_) != 0) {
       real a_ = aex.valueAt(idx_);
       real3 m = mField.vectorAt(idx);
       real3 m_ = mField.vectorAt(idx_);
@@ -386,7 +389,8 @@ __global__ void k_maxangle(CuField maxAngleField,
 real evalMaxAngle(const Ferromagnet* magnet) {
   Field maxAngleField(magnet->system(), 1);
   cudaLaunch(maxAngleField.grid().ncells(), k_maxangle, maxAngleField.cu(),
-             magnet->magnetization()->field().cu(), magnet->aex.cu(), magnet->msat.cu());
+             magnet->magnetization()->field().cu(), magnet->aex.cu(),
+             magnet->msat.cu(), magnet->world()->mastergrid());
   return maxAbsValue(maxAngleField);
 }
 

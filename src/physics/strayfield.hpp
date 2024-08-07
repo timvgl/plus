@@ -102,6 +102,9 @@ class StrayField : public FieldQuantity {
   /** Set the method for the computation of the stray field. */
   void setMethod(StrayFieldExecutor::Method);
 
+  /** Recreate the StrayFieldExecutor. */
+  void recreateStrayFieldExecutor();
+
   /** Return the magnet which is the source of the stray field. */
   const Magnet* source() const;
 
