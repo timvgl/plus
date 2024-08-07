@@ -1,4 +1,7 @@
+#include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
+#include "dmi.hpp" // used for Neumann BC
+#include "dmitensor.hpp"
 #include "energy.hpp"
 #include "exchange.hpp"
 #include "ferromagnet.hpp"
@@ -11,21 +14,16 @@ bool exchangeAssuredZero(const Ferromagnet* magnet) {
   return (magnet->aex.assuredZero() || magnet->msat.assuredZero());
 }
 
-__device__ static inline real harmonicMean(real a, real b) {
-  if (a + b == 0.0)
-    return 0.0;
-  if (a == b)
-    return a;
-  return 2 * a * b / (a + b);
-}
-
 __global__ void k_exchangeField(CuField hField,
                                 const CuField mField,
                                 const CuParameter aex,
                                 const CuParameter msat,
                                 const real3 w,  // w = 1/cellsize^2
-                                const Grid mastergrid) {
+                                const Grid mastergrid,
+                                bool openBC,
+                                const CuDmiTensor dmiTensor) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  const auto system = hField.system;
 
   // When outside the geometry, set to zero and return early
   if (!hField.cellInGeometry(idx)) {
@@ -48,23 +46,32 @@ __global__ void k_exchangeField(CuField hField,
   const int3 coo = grid.index2coord(idx);
   const real3 m = mField.vectorAt(idx);
   const real a = aex.valueAt(idx);
-
+  
   // accumulate exchange field in h for cell at idx, divide by msat at the end
   real3 h{0, 0, 0};
-  
+
   // FM exchange in NN cells
   // X direction
 #pragma unroll
   for (int sgn : {-1, 1}) {
     const int3 coo_ = mastergrid.wrap(coo + int3{sgn, 0, 0});
-    if (!hField.cellInGeometry(coo_))
+    if (!hField.cellInGeometry(coo_) && openBC)
       continue;
+    
     const int idx_ = grid.coord2index(coo_);
-    if (msat.valueAt(idx_) != 0) {
+    if (msat.valueAt(idx_) != 0 || !openBC) {
+      real3 m_;
+      real a_;
 
-      real3 m_ = mField.vectorAt(idx_);
-      const real a_ = aex.valueAt(idx_);
-
+      if (hField.cellInGeometry(coo_)) {
+        m_ = mField.vectorAt(idx_);
+        a_ = aex.valueAt(idx_);
+      }
+      else { // Neumann BC
+        real3 Gamma = getGamma(dmiTensor, idx, int3{1, 0, 0}, m);
+        m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.x;
+        a_ = a;
+      }
       h += 2 * harmonicMean(a, a_) * w.x * (m_ - m);      
     }
   }
@@ -73,14 +80,24 @@ __global__ void k_exchangeField(CuField hField,
 #pragma unroll
   for (int sgn : {-1, 1}) {
     const int3 coo_ = mastergrid.wrap(coo + int3{0, sgn, 0});
-    if (!hField.cellInGeometry(coo_))
+    if (!hField.cellInGeometry(coo_) && openBC)
       continue;
+
     const int idx_ = grid.coord2index(coo_);
-    if (msat.valueAt(idx_) != 0) {
 
-      real3 m_ = mField.vectorAt(idx_);
-      const real a_ = aex.valueAt(idx_);
+    if (msat.valueAt(idx_) != 0 || !openBC) {
+      real3 m_;
+      real a_;
 
+      if (hField.cellInGeometry(coo_)) {
+        m_ = mField.vectorAt(idx_);
+        a_ = aex.valueAt(idx_);
+      }
+      else { // Neumann BC
+        real3 Gamma = getGamma(dmiTensor, idx, int3{0, 1, 0}, m);
+        m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.y;
+        a_ = a;
+      }
       h += 2 * harmonicMean(a, a_) * w.y * (m_ - m);
     }
   }
@@ -90,14 +107,24 @@ __global__ void k_exchangeField(CuField hField,
 #pragma unroll
     for (int sgn : {-1, 1}) {
       const int3 coo_ = mastergrid.wrap(coo + int3{0, 0, sgn});
-      if (!hField.cellInGeometry(coo_))
+      if (!hField.cellInGeometry(coo_) && openBC)
         continue;
+
       const int idx_ = grid.coord2index(coo_);
-      if (msat.valueAt(idx_) != 0) {
+      
+      if (msat.valueAt(idx_) != 0 || !openBC) {      
+        real3 m_;
+        real a_;
 
-        real3 m_ = mField.vectorAt(idx_);
-        const real a_ = aex.valueAt(idx_);
-
+        if (hField.cellInGeometry(coo_)) {
+          m_ = mField.vectorAt(idx_);
+          a_ = aex.valueAt(idx_);
+        }
+        else { // Neumann BC
+          real3 Gamma = getGamma(dmiTensor, idx, int3{0, 0, 1}, m);
+          m_ = m + (Gamma / (2*a)) * sgn * system.cellsize.z;
+          a_ = a;
+        }
         h += 2 * harmonicMean(a, a_) * w.z * (m_ - m);        
       }
     }
@@ -127,6 +154,136 @@ __global__ void k_exchangeField(CuField hField,
   hField.setVectorInCell(idx, h / msat.valueAt(idx));
 }
 
+__global__ void k_exchangeField(CuField hField,
+                                const CuField m1Field,
+                                const CuField m2Field,
+                                const CuParameter aex,
+                                const CuParameter afmex_nn,
+                                const CuParameter msat,
+                                const real3 w,  // w = 1/cellsize^2
+                                Grid mastergrid,
+                                const CuDmiTensor dmiTensor) {
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  const auto system = hField.system;
+
+  // When outside the geometry, set to zero and return early
+  if (!hField.cellInGeometry(idx)) {
+    if (hField.cellInGrid(idx)) {
+      hField.setVectorInCell(idx, real3{0, 0, 0});
+    }
+    return;
+  }
+
+  const Grid grid = m1Field.system.grid;
+
+  if (!grid.cellInGrid(idx))
+    return;
+
+  if (msat.valueAt(idx) == 0) {
+    hField.setVectorInCell(idx, real3{0, 0, 0});
+    return;
+  }
+
+  const int3 coo = grid.index2coord(idx);
+  const real3 m = m1Field.vectorAt(idx);
+  const real a = aex.valueAt(idx);
+  const real an = afmex_nn.valueAt(idx);
+  
+  // accumulate exchange field in h for cell at idx, divide by msat at the end
+  real3 h{0, 0, 0};
+
+  // FM exchange in NN cells
+  // X direction
+#pragma unroll
+  for (int sgn : {-1, 1}) {
+    const int3 coo_ = mastergrid.wrap(coo + int3{sgn, 0, 0});   
+    const int idx_ = grid.coord2index(coo_);
+
+    if (msat.valueAt(idx_) != 0) {
+      real3 m_;
+      real a_;
+
+      if (hField.cellInGeometry(coo_)) {
+        m_ = m1Field.vectorAt(idx_);
+        a_ = aex.valueAt(idx_);
+      }
+      else { // Neumann BC
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m1Field.vectorAt(idx));
+        real fac = an / (2 * a);
+        if (fac == -1)
+          m_ = m + Gamma1 / (4*a) * sgn * system.cellsize.x;
+        else {
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{1, 0, 0}, m2Field.vectorAt(idx));
+          m_ = m + sgn * system.cellsize.x / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        }
+        a_ = a;
+      }
+      h += 2 * harmonicMean(a, a_) * w.x * (m_ - m);      
+    }
+  }
+
+  // Y direction
+#pragma unroll
+  for (int sgn : {-1, 1}) {
+    const int3 coo_ = mastergrid.wrap(coo + int3{0, sgn, 0});
+    const int idx_ = grid.coord2index(coo_);
+
+    if (msat.valueAt(idx_) != 0) {
+      real3 m_;
+      real a_;
+
+      if (hField.cellInGeometry(coo_)) {
+        m_ = m1Field.vectorAt(idx_);
+        a_ = aex.valueAt(idx_);
+      }
+      else { // Neumann BC
+        real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m1Field.vectorAt(idx));
+        real fac = an / (2 * a);
+        if (fac == -1)
+          m_ = m + Gamma1 / (4*a) * sgn * system.cellsize.y;
+        else {
+          real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 1, 0}, m2Field.vectorAt(idx));
+          m_ = m + sgn * system.cellsize.y / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+        }
+      a_ = a;
+      }
+      h += 2 * harmonicMean(a, a_) * w.y * (m_ - m);
+    }
+  }
+
+  // Z direction
+  if (grid.size().z > 1) {
+#pragma unroll
+    for (int sgn : {-1, 1}) {
+      const int3 coo_ = mastergrid.wrap(coo + int3{0, 0, sgn});
+      const int idx_ = grid.coord2index(coo_);
+      
+      if (msat.valueAt(idx_) != 0) {      
+        real3 m_;
+        real a_;
+
+        if (hField.cellInGeometry(coo_)) {
+          m_ = m1Field.vectorAt(idx_);
+          a_ = aex.valueAt(idx_);
+        }
+        else { // Neumann BC
+          real3 Gamma1 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m1Field.vectorAt(idx));
+          real fac = an / (2 * a);
+          if (fac == -1)
+            m_ = m + Gamma1 / (4*a) * sgn * system.cellsize.z;
+          else {
+            real3 Gamma2 = getGamma(dmiTensor, idx, int3{0, 0, 1}, m2Field.vectorAt(idx));
+            m_ = m + sgn * system.cellsize.z / (a * 2 * (1 - fac*fac)) * (Gamma2 - fac * Gamma1);
+          }
+          a_ = a;
+        }
+        h += 2 * harmonicMean(a, a_) * w.z * (m_ - m);        
+      }
+    }
+  }
+  hField.setVectorInCell(idx, h / msat.valueAt(idx));
+}
+
 Field evalExchangeField(const Ferromagnet* magnet) {
 
   Field hField(magnet->system(), 3);
@@ -139,12 +296,24 @@ Field evalExchangeField(const Ferromagnet* magnet) {
   real3 c = magnet->cellsize();
   real3 w = {1 / (c.x * c.x), 1 / (c.y * c.y), 1 / (c.z * c.z)};
   
-  auto magnetization = magnet->magnetization()->field().cu();
+  int ncells = hField.grid().ncells();
+  auto mag = magnet->magnetization()->field().cu();
   auto msat = magnet->msat.cu();
   auto aex = magnet->aex.cu();
+  auto grid = magnet->world()->mastergrid();
+  auto dmiTensor = magnet->dmiTensor.cu();
 
-  cudaLaunch(hField.grid().ncells(), k_exchangeField, hField.cu(),
-             magnetization, aex, msat, w, magnet->world()->mastergrid());
+  if (!magnet->isSublattice() || magnet->enableOpenBC)
+    cudaLaunch(ncells, k_exchangeField, hField.cu(), mag,
+              aex, msat, w, grid, magnet->enableOpenBC, dmiTensor);
+  else {
+    // In case `magnet` is a sublattice, it's sister sublattice affects
+    // the Neumann BC. There are no open boundaries when in this scope.
+    auto mag2 = magnet->hostMagnet()->getOtherSublattice(magnet)->magnetization()->field().cu();
+    auto afmex_nn = magnet->hostMagnet()->afmex_nn.cu();
+    cudaLaunch(ncells, k_exchangeField, hField.cu(), mag,
+              mag2, aex, afmex_nn, msat, w, grid, dmiTensor);
+  }
   return hField;
 }
 
