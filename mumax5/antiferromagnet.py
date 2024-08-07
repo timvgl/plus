@@ -14,7 +14,6 @@ from .scalarquantity import ScalarQuantity
 
 class Antiferromagnet:
     """Create an antiferromagnet instance.
-
     This class can also be used to create a Ferrimagnet instance since both sublattices
     are independently modifiable.
 
@@ -26,11 +25,13 @@ class Antiferromagnet:
         The number of cells in x, y, z the antiferromagnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
         The geometry of the antiferromagnet can be set in three ways.
+
         1. If the geometry contains all cells in the grid, then use None (the default)
         2. Use an ndarray which specifies for each cell wheter or not it is in the
            geometry.
         3. Use a function which takes x, y, and z coordinates as arguments and returns
            true if this position is inside the geometry and false otherwise.
+
     name : str (default="")
         The antiferromagnet's identifier. If the name is empty (the default), a name for the
         antiferromagnet will be created.
@@ -141,7 +142,7 @@ class Antiferromagnet:
     def minimize(self, tol=1e-6, nsamples=20):
         """Minimize the total energy.
 
-        Fast energy minimization, but less robust than "relax"
+        Fast energy minimization, but less robust than `relax`
         when starting from a high energy state.
 
         Parameters
@@ -153,6 +154,10 @@ class Antiferromagnet:
         nsamples : int (default=20)
             The number of consecutive magnetization evaluations that must not
             differ by more than the tolerance "tol".
+
+        See Also
+        --------
+        relax
         """
         self._impl.minimize(tol, nsamples)
 
@@ -164,15 +169,17 @@ class Antiferromagnet:
         Hereafter, relaxation keeps on going until the maximum torque is
         minimized.
 
-        Compared to "minimize", this function takes a longer time to execute,
+        Compared to `minimize`, this function takes a longer time to execute,
         but is more robust when starting from a high energy state (i.e. random).
 
-        Parameter
+        Parameters
         ----------
-        tol : int / float (default=1e-9)
+        tol : float, default=1e-9
             The lowest maximum error of the timesolver.
 
-        See also RelaxTorqueThreshold property of Ferromagnet.
+        See Also
+        --------
+        minimize
         """
         if tol >= 1e-5:
             warnings.warn("The set tolerance is greater than or equal to the default value"
@@ -185,7 +192,13 @@ class Antiferromagnet:
 
     @property
     def afmex_cell(self):
-        """Intercell antiferromagnetic exchange constant."""
+        """Intercell antiferromagnetic exchange constant (J/m).
+        
+        See Also
+        --------
+        afmex_nn
+        latcon
+        """
         return Parameter(self._impl.afmex_cell)
 
     @afmex_cell.setter
@@ -198,7 +211,12 @@ class Antiferromagnet:
 
     @property
     def afmex_nn(self):
-        """Intracell antiferromagnetic exchange constant."""
+        """Intracell antiferromagnetic exchange constant (J/m).
+        
+        See Also
+        --------
+        afmex_cell
+        """
         return Parameter(self._impl.afmex_nn)
 
     @afmex_nn.setter
@@ -211,8 +229,12 @@ class Antiferromagnet:
 
     @property
     def latcon(self):
-        """Lattice constant.
+        """Lattice constant (m).
         Default = 0.35 nm.
+
+        See Also
+        --------
+        afmex_cell
         """
         return Parameter(self._impl.latcon)
     
@@ -224,26 +246,43 @@ class Antiferromagnet:
 
     @property
     def neel_vector(self):
-        """Neel vector of an antiferromagnet instance.
-        This quantity is defined as L = (M1 - M2) / 2
+        """Weighted dimensionless Neel vector of an antiferromagnet/ferrimagnet.
+        (msat1*m1 - msat2*m2) / (msat1 + msat2)
         """
         return FieldQuantity(_cpp.neel_vector(self._impl))
     
     @property
     def full_magnetization(self):
-        """Full antiferromagnetic magnetization M1 + M2 (A/m)."""
+        """Full antiferromagnetic magnetization M1 + M2 (A/m).
+        
+        See Also
+        --------
+        Ferromagnet.full_magnetization
+        """
         return FieldQuantity(_cpp.full_magnetization(self._impl))
     
     @property
     def angle_field(self):
-        """Returns the deviation from the optimal angle (180°) between magnetization
-        vectors in the same cell which are coupled by the intracell exchange interaction.
+        """Returns the deviation from the optimal angle (180°) between
+        magnetization vectors in the same cell which are coupled by the
+        intracell exchange interaction (rad).
+
+        See Also
+        --------
+        max_intracell_angle
+        afmex_cell
         """
         return FieldQuantity(_cpp.angle_field(self._impl))
     
     @property
     def max_intracell_angle(self):
         """The maximal deviation from 180° between AFM-exchange coupled magnetization
-        vectors in the same simulation cell.
+        vectors in the same simulation cell (rad).
+
+        See Also
+        --------
+        angle_field
+        afmex_cell
+        Ferromagnet.max_angle
         """
         return ScalarQuantity(_cpp.max_intracell_angle(self._impl))

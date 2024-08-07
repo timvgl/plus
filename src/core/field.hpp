@@ -53,10 +53,7 @@ class Field : public FieldQuantity {
    * components.
    */
   void getData(real* buffer) const;
-  /** Copy field values into a vector from the device to host memory.
-   *
-   * @param buffer an output container.
-   */
+  /** Copy field values into a vector from the device to host memory. */
   std::vector<real> getData() const;
   /** Set field values using a C-style array.
    *

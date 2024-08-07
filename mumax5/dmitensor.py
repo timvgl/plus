@@ -20,8 +20,8 @@ class DmiTensor:
     ``yxz``, ``yyz``, ``zxy``, ``zxz``, and ``zyz``. These 9 parameters fully define the
     dmi tensor of a ferromagnet. The parameters can be set separately, or can be set
     through one of the following methods:
-        - ``DmiTensor.set_interfacial_dmi``
-        - ``DmiTensor.set_bulk_dmi``
+    - ``DmiTensor.set_interfacial_dmi``
+    - ``DmiTensor.set_bulk_dmi``
     
     Neumann boundary conditions are determined by :math: `2 A n_i\partial_i\vb{m} = \mathbf{\Gamma}`,
     where :math:`A` is the exchange constant and
