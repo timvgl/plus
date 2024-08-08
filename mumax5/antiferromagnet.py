@@ -230,6 +230,12 @@ class Antiferromagnet:
     @property
     def latcon(self):
         """Lattice constant (m).
+
+        Physical lattice constant of the Antiferromagnet. This doesn't break the
+        micromagnetic character of the simulation package, but is only used to
+        calculate the homogeneous exchange field, i.e. the antiferromagnetic
+        exchange interaction between spins at the same site.
+
         Default = 0.35 nm.
 
         See Also
