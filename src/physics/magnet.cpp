@@ -32,6 +32,13 @@ Magnet::Magnet(MumaxWorld* world,
                GpuBuffer<bool> geometry)
     : Magnet(std::make_shared<System>(world, grid, geometry), name) {}
 
+Magnet::~Magnet() {
+  // TODO: stray field pointers should be smart
+  for (auto& entry : strayFields_) {
+    delete entry.second;
+  }
+}
+
 std::string Magnet::name() const {
   return name_;
 }
