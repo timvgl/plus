@@ -160,6 +160,38 @@ class Ferromagnet:
         self._impl.enable_openbc = value
 
     @property
+    def enable_zhang_li_torque(self):
+        """Enable/disable Zhang-Li spin transfer torque.
+        
+        Default = True.
+
+        See Also
+        --------
+        enable_slonczewski_torque
+        """
+        return self._impl.enable_zhang_li_torque
+
+    @enable_zhang_li_torque.setter
+    def enable_zhang_li_torque(self, value):
+        self._impl.enable_zhang_li_torque = value
+
+    @property
+    def enable_slonczewski_torque(self):
+        """Enable/disable Slonczewski spin transfer torue.
+        
+        Default = True.
+
+        See Also
+        --------
+        enable_zhang_li_torque
+        """
+        return self._impl.enable_slonczewski_torque
+
+    @enable_slonczewski_torque.setter
+    def enable_slonczewski_torque(self, value):
+        self._impl.enable_slonczewski_torque = value
+
+    @property
     def bias_magnetic_field(self):
         """Uniform bias magnetic field which will affect a ferromagnet.
         

@@ -31,6 +31,8 @@ void wrap_ferromagnet(py::module& m) {
 
       .def_readwrite("enable_demag", &Ferromagnet::enableDemag)
       .def_readwrite("enable_openbc", &Ferromagnet::enableOpenBC)
+      .def_readwrite("enable_zhang_li_torque", &Ferromagnet::enableZhangLiTorque)
+      .def_readwrite("enable_slonczewski_torque", &Ferromagnet::enableSlonczewskiTorque)
       .def_readwrite("bias_magnetic_field", &Ferromagnet::biasMagneticField,
                      "uniform external magnetic field")
 

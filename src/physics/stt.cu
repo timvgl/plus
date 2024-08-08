@@ -11,12 +11,13 @@ bool spinTransferTorqueAssuredZero(const Ferromagnet* magnet) {
 }
 
 bool ZhangLiSTTAssuredZero(const Ferromagnet* magnet) {
-  return magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
-         magnet->pol.assuredZero();
+  return !magnet->enableZhangLiTorque || magnet->msat.assuredZero() ||
+         magnet->jcur.assuredZero() || magnet->pol.assuredZero();
 }
 
 bool SlonczewskiSTTAssuredZero(const Ferromagnet* magnet) {
-  return magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
+  return !magnet->enableSlonczewskiTorque ||
+         magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
          magnet->FreeLayerThickness.assuredZero() ||
          magnet->FixedLayer.assuredZero() ||
          // or both ε and ε'~PΛ² are zero
@@ -169,9 +170,8 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
 
   auto cellsize = magnet->world()->cellsize();
 
-  // Either Zhang Li, xor Slonczewski if Λ or ε are set
-  // can't have both TODO: should that be possible?
-  if (magnet->Lambda.assuredZero() && magnet->eps_prime.assuredZero())
+  // Either Zhang Li xor Slonczewski, can't have both TODO: should that be possible?
+  if (SlonczewskiSTTAssuredZero(magnet))
     cudaLaunch(ncells, k_ZhangLi, torque.cu(), m, msat, pol, xi, alpha, jcur,
                magnet->world()->mastergrid());
   else

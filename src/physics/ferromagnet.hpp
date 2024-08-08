@@ -51,6 +51,8 @@ class Ferromagnet : public Magnet {
   mutable PoissonSystem poissonSystem;
   bool enableDemag;
   bool enableOpenBC;
+  bool enableZhangLiTorque;
+  bool enableSlonczewskiTorque;
   VectorParameter anisU;
   VectorParameter anisC1;
   VectorParameter anisC2;
