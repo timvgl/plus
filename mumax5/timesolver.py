@@ -93,7 +93,7 @@ class TimeSolver:
         self._assure_sensible_timestep()
         self._impl.run(duration)
 
-    def solve(self, timepoints, quantity_dict):
+    def solve(self, timepoints, quantity_dict) -> "TimeSolverOutput":
         """Solve the differential equation.
 
         The functions collects values of a list of specified quantities
@@ -105,6 +105,11 @@ class TimeSolver:
             Specified timepoints.
         quantity_dict : dict
             Specified quantities to collect.
+
+        Returns
+        -------
+        output : TimeSolverOutput
+            Collected values of specified quantities at specified timepoints.
         """
         # TODO:check if time points are OK
         self._assure_sensible_timestep()
