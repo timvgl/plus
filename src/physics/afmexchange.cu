@@ -9,24 +9,39 @@
 #include "reduce.hpp"
 #include "world.hpp"
 
-bool afmExchangeAssuredZero(const Ferromagnet* magnet) {
+bool nonHomoAfmExchangeAssuredZero(const Ferromagnet* magnet) {
   if (!magnet->isSublattice()) { return true; }
 
-  return ((magnet->hostMagnet()->afmex_cell.assuredZero()
-        && magnet->hostMagnet()->afmex_nn.assuredZero())
-        || (magnet->msat.assuredZero()
-        && magnet->hostMagnet()->getOtherSublattice(magnet)->msat.assuredZero()));
+  return ( magnet->hostMagnet()->afmex_nn.assuredZero() ||
+           magnet->hostMagnet()->getOtherSublattice(magnet)->msat.assuredZero());
 }
 
+bool homoAfmExchangeAssuredZero(const Ferromagnet* magnet) {
+  if (!magnet->isSublattice()) { return true; }
+
+  return (magnet->hostMagnet()->afmex_cell.assuredZero() ||
+          magnet->hostMagnet()->getOtherSublattice(magnet)->msat.assuredZero());
+}
+
+// AFM exchange at a single site
+__global__ void k_afmExchangeField(CuField hField,
+                                const CuField mField,
+                                const CuParameter msat,
+                                const CuParameter afmex_cell,
+                                const CuParameter latcon) {
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  const real l = latcon.valueAt(idx);
+  real3 h = 4 * afmex_cell.valueAt(idx) * mField.vectorAt(idx) / (l * l);
+  hField.setVectorInCell(idx, h / msat.valueAt(idx));
+  }
+
+// AFM exchange between NN cells
 __global__ void k_afmExchangeField(CuField hField,
                                 const CuField m1Field,
                                 const CuField m2Field,
                                 const CuParameter aex,
-                                const CuParameter afmex_cell,
                                 const CuParameter afmex_nn,
                                 const CuParameter msat2,
-                                const CuParameter latcon,
-                                const real3 w,  // w = 1/cellsize^2
                                 const Grid mastergrid,
                                 const CuDmiTensor dmiTensor,
                                 bool openBC) {
@@ -53,7 +68,6 @@ __global__ void k_afmExchangeField(CuField hField,
   const int3 coo = grid.index2coord(idx);
   const real3 m2 = m2Field.vectorAt(idx);
   const real a = aex.valueAt(idx);
-  const real ac = afmex_cell.valueAt(idx);
   const real ann = afmex_nn.valueAt(idx);
   
   // If there is no FM-exchange at the boundary, open BC are assumed
@@ -61,10 +75,6 @@ __global__ void k_afmExchangeField(CuField hField,
 
   // accumulate exchange field in h for cell at idx, divide by msat at the end
   real3 h{0, 0, 0};
-
-  // AFM exchange at idx
-  const real l = latcon.valueAt(idx);
-  h += 4 * ac * m2 / (l * l);
   
   // AFM exchange in NN cells
 #pragma unroll
@@ -99,69 +109,117 @@ __global__ void k_afmExchangeField(CuField hField,
       }
       ann_ = ann;
       }
-      h += harmonicMean(ann, ann_) * dot(normal, w) * (m2_ - m2);
+      h += harmonicMean(ann, ann_) * (m2_ - m2) / (delta * delta);
     }
   }
   hField.setVectorInCell(idx, h / msat2.valueAt(idx));
 }
 
-Field evalAFMExchangeField(const Ferromagnet* magnet) {
-
+Field evalHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
   Field hField(magnet->system(), 3);
   
-  if (afmExchangeAssuredZero(magnet)) {
+  if (homoAfmExchangeAssuredZero(magnet)) {
     hField.makeZero();
     return hField;
   }
 
-  real3 c = magnet->cellsize();
-  real3 w = {1 / (c.x * c.x), 1 / (c.y * c.y), 1 / (c.z * c.z)};
+  auto otherSub = magnet->hostMagnet()->getOtherSublattice(magnet);
+  auto otherMag = otherSub->magnetization()->field().cu();
+  auto msat2 = otherSub->msat.cu();
+  auto afmex_cell = magnet->hostMagnet()->afmex_cell.cu();
+  auto latcon = magnet->hostMagnet()->latcon.cu();
+
+  cudaLaunch(hField.grid().ncells(), k_afmExchangeField, hField.cu(),
+            otherMag, msat2, afmex_cell, latcon);
+  return hField;
+}
+
+Field evalNonHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
+
+  Field hField(magnet->system(), 3);
+  
+  if (nonHomoAfmExchangeAssuredZero(magnet)) {
+    hField.makeZero();
+    return hField;
+  }
   
   auto otherSub = magnet->hostMagnet()->getOtherSublattice(magnet);
   auto mag = magnet->magnetization()->field().cu();
   auto otherMag = otherSub->magnetization()->field().cu();
   auto msat2 = otherSub->msat.cu();
   auto aex = magnet->aex.cu();
-  auto afmex_cell = magnet->hostMagnet()->afmex_cell.cu();
   auto afmex_nn = magnet->hostMagnet()->afmex_nn.cu();
-  auto latcon = magnet->hostMagnet()->latcon.cu();
   auto BC = magnet->enableOpenBC;
   auto dmiTensor = magnet->dmiTensor.cu();
 
   cudaLaunch(hField.grid().ncells(), k_afmExchangeField, hField.cu(),
-            mag, otherMag, aex, afmex_cell, afmex_nn, msat2, latcon,
-            w, magnet->world()->mastergrid(), dmiTensor, BC);
+            mag, otherMag, aex, afmex_nn, msat2, magnet->world()->mastergrid(),
+            dmiTensor, BC);
   return hField;
 }
 
-Field evalAFMExchangeEnergyDensity(const Ferromagnet* magnet) {
-  if (afmExchangeAssuredZero(magnet))
+Field evalNonHomoAfmExchangeEnergyDensity(const Ferromagnet* magnet) {
+  if (nonHomoAfmExchangeAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalAFMExchangeField(magnet), 0.5);
+  return evalEnergyDensity(magnet, evalNonHomogeneousAfmExchangeField(magnet), 0.5);
 }
 
-real evalAFMExchangeEnergy(const Ferromagnet* magnet) {
-  if (afmExchangeAssuredZero(magnet))
+Field evalHomoAfmExchangeEnergyDensity(const Ferromagnet* magnet) {
+  if (homoAfmExchangeAssuredZero(magnet))
+    return Field(magnet->system(), 1, 0.0);
+  return evalEnergyDensity(magnet, evalHomogeneousAfmExchangeField(magnet), 0.5);
+}
+
+real evalNonHomoAfmExchangeEnergy(const Ferromagnet* magnet) {
+  if (nonHomoAfmExchangeAssuredZero(magnet))
     return 0;
     
-  real edens = AFMexchangeEnergyDensityQuantity(magnet).average()[0];
+  real edens = nonHomoAfmExchangeEnergyDensityQuantity(magnet).average()[0];
 
   int ncells = magnet->grid().ncells();
   real cellVolume = magnet->world()->cellVolume();
   return ncells * edens * cellVolume;
 }
 
-FM_FieldQuantity AFMexchangeFieldQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalAFMExchangeField, 3, "exchange_field", "T");
+real evalHomoAfmExchangeEnergy(const Ferromagnet* magnet) {
+  if (homoAfmExchangeAssuredZero(magnet))
+    return 0;
+    
+  real edens = homoAfmExchangeEnergyDensityQuantity(magnet).average()[0];
+
+  int ncells = magnet->grid().ncells();
+  real cellVolume = magnet->world()->cellVolume();
+  return ncells * edens * cellVolume;
 }
 
-FM_FieldQuantity AFMexchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalAFMExchangeEnergyDensity, 1,
-                          "afm_exchange_energy_density", "J/m3");
+FM_FieldQuantity nonHomoAfmExchangeFieldQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalNonHomogeneousAfmExchangeField, 3,
+                          "non-homogeneous_exchange_field", "T");
 }
 
-FM_ScalarQuantity AFMexchangeEnergyQuantity(const Ferromagnet* magnet) {
-  return FM_ScalarQuantity(magnet, evalAFMExchangeEnergy, "afm_exchange_energy", "J");
+FM_FieldQuantity homoAfmExchangeFieldQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalHomogeneousAfmExchangeField, 3,
+                          "homogeneous_exchange_field", "T");
+}
+
+FM_FieldQuantity nonHomoAfmExchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalNonHomoAfmExchangeEnergyDensity, 1,
+                          "non-homogeneous_exchange_energy_density", "J/m3");
+}
+
+FM_FieldQuantity homoAfmExchangeEnergyDensityQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet, evalHomoAfmExchangeEnergyDensity, 1,
+                          "homogeneous_exchange_energy_density", "J/m3");
+}
+
+FM_ScalarQuantity nonHomoAfmExchangeEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalNonHomoAfmExchangeEnergy,
+                          "non-homogeneous_exchange_energy", "J");
+}
+
+FM_ScalarQuantity homoAfmExchangeEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalHomoAfmExchangeEnergy,
+                          "homogeneous_exchange_energy", "J");
 }
 
 __global__ void k_angle(CuField angleField,
