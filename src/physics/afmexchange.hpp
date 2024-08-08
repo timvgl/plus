@@ -33,7 +33,7 @@ FM_FieldQuantity nonHomoAfmExchangeEnergyDensityQuantity(const Ferromagnet*);
 FM_FieldQuantity homoAfmExchangeEnergyDensityQuantity(const Ferromagnet*);
 
 FM_ScalarQuantity nonHomoAfmExchangeEnergyQuantity(const Ferromagnet*);
-FM_ScalarQuantity nonHomoAfmExchangeEnergyQuantity(const Ferromagnet*);
+FM_ScalarQuantity homoAfmExchangeEnergyQuantity(const Ferromagnet*);
 
 ////////////////////////////////////////////////////////////////////////////////////
 

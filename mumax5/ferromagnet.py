@@ -840,3 +840,65 @@ class Ferromagnet:
         magnetization, msat
         """
         return FieldQuantity(_cpp.full_magnetization(self._impl))
+
+    # ----- SUBLATTICE QUANTITIES -----------
+
+    @property
+    def non_homogeneous_exchange_field(self):
+        """Effective field of the non-homogeneous exchange interaction (J).
+        
+        See Also
+        --------
+        non_homogeneous_energy_exchange_density, non_homogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.non_homogeneous_exchange_field(self._impl))
+    
+    @property
+    def homogeneous_exchange_field(self):
+        """Effective field of the homogeneous exchange interaction (J).
+        
+        See Also
+        --------
+        homogeneous_exchange_energy_density, homogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.homogeneous_exchange_field(self._impl))
+    
+    @property
+    def non_homogeneous_exchange_energy_density(self):
+        """Energy density related to the non-homogeneous exchange interaction (J).
+        
+        See Also
+        --------
+        non_homogeneous_exchange_field, non_homogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.non_homogeneous_exchange_energy_density(self._impl))
+    
+    @property
+    def homogeneous_exchange_energy_density(self):
+        """Energy density related to the homogeneous exchange interaction (J).
+        
+        See Also
+        --------
+        homogeneous_exchange_field, homogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.homogeneous_exchange_energy_density(self._impl))
+
+    @property
+    def non_homogeneous_exchange_energy(self):
+        """Energy related to the non-homogeneous exchange interaction (J).
+        
+        See Also
+        --------
+        non_homogeneous_exchange_field, non_homogeneous_exchange_energy_density
+        """
+        return ScalarQuantity(_cpp.non_homogeneous_exchange_energy(self._impl))
+    
+    @property
+    def homogeneous_exchange_energy(self):
+        """Energy related to the homogeneous exchange interaction (J).
+        
+        See Also
+        --------
+        homogeneous_exchange_field, homogeneous_exchange_energy_density
+        """
+        return ScalarQuantity(_cpp.homogeneous_exchange_energy(self._impl))
