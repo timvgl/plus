@@ -18,9 +18,9 @@ bool ZhangLiSTTAssuredZero(const Ferromagnet* magnet) {
 bool SlonczewskiSTTAssuredZero(const Ferromagnet* magnet) {
   return !magnet->enableSlonczewskiTorque ||
          magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
-         magnet->FreeLayerThickness.assuredZero() ||
+         magnet->FreeLayerThickness.assuredZero() ||  // safe but redundant
          magnet->FixedLayer.assuredZero() ||
-         // or both ε and ε'~PΛ² are zero
+         // or both ε' and ε~PΛ² are zero
          (magnet->eps_prime.assuredZero() &&
          (magnet->Lambda.assuredZero() || magnet->pol.assuredZero()));
 }
