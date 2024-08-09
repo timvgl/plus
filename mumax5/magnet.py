@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 import _mumax5cpp as _cpp
 
 from .grid import Grid
+from .strayfield import StrayField
 
 
 class Magnet(ABC):
@@ -122,3 +123,21 @@ class Magnet(ABC):
         """Return the World of which the magnet is a part."""
         from .world import World  # imported here to avoid circular imports
         return World._from_impl(self._impl.world)
+
+
+    def stray_field_from_magnet(self, magnet: "Magnet"):
+        """Return the magnetic field created by the given magnet, felt by this
+        magnet.
+        
+        Returns
+        -------
+        stray_field : StrayField
+            StrayField with the given `magnet` as source and the Grid of this
+            magnet as destination.
+
+        See Also
+        --------
+        StrayField
+        """
+        return StrayField._from_impl(
+                          self._impl.stray_field_from_magnet(magnet._impl))

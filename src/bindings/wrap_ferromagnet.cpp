@@ -15,7 +15,6 @@
 #include "magnet.hpp"
 #include "mumaxworld.hpp"
 #include "parameter.hpp"
-#include "strayfieldkernel.hpp"
 #include "stt.hpp"
 #include "thermalnoise.hpp"
 #include "torque.hpp"
@@ -58,17 +57,6 @@ void wrap_ferromagnet(py::module& m) {
       .def_readwrite("RelaxTorqueThreshold", &Ferromagnet::RelaxTorqueThreshold)
       .def_readonly("poisson_system", &Ferromagnet::poissonSystem)
       
-      .def(
-          "magnetic_field_from_magnet",
-          [](const Ferromagnet* fm, Ferromagnet* magnet) {
-            const StrayField* strayField = fm->getStrayField(magnet);
-            if (!strayField)
-              throw std::runtime_error(
-                  "Can not compute the magnetic field of the magnet");
-            return strayField;
-          },
-          py::return_value_policy::reference)
-
       .def("minimize", &Ferromagnet::minimize, py::arg("tol"), py::arg("nsamples"))
       .def("relax", &Ferromagnet::relax, py::arg("tol"));
 
@@ -105,13 +93,6 @@ void wrap_ferromagnet(py::module& m) {
   m.def("electrical_potential", &electricalPotentialQuantity);
 
   m.def("thermal_noise", &thermalNoiseQuantity);
-
-  m.def("_demag_kernel", [](const Ferromagnet* fm) {
-    Grid grid = fm->grid();
-    real3 cellsize = fm->world()->cellsize();
-    StrayFieldKernel demagKernel(grid, grid, fm->world());
-    return fieldToArray(demagKernel.field());
-  });
 
   m.def("full_magnetization",
         py::overload_cast<const Ferromagnet*>(&fullMagnetizationQuantity));
