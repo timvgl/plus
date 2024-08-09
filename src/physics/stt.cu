@@ -7,16 +7,22 @@
 #include "world.hpp"
 
 bool spinTransferTorqueAssuredZero(const Ferromagnet* magnet) {
-  return magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
-         magnet->pol.assuredZero();
+  return ZhangLiSTTAssuredZero(magnet) && SlonczewskiSTTAssuredZero(magnet);
 }
 
 bool ZhangLiSTTAssuredZero(const Ferromagnet* magnet) {
-  return spinTransferTorqueAssuredZero(magnet) || (!magnet->Lambda.assuredZero());
+  return !magnet->enableZhangLiTorque || magnet->msat.assuredZero() ||
+         magnet->jcur.assuredZero() || magnet->pol.assuredZero();
 }
 
 bool SlonczewskiSTTAssuredZero(const Ferromagnet* magnet) {
-  return ZhangLiSTTAssuredZero(magnet) || magnet->Lambda.assuredZero();
+  return !magnet->enableSlonczewskiTorque ||
+         magnet->msat.assuredZero() || magnet->jcur.assuredZero() ||
+         magnet->FreeLayerThickness.assuredZero() ||  // safe but redundant
+         magnet->FixedLayer.assuredZero() ||
+         // or both ε' and ε~PΛ² are zero
+         (magnet->eps_prime.assuredZero() &&
+         (magnet->Lambda.assuredZero() || magnet->pol.assuredZero()));
 }
 __global__ void k_ZhangLi(CuField torque,
                                      const CuField mField,
@@ -123,7 +129,8 @@ __global__ void k_Slonczewski(CuField torque,
   const real eps_p = eps_prime.valueAt(idx);
   const real d = FreeLayerThickness.valueAt(idx);
 
-  if (msat == 0 || pol == 0 || jj == real3{0, 0, 0}) {
+  if (msat == 0 || jz == 0 || d == 0 || p == real3{0,0,0} ||
+      (eps_p == 0 && (lambda == 0 || pol == 0))) {
     torque.setVectorInCell(idx, real3{0, 0, 0});
     return;
   }
@@ -163,7 +170,8 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
 
   auto cellsize = magnet->world()->cellsize();
 
-  if (magnet->Lambda.assuredZero() && magnet->eps_prime.assuredZero())
+  // Either Zhang Li xor Slonczewski, can't have both TODO: should that be possible?
+  if (SlonczewskiSTTAssuredZero(magnet))
     cudaLaunch(ncells, k_ZhangLi, torque.cu(), m, msat, pol, xi, alpha, jcur,
                magnet->world()->mastergrid());
   else
