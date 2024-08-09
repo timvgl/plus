@@ -173,8 +173,8 @@ lines_2, labels_2 = ax2.get_legend_handles_labels()
 ax2.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
 
 # Global titles
-axs[0, 0].set_title("Intercell exchange")
-axs[0, 1].set_title("Intracell exchange")
+axs[0, 0].set_title("Intercell spin-spin angle variation")
+axs[0, 1].set_title("Intracell spin-spin angle variation")
 
 fig.tight_layout()
 plt.show()
