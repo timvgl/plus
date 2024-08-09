@@ -4,9 +4,9 @@ import numpy as _np
 
 import _mumax5cpp as _cpp
 
+from .magnet import Magnet
 from .dmitensor import DmiTensor
 from .fieldquantity import FieldQuantity
-from .grid import Grid
 from .parameter import Parameter
 from .poissonsystem import PoissonSystem
 from .scalarquantity import ScalarQuantity
@@ -16,7 +16,7 @@ import warnings
 # from .world import World  # imported below to avoid circular imports
 
 
-class Ferromagnet:
+class Ferromagnet(Magnet):
     """Create a ferromagnet instance.
 
     Parameters
@@ -40,90 +40,11 @@ class Ferromagnet:
     """
 
     def __init__(self, world, grid, name="", geometry=None):
-
-        if geometry is None:
-            self._impl = world._impl.add_ferromagnet(grid._impl, name)
-            return
-
-        if callable(geometry):
-            # construct meshgrid of x, y, and z coordinates for the grid
-            nx, ny, nz = grid.size
-            cs = world.cellsize
-            idxs = _np.flip(_np.mgrid[0:nz, 0:ny, 0:nx], axis=0)  # meshgrid of indices
-            x, y, z = [(grid.origin[i] + idxs[i]) * cs[i] for i in [0, 1, 2]]
-
-            # evaluate the geometry function for each position in this meshgrid
-            geometry_array = _np.vectorize(geometry, otypes=[bool])(x, y, z)
-
-        else:
-            # When here, the geometry is not None, not callable, so it should be an
-            # ndarray or at least should be convertable to ndarray
-            geometry_array = _np.array(geometry, dtype=bool)
-            if geometry_array.shape != grid.shape:
-                raise ValueError(
-                    "The dimensions of the geometry do not match the dimensions "
-                    + "of the grid."
-                )
-        self._impl = world._impl.add_ferromagnet(grid._impl, geometry_array, name)
-
+        super().__init__(world._impl.add_ferromagnet, world, grid, name, geometry)
 
     def __repr__(self):
         """Return Ferromagnet string representation."""
         return f"Ferromagnet(grid={self.grid}, name='{self.name}')"
-
-    @classmethod
-    def _from_impl(cls, impl):
-        ferromagnet = cls.__new__(cls)
-        ferromagnet._impl = impl
-        return ferromagnet
-
-    @property
-    def name(self):
-        """Name of the ferromagnet."""
-        return self._impl.name
-
-    @property
-    def grid(self):
-        """Return the underlying grid of the ferromagnet."""
-        return Grid._from_impl(self._impl.system.grid)
-
-    @property
-    def cellsize(self):
-        """Dimensions of the cell."""
-        return self._impl.system.cellsize
-
-    @property
-    def geometry(self):
-        """Geometry of the ferromagnet."""
-        return self._impl.system.geometry
-
-    @property
-    def origin(self):
-        """Origin of the ferromagnet.
-
-        Returns
-        -------
-        origin: tuple[float] of size 3
-            xyz coordinate of the origin of the ferromagnet.
-        """
-        return self._impl.system.origin
-
-    @property
-    def center(self):
-        """Center of the ferromagnet.
-
-        Returns
-        -------
-        center: tuple[float] of size 3
-            xyz coordinate of the center of the ferromagnet.
-        """
-        return self._impl.system.center
-
-    @property
-    def world(self):
-        """Return the World of which the ferromagnet is a part."""
-        from .world import World  # imported here to avoid circular imports
-        return World._from_impl(self._impl.world)
 
     @property
     def magnetization(self):

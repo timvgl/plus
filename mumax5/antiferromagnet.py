@@ -5,17 +5,17 @@ import warnings
 
 import _mumax5cpp as _cpp
 
+from .magnet import Magnet
 from .fieldquantity import FieldQuantity
 from .ferromagnet import Ferromagnet
-from .grid import Grid
 from .parameter import Parameter
 from .scalarquantity import ScalarQuantity
 
 
-class Antiferromagnet:
+class Antiferromagnet(Magnet):
     """Create an antiferromagnet instance.
-    This class can also be used to create a Ferrimagnet instance since both sublattices
-    are independently modifiable.
+    This class can also be used to create a Ferrimagnet instance since
+    both sublattices are independently modifiable.
 
     Parameters
     ----------
@@ -38,31 +38,8 @@ class Antiferromagnet:
     """
 
     def __init__(self, world, grid, name="", geometry=None):
-        if geometry is None:
-            self._impl = world._impl.add_antiferromagnet(grid._impl, name)
-            return
-
-        if callable(geometry):
-            # construct meshgrid of x, y, and z coordinates for the grid
-            nx, ny, nz = grid.size
-            cs = world.cellsize
-            idxs = _np.flip(_np.mgrid[0:nz, 0:ny, 0:nx], axis=0)  # meshgrid of indices
-            x, y, z = [(grid.origin[i] + idxs[i]) * cs[i] for i in [0, 1, 2]]
-
-            # evaluate the geometry function for each position in this meshgrid
-            geometry_array = _np.vectorize(geometry, otypes=[bool])(x, y, z)
-
-        else:
-            # When here, the geometry is not None, not callable, so it should be an
-            # ndarray or at least should be convertable to ndarray
-            geometry_array = _np.array(geometry, dtype=bool)
-            if geometry_array.shape != grid.shape:
-                raise ValueError(
-                    "The dimensions of the geometry do not match the dimensions "
-                    + "of the grid."
-                )
-
-        self._impl = world._impl.add_antiferromagnet(grid._impl, geometry_array, name)
+        super().__init__(world._impl.add_antiferromagnet,
+                         world, grid, name, geometry)
 
     def __repr__(self):
         """Return Antiferromagnet string representation."""
@@ -81,8 +58,8 @@ class Antiferromagnet:
                 antiferromagnet.sub2.msat = 800e3
         """
         if hasattr(Antiferromagnet, name) or name == "_impl":
-            #TODO: this won't work anymore if there would come a Magnet parent class.
-            super().__setattr__(name, value)
+            # set attribute of yourself, without causing recursion
+            object.__setattr__(self, name, value)
         elif hasattr(Ferromagnet, name):
             setattr(self.sub1, name, value)
             setattr(self.sub2, name, value)
@@ -90,28 +67,6 @@ class Antiferromagnet:
             raise AttributeError(
                 r'Both Antiferromagnet and Ferromagnet have no attribute "{}".'.format(name))
 
-    @classmethod
-    def _from_impl(cls, impl):
-        antiferromagnet = cls.__new__(cls)
-        antiferromagnet._impl = impl
-        return antiferromagnet
-
-    @property
-    def name(self):
-        """Name of the antiferromagnet."""
-        return self._impl.name
-    
-    @property
-    def grid(self):
-        """Return the underlying grid of the antiferromagnet."""
-        return Grid._from_impl(self._impl.system.grid)
-
-    @property
-    def world(self):
-        """Return the World of which the antiferromagnet is a part."""
-        # same world as sublattice world; this uses less imports
-        return self.sub1.world
-    
     @property
     def sub1(self):
         """First sublattice instance."""
