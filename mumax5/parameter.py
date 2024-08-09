@@ -1,6 +1,6 @@
 """Patameter implementation."""
 
-import numpy as np
+import numpy as _np
 
 import _mumax5cpp as _cpp
 
@@ -69,7 +69,7 @@ class Parameter(FieldQuantity):
             original_term = term
 
             def new_term(t):
-                return np.array(original_term(t), dtype=float)
+                return _np.array(original_term(t), dtype=float)
 
             term = new_term
             # change mask dimensions to include components dimension
@@ -95,7 +95,7 @@ class Parameter(FieldQuantity):
                 expected_mask_shape = mask.shape
 
             if expected_mask_shape != mask.shape:
-                new_mask = np.zeros(shape=expected_mask_shape)
+                new_mask = _np.zeros(shape=expected_mask_shape)
 
                 for i in range(ncomp):
                     new_mask[i] = mask
@@ -151,19 +151,8 @@ class Parameter(FieldQuantity):
             self._impl.set(value)
 
     def _set_func(self, func):
-        value = np.zeros(self.shape, dtype=np.float32)
-
-        for iz in range(value.shape[1]):
-            for iy in range(value.shape[2]):
-                for ix in range(value.shape[3]):
-
-                    pos = self._impl.system.cell_position((ix, iy, iz))
-                    cell_value = np.array(func(*pos), ndmin=1)
-
-                    for ic in range(value.shape[0]):
-                        value[ic, iz, iy, ix] = cell_value[ic]
-
-        self._impl.set(value)
+        X, Y, Z = self.meshgrid
+        self._impl.set(_np.vectorize(func)(X, Y, Z))
 
     def _reset_fields_default(self):
         if isinstance(self._impl, _cpp.Parameter):
