@@ -93,11 +93,11 @@ void wrap_ferromagnet(py::module& m) {
   m.def("exchange_energy", &exchangeEnergyQuantity);  
   m.def("max_angle", py::overload_cast<const Ferromagnet*>(&maxAngle));
   // ferromagnetic sublattice
-  m.def("non_homogeneous_exchange_field", &nonHomoAfmExchangeFieldQuantity);
+  m.def("inhomogeneous_exchange_field", &inHomoAfmExchangeFieldQuantity);
   m.def("homogeneous_exchange_field", &homoAfmExchangeFieldQuantity);
-  m.def("non_homogeneous_exchange_energy_density", &nonHomoAfmExchangeEnergyDensityQuantity);
+  m.def("inhomogeneous_exchange_energy_density", &inHomoAfmExchangeEnergyDensityQuantity);
   m.def("homogeneous_exchange_energy_density", &homoAfmExchangeEnergyDensityQuantity);
-  m.def("non_homogeneous_exchange_energy", &nonHomoAfmExchangeEnergyQuantity);
+  m.def("inhomogeneous_exchange_energy", &inHomoAfmExchangeEnergyQuantity);
   m.def("homogeneous_exchange_energy", &homoAfmExchangeEnergyQuantity);
   //
   m.def("dmi_field", &dmiFieldQuantity);

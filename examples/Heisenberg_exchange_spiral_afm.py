@@ -3,8 +3,6 @@ for spiral magnetizations as a function of the angle between neighboring spins
 and the angle between spins in the same simulation cell.
 This is inspired by figure 5 of the paper "The design and verification of MuMax3".
 https://doi.org/10.1063/1.4899186
-
-! Warning: this script takes multiple minutes to run !
 """
 
 import matplotlib.pyplot as plt
@@ -12,7 +10,6 @@ import numpy as np
 
 from mumax5 import Antiferromagnet, Grid, World
 from mumax5.util import *
-
 
 def sub1helical():
     """Assumes X to be array from meshgrid, then returns three helical
@@ -38,8 +35,8 @@ def homo_ex(A0, a):
     # Analytical homogeneous AFM exchange
     return 4 * A0 * np.cos(phi) / (a * a) / 2
 
-def non_homo_ex(A12, k):
-    # Analytical non-homogeneous AFM exchange
+def inhomo_ex(A12, k):
+    # Analytical inhomogeneous AFM exchange
     return A12 * (-k * k) * np.cos(phi) / 2
 
 global k
@@ -74,7 +71,7 @@ magnet.sub1.magnetization = sub1helical()
 magnet.sub2.magnetization = sub2helical()
 
 phases, angles = [], []
-homogeneous, nonhomogeneous, nonhomogeneous_analytical, homogeneous_analytical = [], [], [], []
+homogeneous, inhomogeneous, inhomogeneous_analytical, homogeneous_analytical = [], [], [], []
 sub1_energies = np.zeros((2, 0))
 analytical = np.zeros((2, 0))
                    
@@ -95,9 +92,9 @@ for i in range(180):
       magnet.sub1.magnetization = sub1helical()
       magnet.sub2.magnetization = sub2helical()
       phases.append(i)
-      nonhomogeneous.append(magnet.sub1.non_homogeneous_exchange_energy() / fac)
+      inhomogeneous.append(magnet.sub1.inhomogeneous_exchange_energy() / fac)
       homogeneous.append(magnet.sub1.homogeneous_exchange_energy() / fac)
-      nonhomogeneous_analytical.append(non_homo_ex(A12, k) / fac * V)
+      inhomogeneous_analytical.append(inhomo_ex(A12, k) / fac * V)
       homogeneous_analytical.append(homo_ex(A0, latcon) / fac * V)
 
 # Reset phase
@@ -116,7 +113,7 @@ while magnet.sub1.max_angle.eval() < np.pi-.01:
     # Evaluate energies only for sublattice 1 (equal to sublattice 2 due to symmetry)
     sub1_energies = np.hstack((sub1_energies,
         np.array([ magnet.sub1.exchange_energy() / fac,
-                   magnet.sub1.non_homogeneous_exchange_energy() / fac,
+                   magnet.sub1.inhomogeneous_exchange_energy() / fac,
         ]).reshape(2, 1)))
 
     angles.append(magnet.sub1.max_angle() * 180 / np.pi)
@@ -124,7 +121,7 @@ while magnet.sub1.max_angle.eval() < np.pi-.01:
     # Calculate analytical energies
     analytical = np.hstack((analytical,
         np.array([ fm_ex(A, k) / fac * V,
-                   non_homo_ex(A12, k) / fac * V,
+                   inhomo_ex(A12, k) / fac * V,
         ]).reshape(2, 1)))
 
     kk += 1
@@ -133,18 +130,20 @@ while magnet.sub1.max_angle.eval() < np.pi-.01:
 #################################   PLOTTER STUFF   #################################
 #####################################################################################
 
-def plotEnergyAndError(ax1, ax2, angle, E, theory, Elabel, Tlabel= "", c=None):
+def plotEnergyAndError(ax1, ax2, angle, E, theory, Elabel, Tlabel= "", c=None, err=""):
     # Plot energy and relative error
     ax1.plot(angle, E, '.', label=Elabel, color=c)
     ax1.plot(angle, theory, 'k--', label=Tlabel)
-    error = [np.abs((a-e)/a) for (e,a) in zip(E[1:], theory[1:])]
+    # Plot semi-relative error if data goes through zero
+    error = [np.abs((a - e) / a) if not err else np.abs((a - e)) / np.max(np.abs(theory)) for (e, a) in zip(E[1:], theory[1:])]
+
     ax2.plot(angle[1:], error, color=c)
     # Axes settings
     ax1.set_xlim(0, 180)
     ax1.set_ylabel(r"Energy density $\varepsilon / K_m V$")
     ax2.set_ylim(1e-6, 1)
     ax2.set_xlabel("spin-spin angle (deg)")
-    ax2.set_ylabel("Relative error")
+    ax2.set_ylabel(err + " " + "Relative error")
     ax2.set_yscale("log")
 
 # Create figure and axes
@@ -153,24 +152,24 @@ fig.subplots_adjust(hspace=0)
 
 # Plot Intercell FM exchange
 plotEnergyAndError(axs[0, 0], axs[1, 0], angles, sub1_energies[0], analytical[0], r"Mumax$^+$: FM exchange")
-plotEnergyAndError(axs[0, 0], axs[1, 0], angles, sub1_energies[1], analytical[1], r"Mumax$^+$: non-homogeneous", "Analytical")
+plotEnergyAndError(axs[0, 0], axs[1, 0], angles, sub1_energies[1], analytical[1], r"Mumax$^+$: inhomogeneous", "Analytical")
 axs[0, 0].legend()
 
 # Plot Homogeneous AFM exchange
-plotEnergyAndError(axs[0, 1], axs[1, 1], phases, homogeneous, homogeneous_analytical, r"Mumax$^+$: homogeneous")
+plotEnergyAndError(axs[0, 1], axs[1, 1], phases, homogeneous, homogeneous_analytical, r"Mumax$^+$: homogeneous", err="Semi")
 
-# Plot Non-homogeneous AFM exchange
+# Plot inhomogeneous AFM exchange
 #     Create secondary y-axis
 ax2, ax3 = axs[0, 1].twinx(), axs[1, 1].twinx()
-#     Set the color of the non-homogeneous plot
+#     Set the color of the inhomogeneous plot
 color = 'tab:orange'
-ax2.set_ylabel('Energy density (non-homogeneous)', color=color)
+ax2.set_ylabel('Energy density (inhomogeneous)', color=color)
 ax2.yaxis.label.set_color(color)
 ax3.yaxis.label.set_color(color)
 ax2.tick_params(axis='y', labelcolor=color)
 ax3.tick_params(axis='y', labelcolor=color)
 #     Actual plot
-plotEnergyAndError(ax2, ax3, phases, nonhomogeneous, nonhomogeneous_analytical, r"Mumax$^+$: non-homogeneous", "Analytical", c=color)
+plotEnergyAndError(ax2, ax3, phases, inhomogeneous, inhomogeneous_analytical, r"Mumax$^+$: inhomogeneous", "Analytical", c=color, err="Semi")
 #     Create unified legend for both y axes
 lines_1, labels_1 = axs[0, 1].get_legend_handles_labels()
 lines_2, labels_2 = ax2.get_legend_handles_labels()

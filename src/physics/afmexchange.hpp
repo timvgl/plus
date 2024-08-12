@@ -7,32 +7,32 @@ class Antiferromagnet;
 class Ferromagnet;
 class Field;
 
-// The homogeneous and non-homogeneous contributions to AFM exchange is split up.
+// The homogeneous and inhomogeneous contributions to AFM exchange is split up.
 // The homogeneous contribution (considering afmex_cell) corresponds to AFM
 // exchange at a single site.
-// The non-homogeneous contribution (considering afmex_nn) corresponds to AFM
+// The inhomogeneous contribution (considering afmex_nn) corresponds to AFM
 // exchange between NN cells.
 
-bool nonHomoAfmExchangeAssuredZero(const Ferromagnet*);
+bool inHomoAfmExchangeAssuredZero(const Ferromagnet*);
 bool homoAfmExchangeAssuredZero(const Ferromagnet*);
 
 // Evaluate field
-Field evalNonHomogeneousAfmExchangeField(const Ferromagnet*);
+Field evalInHomogeneousAfmExchangeField(const Ferromagnet*);
 Field evalHomogeneousAfmExchangeField(const Ferromagnet*);
 // Evaluate energy density
-Field evalNonHomoAfmExchangeEnergyDensity(const Ferromagnet*);
+Field evalInHomoAfmExchangeEnergyDensity(const Ferromagnet*);
 Field evalHomoAfmExchangeEnergyDensity(const Ferromagnet*);
 // Evaluate energy
-real evalNonHomoAfmExchangeEnergy(const Ferromagnet*);
+real evalInHomoAfmExchangeEnergy(const Ferromagnet*);
 real evalHomoAfmExchangeEnergy(const Ferromagnet*);
 
-FM_FieldQuantity nonHomoAfmExchangeFieldQuantity(const Ferromagnet*);
+FM_FieldQuantity inHomoAfmExchangeFieldQuantity(const Ferromagnet*);
 FM_FieldQuantity homoAfmExchangeFieldQuantity(const Ferromagnet*);
 
-FM_FieldQuantity nonHomoAfmExchangeEnergyDensityQuantity(const Ferromagnet*);
+FM_FieldQuantity inHomoAfmExchangeEnergyDensityQuantity(const Ferromagnet*);
 FM_FieldQuantity homoAfmExchangeEnergyDensityQuantity(const Ferromagnet*);
 
-FM_ScalarQuantity nonHomoAfmExchangeEnergyQuantity(const Ferromagnet*);
+FM_ScalarQuantity inHomoAfmExchangeEnergyQuantity(const Ferromagnet*);
 FM_ScalarQuantity homoAfmExchangeEnergyQuantity(const Ferromagnet*);
 
 ////////////////////////////////////////////////////////////////////////////////////
