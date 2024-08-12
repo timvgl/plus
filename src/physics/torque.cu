@@ -78,6 +78,10 @@ Field evalRelaxTorque(const Ferromagnet* magnet) {
   return torque;
 }
 
+real evalMaxTorque(const Ferromagnet* magnet) {
+  return maxVecNorm(evalTorque(magnet));
+}
+
 FM_FieldQuantity torqueQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalTorque, 3, "torque", "rad/s");
 }
@@ -88,4 +92,8 @@ FM_FieldQuantity llgTorqueQuantity(const Ferromagnet* magnet) {
 
 FM_FieldQuantity relaxTorqueQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalRelaxTorque, 3, "damping_torque", "rad/s");
+}
+
+FM_ScalarQuantity maxTorqueQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, evalMaxTorque, "max_torque", "rad/s");
 }

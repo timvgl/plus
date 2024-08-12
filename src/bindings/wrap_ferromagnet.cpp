@@ -78,7 +78,9 @@ void wrap_ferromagnet(py::module& m) {
 
   m.def("torque", &torqueQuantity);
   m.def("llg_torque", &llgTorqueQuantity);
+  m.def("damping_torque", &relaxTorqueQuantity);
   m.def("spin_transfer_torque", &spinTransferTorqueQuantity);
+  m.def("max_torque", &maxTorqueQuantity);
 
   m.def("demag_field", &demagFieldQuantity);
   m.def("demag_energy_density", &demagEnergyDensityQuantity);

@@ -612,9 +612,25 @@ class Ferromagnet:
         return FieldQuantity(_cpp.llg_torque(self._impl))
 
     @property
+    def damping_torque(self):
+        """Torque used by the relax function (rad/s). This is the term in the
+        Landau-Liftshitz-Gilbert torque with the damping factor α.
+        
+        See Also
+        --------
+        relax, llg_torque, alpha
+        """
+        return FieldQuantity(_cpp.damping_torque(self._impl))
+
+    @property
     def spin_transfer_torque(self):
         """Spin transfer torque exerted on the magnetization (rad/s)."""
         return FieldQuantity(_cpp.spin_transfer_torque(self._impl))
+    
+    @property
+    def max_torque(self):
+        """The maximum value of the torque over all cells (rad/s)."""
+        return ScalarQuantity(_cpp.max_torque(self._impl))
     
     @property
     def demag_field(self):
