@@ -13,20 +13,21 @@ import numpy as np
 from mumax5 import Antiferromagnet, Grid, World
 from mumax5.util import *
 
-import math
 
-def sub1helical(x, y, z):
+def sub1helical():
+    """Assumes X to be array from meshgrid, then returns three helical
+    magnetization arrays for fast magnetization setting."""
     kx = k
-    mx = math.cos(kx*x)
-    my = math.sin(kx*x)
-    mz = 0   
+    mx = np.cos(kx*X)
+    my = np.sin(kx*X)
+    mz = np.zeros_like(X)
     return mx, my, mz
 
-def sub2helical(x, y, z):
+def sub2helical():
     kx = k
-    mx = -math.cos(kx*x + phi)
-    my = -math.sin(kx*x + phi)
-    mz = 0   
+    mx = -np.cos(kx*X + phi)
+    my = -np.sin(kx*X + phi)
+    mz = np.zeros_like(X)
     return mx, my, mz
 
 def fm_ex(A, k):
@@ -67,8 +68,10 @@ magnet.aex = A
 magnet.afmex_cell = A0
 magnet.afmex_nn = A12
 
-magnet.sub1.magnetization = sub1helical
-magnet.sub2.magnetization = sub2helical
+X, Y, Z = magnet.sub1.magnetization.meshgrid  # for fast magnetization setting
+
+magnet.sub1.magnetization = sub1helical()
+magnet.sub2.magnetization = sub2helical()
 
 phases, angles = [], []
 homogeneous, nonhomogeneous, nonhomogeneous_analytical, homogeneous_analytical = [], [], [], []
@@ -76,6 +79,7 @@ sub1_energies = np.zeros((2, 0))
 analytical = np.zeros((2, 0))
                    
 fac = Km(Ms) * V
+latcon = magnet.latcon.eval()[0,0,0,0]  # 0.35 nm is default
 
 #####################################################################################
 ##############################   CALCULATE ENERGIES   ###############################
@@ -86,15 +90,15 @@ fac = Km(Ms) * V
 # Set k to arbitrary value for phase variation
 k = 1e7
 # Vary phase and calculate energies
-for i in range(179):
+for i in range(180):
       phi = i * np.pi/180
-      magnet.sub1.magnetization = sub1helical
-      magnet.sub2.magnetization = sub2helical
+      magnet.sub1.magnetization = sub1helical()
+      magnet.sub2.magnetization = sub2helical()
       phases.append(i)
       nonhomogeneous.append(magnet.sub1.non_homogeneous_exchange_energy() / fac)
       homogeneous.append(magnet.sub1.homogeneous_exchange_energy() / fac)
-      nonhomogeneous_analytical.append(non_homo_ex(A12, 1e7) / fac * V)
-      homogeneous_analytical.append(homo_ex(A0, 0.35e-9) / fac * V)
+      nonhomogeneous_analytical.append(non_homo_ex(A12, k) / fac * V)
+      homogeneous_analytical.append(homo_ex(A0, latcon) / fac * V)
 
 # Reset phase
 phi = 0
@@ -106,8 +110,8 @@ while magnet.sub1.max_angle.eval() < np.pi-.01:
     
     k = kk * 1e7
 
-    magnet.sub1.magnetization = sub1helical
-    magnet.sub2.magnetization = sub2helical
+    magnet.sub1.magnetization = sub1helical()
+    magnet.sub2.magnetization = sub2helical()
     
     # Evaluate energies only for sublattice 1 (equal to sublattice 2 due to symmetry)
     sub1_energies = np.hstack((sub1_energies,
