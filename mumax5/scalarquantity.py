@@ -7,6 +7,10 @@ class ScalarQuantity:
     def __init__(self, impl):
         self._impl = impl
 
+    def __repr__(self):
+        """Return ScalarQuantity string representation."""
+        return f"ScalarQuantity(name='{self.name}', unit={self.unit})"
+
     @property
     def name(self):
         """Return the instance's name."""
