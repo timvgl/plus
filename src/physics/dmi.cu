@@ -180,7 +180,7 @@ __global__ void k_dmiField(CuField hField,
       real an = afmex_nn.valueAt(idx);
       real a2 = 2 * a;
       real an_a2 = an / a2;
-      if (an_a2 == -1)
+      if (abs(an_a2) == 1)
         m_ = m + Gamma1 / (4*a) * delta;
       else {
         real3 Gamma2 = getGamma(dmiTensor, idx, n, m2Field.vectorAt(idx));

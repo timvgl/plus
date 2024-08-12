@@ -137,7 +137,7 @@ __global__ void k_exchangeField(CuField hField,
       else { // Neumann BC
         real3 Gamma1 = getGamma(dmiTensor, idx, normal, m);
         real fac = an / (2 * a);
-        if (fac == -1)
+        if (abs(fac) == 1)
           m_ = m + Gamma1 / (4*a) * delta;
         else {
           real3 Gamma2 = getGamma(dmiTensor, idx, normal, m2Field.vectorAt(idx));
