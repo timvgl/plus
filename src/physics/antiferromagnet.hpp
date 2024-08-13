@@ -26,7 +26,7 @@ class Antiferromagnet : public Magnet {
          
   /** Empty destructor
    *
-   * Sublattices should be destroyed automatically. They are not pointers.
+   * Sublattices are destroyed automatically. They are not pointers.
    */
   ~Antiferromagnet() override {};
   

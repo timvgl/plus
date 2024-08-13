@@ -125,15 +125,21 @@ class Magnet(ABC):
         return World._from_impl(self._impl.world)
 
 
-    def stray_field_from_magnet(self, magnet: "Magnet"):
-        """Return the magnetic field created by the given magnet, felt by this
-        magnet.
+    def stray_field_from_magnet(self, source_magnet: "Magnet"):
+        """Return the magnetic field created by the given input `source_magnet`,
+        felt by this magnet (`self`). This raises an error if there exists no
+        `StrayField` instance between these two magnets.
+
+        Parameters
+        ----------
+        source_magnet : Magnet
+            The magnet acting as the source of the requested stray field.
         
         Returns
         -------
         stray_field : StrayField
-            StrayField with the given `magnet` as source and the Grid of this
-            magnet as destination.
+            StrayField with the given `source_magnet` as source and the Grid of
+            this magnet (`self`) as destination.
 
         See Also
         --------
