@@ -1,27 +1,77 @@
+#include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
 #include "ferromagnet.hpp"
 #include "field.hpp"
 #include "fieldops.hpp"
 #include "minimizer.hpp"
+#include "mumaxworld.hpp"
 #include "reduce.hpp"
 #include "torque.hpp"
 
 Minimizer::Minimizer(const Ferromagnet* magnet,
                      real stopMaxMagDiff,
                      int nMagDiffSamples)
-    : magnet_(magnet),
-      torque_(relaxTorqueQuantity(magnet)),
+    : magnets_({magnet}),
+      torques_({relaxTorqueQuantity(magnet)}),
       nMagDiffSamples_(nMagDiffSamples),
-      stopMaxMagDiff_(stopMaxMagDiff) {
-  stepsize_ = 1e-14;  // TODO: figure out how to make descent guess
-
+      stopMaxMagDiff_(stopMaxMagDiff),
+      t0(magnets_.size()),
+      t1(magnets_.size()),
+      m0(magnets_.size()),
+      m1(magnets_.size()) {
+  stepsizes_ = {1e-14};  // TODO: figure out how to make descent guess
   // TODO: check if input arguments are sane
 }
 
+Minimizer::Minimizer(const Antiferromagnet* magnet,
+                     real stopMaxMagDiff,
+                     int nMagDiffSamples)
+    : magnets_(magnet->sublattices()),
+      nMagDiffSamples_(nMagDiffSamples),
+      stopMaxMagDiff_(stopMaxMagDiff),
+      t0(magnets_.size()),
+      t1(magnets_.size()),
+      m0(magnets_.size()),
+      m1(magnets_.size()) {
+  stepsizes_ = {1e-14, 1e-14};
+  for (size_t i = 0; i < magnet->sublattices().size(); i++) {
+    torques_.push_back(relaxTorqueQuantity(magnet->sublattices()[i]));
+  }
+  // TODO: check if input arguments are sane
+}
+
+Minimizer::Minimizer(const MumaxWorld* world,
+                     real stopMaxMagDiff,
+                     int nMagDiffSamples)
+    : stopMaxMagDiff_(stopMaxMagDiff) {
+  // Total number of ferromagnets (FM instances or sublattices)
+  size_t N = world->ferromagnets().size() + 2 * world->antiferromagnets().size();
+  
+  nMagDiffSamples_ = nMagDiffSamples * N;
+
+  t0.resize(N);
+  t1.resize(N);
+  m0.resize(N);
+  m1.resize(N);
+
+  for (const auto pair : world->magnets()) {
+    if (const Antiferromagnet* mag = pair.second->asAFM()) {
+      magnets_.push_back(mag->sub1());
+      magnets_.push_back(mag->sub2());
+    }
+    else if (const Ferromagnet* mag = pair.second->asFM())
+      magnets_.push_back(mag);
+  }
+
+  for (auto magnet : magnets_)
+    torques_.push_back(relaxTorqueQuantity(magnet));
+    
+  stepsizes_.assign(N, 1e-14);
+}
+      
 void Minimizer::exec() {
   nsteps_ = 0;
   lastMagDiffs_.clear();
-
   while (!converged())
     step();
 }
@@ -29,29 +79,19 @@ void Minimizer::exec() {
 __global__ void k_step(CuField mField,
                        const CuField m0Field,
                        const CuField torqueField,
-                       real dt,
-                       const int comp) {
+                       real dt) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (!mField.cellInGrid(idx))
     return;
-  if (comp == 3) {
-    real3 m0 = m0Field.FM_vectorAt(idx);
-    real3 t = torqueField.FM_vectorAt(idx);
 
-    real t2 = dt * dt * dot(t, t);
-    real3 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
+  real3 m0 = m0Field.vectorAt(idx);
+  real3 t = torqueField.vectorAt(idx);
 
-    mField.setVectorInCell(idx, m);
-  }
-  else if (comp == 6) {
-    real6 m0 = m0Field.AFM_vectorAt(idx);
-    real6 t = torqueField.AFM_vectorAt(idx);
+  real t2 = dt * dt * dot(t, t);
+  real3 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
 
-    real2 t2 = dt * dt * dot(t, t);
-    real6 m = ((4 - t2) * m0 + 4 * dt * t) / (4 + t2);
-    mField.setVectorInCell(idx, m);
-  }
+  mField.setVectorInCell(idx, m);
 }
 
 static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
@@ -70,28 +110,35 @@ static inline real BarzilianBorweinStepSize(Field& dm, Field& dtorque, int n) {
 }
 
 void Minimizer::step() {
-  m0 = magnet_->magnetization()->eval();
-  int comp = m0.ncomp();
-  if (nsteps_ == 0)
-    t0 = torque_.eval();
-  else
-    t0 = t1;
+  for (size_t i = 0; i < magnets_.size(); i++) {
 
-  m1 = Field(magnet_->system(), comp);
-  int N = m1.grid().ncells();
-  cudaLaunch(N, k_step, m1.cu(), m0.cu(), t0.cu(), stepsize_, comp);
+    m0[i] = magnets_[i]->magnetization()->eval();
+
+    if (nsteps_ == 0)
+      t0[i] = torques_[i].eval();
+    else
+      t0[i] = t1[i];
+
+    m1[i] = Field(magnets_[i]->system(), 3);
+    int ncells = m1[i].grid().ncells();
+
+    cudaLaunch(ncells, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
+  }
   
-  magnet_->magnetization()->set(m1);  // normalizes
+  for (size_t i = 0; i < magnets_.size(); i++)
+    magnets_[i]->magnetization()->set(m1[i]);  // normalizes
+    
+  for (size_t i = 0; i < magnets_.size(); i++)
+    t1[i] = torques_[i].eval();
 
-  t1 = torque_.eval();
+  for (size_t i = 0; i < magnets_.size(); i++) {
+    Field dm = add(real(+1), m1[i], real(-1), m0[i]);
+    Field dt = add(real(-1), t1[i], real(+1), t0[i]);  // TODO: check sign difference
 
-  Field dm = add(real(+1), m1, real(-1), m0);
-  Field dt = add(real(-1), t1, real(+1), t0);  // TODO: check sign difference
+    stepsizes_[i] = BarzilianBorweinStepSize(dm, dt, nsteps_);
 
-  stepsize_ = BarzilianBorweinStepSize(dm, dt, nsteps_);
-
-  addMagDiff(maxVecNorm(dm));
-
+    addMagDiff(maxVecNorm(dm));
+  }
   nsteps_ += 1;
 }
 

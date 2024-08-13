@@ -2,6 +2,7 @@
 
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 
 #include "cast.hpp"
 
@@ -11,7 +12,11 @@ class Field;
 py::array_t<real> fieldToArray(const Field&);
 void setArrayInField(Field&, py::array_t<real>);
 
+void wrap_antiferromagnet(py::module& m);
+void wrap_antiferromagnetfieldquantity(py::module& m);
+void wrap_antiferromagnetscalarquantity(py::module& m);
 void wrap_ferromagnet(py::module& m);
+void wrap_magnet(py::module& m);
 void wrap_field(py::module& m);
 void wrap_grid(py::module& m);
 void wrap_parameter(py::module& m);

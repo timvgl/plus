@@ -50,7 +50,7 @@ real maxAbsValue(const Field& f) {
   return result;
 }
 
-__global__ void k_maxVecNorm(real* result, CuField f, int comp) {
+__global__ void k_maxVecNorm(real* result, CuField f) {
   // Reduce to a block
   __shared__ real sdata[BLOCKDIM];
   int ncells = f.system.grid.ncells();
@@ -59,16 +59,9 @@ __global__ void k_maxVecNorm(real* result, CuField f, int comp) {
   for (int i = tid; i < ncells; i += BLOCKDIM) {
     if (!f.cellInGeometry(i))
       continue;
-    real cellNorm; 
-    if (comp == 3) {
-      real3 cellvec = f.FM_vectorAt(i);
-      cellNorm = norm(cellvec);
-    }
-    else if (comp == 6) {
-      real6 cellvec = f.AFM_vectorAt(i);
-      real2 cellNorms = norm(cellvec);
-      cellNorm = (cellNorms.x > cellNorms.y) ? cellNorms.x : cellNorms.y;
-    }
+
+    real3 cellVec = f.vectorAt(i);
+    real cellNorm = norm(cellVec);
     if (cellNorm > threadValue)
       threadValue = cellNorm;
   }
@@ -90,13 +83,13 @@ __global__ void k_maxVecNorm(real* result, CuField f, int comp) {
 }
 
 real maxVecNorm(const Field& f) {
-  int comp = f.ncomp();
-  if (comp != 3 && comp != 6) {
+  if (f.ncomp() != 3) {
     throw std::runtime_error(
-        "the input field of maxVecNorm should have 3 or 6 components");
+        "the input field of maxVecNorm should have 3 components");
   }
+  
   GpuBuffer<real> d_result(1);
-  cudaLaunchReductionKernel(k_maxVecNorm, d_result.get(), f.cu(), comp);
+  cudaLaunchReductionKernel(k_maxVecNorm, d_result.get(), f.cu());
 
   // copy the result to the host and return
   real result;

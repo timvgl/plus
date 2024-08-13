@@ -1,6 +1,8 @@
 #include "effectivefield.hpp"
 
+#include "afmexchange.hpp"
 #include "anisotropy.hpp"
+#include "antiferromagnet.hpp"
 #include "demag.hpp"
 #include "dmi.hpp"
 #include "exchange.hpp"
@@ -10,17 +12,18 @@
 #include "zeeman.hpp"
 
 Field evalEffectiveField(const Ferromagnet* magnet) {
-  Field h = evalAnisotropyField(magnet);
-  h += evalExchangeField(magnet);
-  h += evalExternalField(magnet);
-  h += evalDmiField(magnet);
-  if (h.ncomp() == 3)
-    h += evalDemagField(magnet); //ignore (for now) in case of AFM
+  Field h(magnet->system(), 3, 0.0);
+  if (!exchangeAssuredZero(magnet)) {h += evalExchangeField(magnet);}
+  if (!anisotropyAssuredZero(magnet)) {h += evalAnisotropyField(magnet);}
+  if (!externalFieldAssuredZero(magnet)) {h += evalExternalField(magnet);}
+  if (!dmiAssuredZero(magnet)) {h += evalDmiField(magnet);}
+  if (!demagFieldAssuredZero(magnet)) {h += evalDemagField(magnet);}
+  if (magnet->isSublattice())
+      if (!inHomoAfmExchangeAssuredZero(magnet)) {h += evalInHomogeneousAfmExchangeField(magnet);}
+      if (!homoAfmExchangeAssuredZero(magnet)) {h += evalHomogeneousAfmExchangeField(magnet);}
   return h;
 }
 
 FM_FieldQuantity effectiveFieldQuantity(const Ferromagnet* magnet) {
-  int comp = magnet->magnetization()->ncomp();
-  return FM_FieldQuantity(magnet, evalEffectiveField, comp,
-                            "effective_field", "T");
+  return FM_FieldQuantity(magnet, evalEffectiveField, 3, "effective_field", "T");
 }

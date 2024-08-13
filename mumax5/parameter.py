@@ -1,6 +1,6 @@
 """Patameter implementation."""
 
-import numpy as np
+import numpy as _np
 
 import _mumax5cpp as _cpp
 
@@ -37,13 +37,16 @@ class Parameter(FieldQuantity):
 
         If mask is None, then the value of the time-dependent term will be the same for
         every grid cell and the final parameter value will be:
-            a) uniform_value + term(t)
-            b) cell_value + term(t)
+
+        - uniform_value + term(t)
+        - cell_value + term(t)
+
         where t is a time value in seconds.
         If mask is not None, then the value of the time-dependent term will be
         multiplied by the mask values and the parameter instance will be estimated as:
-            a) uniform_value + term(t) * mask
-            b) cell_value + term(t) * cell_mask_value
+
+        - uniform_value + term(t) * mask
+        - cell_value + term(t) * cell_mask_value
 
         Parameter can have multiple time-dependent terms. All their values will be
         weighted by their mask values and summed, prior to being added to the static
@@ -60,13 +63,13 @@ class Parameter(FieldQuantity):
             be an array of 0s and 1s. The number of components of the Parameter
             instance and the shape of mask should conform. Default value is None.
         """
-        if isinstance(self._impl, _cpp.FM_VectorParameter):
+        if isinstance(self._impl, _cpp.VectorParameter):
             # The VectorParameter value should be a sequence of size 3
             # here we convert that sequence to a numpy array
             original_term = term
 
             def new_term(t):
-                return np.array(original_term(t), dtype=float)
+                return _np.array(original_term(t), dtype=float)
 
             term = new_term
             # change mask dimensions to include components dimension
@@ -92,7 +95,7 @@ class Parameter(FieldQuantity):
                 expected_mask_shape = mask.shape
 
             if expected_mask_shape != mask.shape:
-                new_mask = np.zeros(shape=expected_mask_shape)
+                new_mask = _np.zeros(shape=expected_mask_shape)
 
                 for i in range(ncomp):
                     new_mask[i] = mask
@@ -148,24 +151,13 @@ class Parameter(FieldQuantity):
             self._impl.set(value)
 
     def _set_func(self, func):
-        value = np.zeros(self.shape, dtype=np.float32)
-
-        for iz in range(value.shape[1]):
-            for iy in range(value.shape[2]):
-                for ix in range(value.shape[3]):
-
-                    pos = self._impl.system.cell_position((ix, iy, iz))
-                    cell_value = np.array(func(*pos), ndmin=1)
-
-                    for ic in range(value.shape[0]):
-                        value[ic, iz, iy, ix] = cell_value[ic]
-
-        self._impl.set(value)
+        X, Y, Z = self.meshgrid
+        self._impl.set(_np.vectorize(func)(X, Y, Z))
 
     def _reset_fields_default(self):
         if isinstance(self._impl, _cpp.Parameter):
             self._impl.set(0)
-        elif isinstance(self._impl, _cpp.FM_VectorParameter):
+        elif isinstance(self._impl, _cpp.VectorParameter):
             self._impl.set((0, 0, 0))
 
         self.remove_time_terms()

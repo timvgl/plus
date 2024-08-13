@@ -27,19 +27,10 @@ class Variable(FieldQuantity):
             self._set_func(value)
         else:
             self._impl.set(value)
+
     def _set_func(self, func):
-        value = _np.zeros(self.shape, dtype=_np.float32)
-
-        for iz in range(value.shape[1]):
-            for iy in range(value.shape[2]):
-                for ix in range(value.shape[3]):
-
-                    pos = self._impl.system.cell_position((ix, iy, iz))
-                    cell_value = func(*pos)
-                    for ic in range(value.shape[0]):
-                        value[ic, iz, iy, ix] = cell_value[ic]
-
-        self._impl.set(value)
+        X, Y, Z = self.meshgrid
+        self._impl.set(_np.vectorize(func)(X, Y, Z))
 
     def get(self):
         """Get the variable value."""

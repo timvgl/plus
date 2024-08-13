@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "antiferromagnet.hpp"
 #include "ferromagnet.hpp"
 #include "gpubuffer.hpp"
 #include "grid.hpp"
@@ -16,44 +17,91 @@ void wrap_world(py::module& m) {
   // in mumax5 module, MumaxWorld is the World
   py::class_<MumaxWorld>(m, "World")
 
-      .def(py::init<real3, Grid>(), py::arg("cellsize"),
-           py::arg("mastergrid") = Grid(int3{0, 0, 0}),
-           "construct a World with a given cellsize, and optionally a "
-           "mastergrid which defines a periodic simulation box")
+      .def(py::init<real3>(), py::arg("cellsize"),
+           "construct a World with a given cellsize")
+      .def(py::init<real3, Grid, int3>(), py::arg("cellsize"),
+           py::arg("mastergrid"), py::arg("pbc_repetitions"),
+           "construct a World with a given cellsize, mastergrid and "
+           "pbcRepetitions which define a periodic simulation box")
       .def_property_readonly("cellsize", &MumaxWorld::cellsize,
                              "the cellsize of the world")
-      .def_property_readonly("mastergrid", &MumaxWorld::mastergrid,
-                             "mastergrid of the world")
       .def_readwrite("bias_magnetic_field", &MumaxWorld::biasMagneticField,
                      "uniform external magnetic field")
+      .def_readwrite("RelaxTorqueThreshold", &MumaxWorld::RelaxTorqueThreshold)
 
       .def(
           "add_ferromagnet",
-          [](MumaxWorld* world, Grid grid, int comp, std::string name) {
-            return world->addFerromagnet(grid, comp, name);
+          [](MumaxWorld* world, Grid grid, std::string name) {
+            return world->addFerromagnet(grid, name);
           },
-          py::arg("grid"), py::arg("comp"), py::arg("name") = std::string(""),
+          py::arg("grid"), py::arg("name") = std::string(""),
           py::return_value_policy::reference)
 
       .def(
           "add_ferromagnet",
-          [](MumaxWorld* world, Grid grid, int comp, py::array_t<bool> geometryArray,
+          [](MumaxWorld* world, Grid grid, py::array_t<bool> geometryArray,
              std::string name) {
             py::buffer_info buf = geometryArray.request();
             GpuBuffer<bool> geometry(buf.size,
                                      reinterpret_cast<bool*>(buf.ptr));
-            return world->addFerromagnet(grid, comp, geometry, name);
+            return world->addFerromagnet(grid, geometry, name);
           },
-          py::arg("grid"), py::arg("comp"), py::arg("geometry"),
+          py::arg("grid"), py::arg("geometry"),
+          py::arg("name") = std::string(""), py::return_value_policy::reference)
+
+      .def(
+          "add_antiferromagnet",
+          [](MumaxWorld* world, Grid grid, std::string name) {
+            return world->addAntiferromagnet(grid, name);
+          },
+          py::arg("grid"), py::arg("name") = std::string(""),
+          py::return_value_policy::reference)
+
+      .def(
+          "add_antiferromagnet",
+          [](MumaxWorld* world, Grid grid, py::array_t<bool> geometryArray,
+             std::string name) {
+            py::buffer_info buf = geometryArray.request();
+            GpuBuffer<bool> geometry(buf.size,
+                                     reinterpret_cast<bool*>(buf.ptr));
+            return world->addAntiferromagnet(grid, geometry, name);
+          },
+          py::arg("grid"), py::arg("geometry"),
           py::arg("name") = std::string(""), py::return_value_policy::reference)
 
       .def("get_ferromagnet", &MumaxWorld::getFerromagnet, py::arg("name"),
-           "get a reference to a magnet by name",
+           "get a reference to a ferromagnet by name",
+           py::return_value_policy::reference)
+
+      .def("get_antiferromagnet", &MumaxWorld::getAntiferromagnet, py::arg("name"),
+           "get a reference to an antiferromagnet by name",
            py::return_value_policy::reference)
 
       .def_property_readonly("ferromagnets", &MumaxWorld::ferromagnets,
            "get a map of all ferromagnets in this world")
 
+      .def_property_readonly("antiferromagnets", &MumaxWorld::antiferromagnets,
+           "get a map of all antiferromagnets in this world")
+
       .def_property_readonly("timesolver", &MumaxWorld::timesolver,
-                             py::return_value_policy::reference);
+                             py::return_value_policy::reference)
+                             
+      .def("minimize", &MumaxWorld::minimize, py::arg("tol"), py::arg("nsamples"))
+      .def("relax", &MumaxWorld::relax, py::arg("tol"))
+
+      // PBC
+      .def_property_readonly("bounding_grid", &MumaxWorld::boundingGrid,
+           "Returns grid which is the minimum bounding box of all magnets "
+           "currently in the world.")
+      .def("set_pbc", py::overload_cast<const Grid, const int3>
+           (&MumaxWorld::setPBC), py::arg("mastergrid"),
+           py::arg("pbc_repetitions"), "Set the PBC")
+      .def("set_pbc", py::overload_cast<const int3>(&MumaxWorld::setPBC),
+           py::arg("pbc_repetitions"), "Set the PBC")
+      .def("unset_pbc", &MumaxWorld::unsetPBC, "Unset the PBC")
+      .def_property("mastergrid", &MumaxWorld::mastergrid,
+                    &MumaxWorld::setMastergrid, "mastergrid of the world")
+      .def_property("pbc_repetitions", &MumaxWorld::pbcRepetitions,
+                    &MumaxWorld::setPbcRepetitions, "PBC repetitions of the world")
+     ;
 }

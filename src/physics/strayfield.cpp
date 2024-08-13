@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "antiferromagnet.hpp"
+#include "magnet.hpp"
 #include "ferromagnet.hpp"
 #include "parameter.hpp"
 #include "strayfieldbrute.hpp"
@@ -10,7 +12,7 @@
 #include "world.hpp"
 
 std::unique_ptr<StrayFieldExecutor> StrayFieldExecutor::create(
-    const Ferromagnet* magnet,
+    const Magnet* magnet,
     std::shared_ptr<const System> system,
     Method method) {
   switch (method) {
@@ -29,18 +31,18 @@ std::unique_ptr<StrayFieldExecutor> StrayFieldExecutor::create(
   }
 }
 
-StrayFieldExecutor::StrayFieldExecutor(const Ferromagnet* magnet,
+StrayFieldExecutor::StrayFieldExecutor(const Magnet* magnet,
                                        std::shared_ptr<const System> system)
     : magnet_(magnet), system_(system) {}
 
-StrayField::StrayField(const Ferromagnet* magnet,
+StrayField::StrayField(const Magnet* magnet,
                        std::shared_ptr<const System> system,
                        StrayFieldExecutor::Method method)
     : magnet_(magnet), system_(system), executor_(nullptr) {
   setMethod(method);
 }
 
-StrayField::StrayField(const Ferromagnet* magnet,
+StrayField::StrayField(const Magnet* magnet,
                        Grid grid,
                        StrayFieldExecutor::Method method)
     : magnet_(magnet), executor_(nullptr) {
@@ -56,7 +58,11 @@ void StrayField::setMethod(StrayFieldExecutor::Method method) {
   }
 }
 
-const Ferromagnet* StrayField::source() const {
+void StrayField::recreateStrayFieldExecutor() {
+  executor_ = StrayFieldExecutor::create(magnet_, system_, executor_->method());
+}
+
+const Magnet* StrayField::source() const {
   return magnet_;
 }
 
@@ -80,5 +86,11 @@ std::string StrayField::unit() const {
 }
 
 bool StrayField::assuredZero() const {
-  return magnet_->msat.assuredZero() && magnet_->msat2.assuredZero();
+  if(const Ferromagnet* mag = dynamic_cast<const Ferromagnet*>(magnet_))
+    return mag->msat.assuredZero();
+  else if (const Antiferromagnet* mag = dynamic_cast<const Antiferromagnet*>(magnet_))
+    return mag->sub1()->msat.assuredZero() && mag->sub2()->msat.assuredZero();
+  else 
+    throw std::invalid_argument("Cannot calculate strayfield since magnet is neither"
+                                "a Ferromagnet nor an Antiferromagnet/Ferrimagnet.");
 }

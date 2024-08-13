@@ -1,52 +1,75 @@
+#include "antiferromagnet.hpp"
 #include "cudalaunch.hpp"
 #include "datatypes.hpp"
 #include "energy.hpp"
 #include "ferromagnet.hpp"
 #include "ferromagnetquantity.hpp"
 #include "field.hpp"
+#include "fieldops.hpp"
+#include "magnet.hpp"
 #include "mumaxworld.hpp"
 #include "zeeman.hpp"
 
-bool externalFieldAssuredZero(const Ferromagnet* magnet) {
+bool strayFieldsAssuredZero(const Ferromagnet* ferromagnet) {
+  const Magnet* magnet;
+  if (ferromagnet->isSublattice()) {
+    magnet = ferromagnet->hostMagnet();
+  } else {
+    magnet = ferromagnet;
+  }
+
   auto strayFields = magnet->getStrayFields();
   for (auto strayField : strayFields) {
     if (!strayField->assuredZero()) {
       return false;
     }
   }
+  return true;
+}
 
-  const MumaxWorld* world = static_cast<const MumaxWorld*>(magnet->world());
-  real3 b_ext = world->biasMagneticField;
+bool worldBiasFieldAssuredZero(const Magnet* magnet) {
+  real3 b_ext = magnet->mumaxWorld()->biasMagneticField;
   return b_ext == real3{0.0, 0.0, 0.0};
+}
+
+bool magnetBiasFieldAssuredZero(const Ferromagnet* magnet) {
+  return magnet->biasMagneticField.assuredZero();
+}
+
+bool externalFieldAssuredZero(const Ferromagnet* magnet) {
+  return (strayFieldsAssuredZero(magnet)
+          && worldBiasFieldAssuredZero(magnet)
+          && magnetBiasFieldAssuredZero(magnet));
 }
 
 Field evalExternalField(const Ferromagnet* magnet) {
 
-  int comp = magnet->magnetization()->ncomp();
-
-  Field h(magnet->system(), comp);
+  Field h(magnet->system(), 3);
   if (externalFieldAssuredZero(magnet)) {
     h.makeZero();
     return h;
   }
-  const MumaxWorld* world = static_cast<const MumaxWorld*>(magnet->world());
-  real3 wB_bias = world->biasMagneticField;
-  auto& mB_bias = magnet->biasMagneticField;
+
+  real3 wB_bias = magnet->mumaxWorld()->biasMagneticField; // bias field on world
+  auto& mB_bias = magnet->biasMagneticField; // bias field on individual magnet
 
   h.setUniformComponent(0, wB_bias.x);
   h.setUniformComponent(1, wB_bias.y);
   h.setUniformComponent(2, wB_bias.z);
-  if (comp == 6) {
-    h.setUniformComponent(3, wB_bias.x);
-    h.setUniformComponent(4, wB_bias.y);
-    h.setUniformComponent(5, wB_bias.z);
-  }
-  
+
   mB_bias.addToField(h);
 
-  auto strayFields = magnet->getStrayFields();
+  std::vector<const StrayField*> strayFields;
+  if (magnet->isSublattice())
+    strayFields = magnet->hostMagnet()->getStrayFields();
+  else
+    strayFields = magnet->getStrayFields();
   for (auto strayField : strayFields) {
     // Avoid the demag field, we only want external fields
+    if (magnet->isSublattice()) {
+      if (strayField->source() == magnet->hostMagnet())
+        continue;
+    }
     if (strayField->source() == magnet)
       continue;
     strayField->addToField(h);
@@ -56,35 +79,28 @@ Field evalExternalField(const Ferromagnet* magnet) {
 
 Field evalZeemanEnergyDensity(const Ferromagnet* magnet) {
   if (externalFieldAssuredZero(magnet))
-    return Field(magnet->system(), magnet->magnetization()->ncomp() / 3, 0.0);
+    return Field(magnet->system(), 1, 0.0);
   return evalEnergyDensity(magnet, evalExternalField(magnet), 1.0);
 }
 
-real zeemanEnergy(const Ferromagnet* magnet, const bool sub2) {
+real zeemanEnergy(const Ferromagnet* magnet) {
   if (externalFieldAssuredZero(magnet))
     return 0.0;
 
-  real edens;
-  if (!sub2) 
-    edens = zeemanEnergyDensityQuantity(magnet).average()[0];
-  else 
-    edens = zeemanEnergyDensityQuantity(magnet).average()[1];
-
+  real edens = zeemanEnergyDensityQuantity(magnet).average()[0];
   int ncells = magnet->grid().ncells();
   real cellVolume = magnet->world()->cellVolume();
   return ncells * edens * cellVolume;
 }
 
 FM_FieldQuantity externalFieldQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalExternalField, magnet->magnetization()->ncomp(), "external_field", "T");
+  return FM_FieldQuantity(magnet, evalExternalField, 3, "external_field", "T");
 }
 
 FM_FieldQuantity zeemanEnergyDensityQuantity(const Ferromagnet* magnet) {
-  return FM_FieldQuantity(magnet, evalZeemanEnergyDensity, magnet->magnetization()->ncomp() / 3,
-                          "zeeman_energy_density", "J/m3");
+  return FM_FieldQuantity(magnet, evalZeemanEnergyDensity, 1, "zeeman_energy_density", "J/m3");
 }
 
-FM_ScalarQuantity zeemanEnergyQuantity(const Ferromagnet* magnet, const bool sub2) {
-  std::string name = sub2 ? "zeeman_energy2" : "zeeman_energy";
-  return FM_ScalarQuantity(magnet, zeemanEnergy, sub2, name, "J");
+FM_ScalarQuantity zeemanEnergyQuantity(const Ferromagnet* magnet) {
+  return FM_ScalarQuantity(magnet, zeemanEnergy, "zeeman_energy", "J");
 }

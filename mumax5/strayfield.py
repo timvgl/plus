@@ -19,6 +19,12 @@ class StrayField(FieldQuantity):
     def __init__(self, magnet, grid):
         super().__init__(_cpp.StrayField(magnet._impl, grid._impl))
 
+    @classmethod
+    def _from_impl(cls, impl):
+        sf = cls.__new__(cls)
+        sf._impl = impl
+        return sf
+
     def set_method(self, method):
         """Set the computation method for the stray field.
 

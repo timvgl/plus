@@ -2,9 +2,13 @@
 
 PYBIND11_MODULE(_mumax5cpp, m) {
   wrap_fieldquantity(m);
+  wrap_antiferromagnetfieldquantity(m);
   wrap_ferromagnetfieldquantity(m);
   wrap_scalarquantity(m);
+  wrap_antiferromagnetscalarquantity(m);
   wrap_ferromagnetscalarquantity(m);
+  wrap_magnet(m);
+  wrap_antiferromagnet(m);
   wrap_ferromagnet(m);
   wrap_field(m);
   wrap_grid(m);

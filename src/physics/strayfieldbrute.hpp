@@ -8,7 +8,7 @@
 class System;
 class Field;
 class Parameter;
-class Ferromagnet;
+class Magnet;
 
 /**
  * A StraFieldBruteExecutor uses a brute force method to compute stray fields.
@@ -21,7 +21,7 @@ class StrayFieldBruteExecutor : public StrayFieldExecutor {
    * @param magnet the source of the stray field
    * @param system the system in which to compute the stray field
    */
-  StrayFieldBruteExecutor(const Ferromagnet* magnet,
+  StrayFieldBruteExecutor(const Magnet* magnet,
                           std::shared_ptr<const System> system);
 
   /** Compute and return the stray field. */

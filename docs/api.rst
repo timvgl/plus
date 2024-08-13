@@ -9,10 +9,12 @@ API Reference
     World
     Grid
     Ferromagnet
+    Antiferromagnet
     TimeSolver
     Variable
-    PoissonSolver
+    PoissonSystem
     Parameter
     FieldQuantity
     ScalarQuantity
+    StrayField
     DmiTensor
