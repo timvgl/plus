@@ -1,4 +1,4 @@
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 import numpy as np
 import matplotlib.pyplot as plt
 

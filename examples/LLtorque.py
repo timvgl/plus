@@ -3,8 +3,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util.constants import GAMMALL
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util.constants import GAMMALL
 
 
 def analytical(t, Bz):
@@ -32,7 +32,7 @@ fig, ax = plt.subplots(figsize=(8, 4.8))
 
 time_HD = np.linspace(0, tmax, 1001)
 ax.plot(1e9*time_HD, analytical(time_HD, Bz), 'k--', label="Analytical")
-ax.plot(1e9*np.asarray(output["time"]), output["mx"], 'o', label=r"MuMax5")
+ax.plot(1e9*np.asarray(output["time"]), output["mx"], 'o', label=r"mumaxplus")
 
 ax.set_title("Single spin precessing without damping")
 ax.set_xlabel(r"time $t$ (ns)")

@@ -1,4 +1,4 @@
-#project(mumax5)
+#project(mumaxplus)
 
 add_library(physics STATIC 
     afmexchange.cu

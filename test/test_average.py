@@ -1,6 +1,6 @@
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 
 class TestAverage:

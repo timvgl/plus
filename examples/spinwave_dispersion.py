@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import show_field
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util import show_field
 
 # Ferromagnetic spinwave dispersion relation
 

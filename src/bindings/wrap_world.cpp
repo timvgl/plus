@@ -14,7 +14,7 @@
 void wrap_world(py::module& m) {
   // TODO: avoid destructor being called when python ref out of scope
 
-  // in mumax5 module, MumaxWorld is the World
+  // in mumaxplus module, MumaxWorld is the World
   py::class_<MumaxWorld>(m, "World")
 
       .def(py::init<real3>(), py::arg("cellsize"),

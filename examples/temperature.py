@@ -1,7 +1,7 @@
 #!/bin/env python3
 
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import show_field
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util import show_field
 
 length, width, thickness = 500e-9, 125e-9, 3e-9
 nx, ny, nz = 128, 32, 1

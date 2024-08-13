@@ -1,6 +1,6 @@
 """StrayField implementation."""
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .fieldquantity import FieldQuantity
 
@@ -10,9 +10,9 @@ class StrayField(FieldQuantity):
 
     Parameters
     ----------
-    magnet : mumax5.Ferromagnet
+    magnet : mumaxplus.Ferromagnet
         Magnet instance which is the field source.
-    grid : mumax5.Grid
+    grid : mumaxplus.Grid
         Grid instance on which the stray field will be computed.
     """
 

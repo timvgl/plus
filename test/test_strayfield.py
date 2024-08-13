@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from mumax5 import Ferromagnet, Grid, StrayField, World
+from mumaxplus import Ferromagnet, Grid, StrayField, World
 
 
 def max_relative_error(result, wanted):

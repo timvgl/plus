@@ -1,7 +1,7 @@
 API Reference
 =============
 
-.. currentmodule:: mumax5
+.. currentmodule:: mumaxplus
 
 .. autosummary:: 
     :toctree: _api

@@ -2,7 +2,7 @@ import time
 
 import matplotlib.pyplot as plt
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 
 def simple_bench(grid, nsteps=100):

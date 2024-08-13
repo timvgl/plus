@@ -1,7 +1,7 @@
 import numpy as np
 
-from mumax5 import Antiferromagnet, Grid, World
-from mumax5.util import *
+from mumaxplus import Antiferromagnet, Grid, World
+from mumaxplus.util import *
 
 
 def compute_fm_exchange_numpy(magnet):

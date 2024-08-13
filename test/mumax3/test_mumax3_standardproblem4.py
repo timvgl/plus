@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from mumax3 import Mumax3Simulation
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 RTOL = 3e-2  # 3% is quite large :(
 
@@ -23,7 +23,7 @@ B1 = (-24.6e-3, 4.3e-3, 0)  # field 1
 B2 = (-35.5e-3, -6.3e-3, 0)  # field 2
 @pytest.fixture(scope="class", params=[B1, B2])
 def simulations(request):
-    """Sets up and runs standard problem 4 for both mumax5 and mumax3, given
+    """Sets up and runs standard problem 4 for both mumaxplus and mumax3, given
     a specific magnetic field. The magnetization and energies throughout time
     can later be compared quickly.
     """
@@ -43,7 +43,7 @@ def simulations(request):
     step_time = 1e-12
     
 
-    # === mumax5 ===
+    # === mumaxplus ===
     world = World(cellsize=(length / nx, width / ny, thickness / nz))
     magnet = Ferromagnet(world, Grid((nx, ny, nz)))
     
@@ -67,7 +67,7 @@ def simulations(request):
         "E_Zeeman": magnet.zeeman_energy,
         "E_demag": magnet.demag_energy
     }
-    mumax5output = world.timesolver.solve(timepoints, outputquantities)
+    mumaxplusoutput = world.timesolver.solve(timepoints, outputquantities)
 
 
     # === mumax3 ===
@@ -95,11 +95,11 @@ def simulations(request):
         """
     )
 
-    return mumax5output, mumax3sim
+    return mumaxplusoutput, mumax3sim
 
 @pytest.mark.mumax3
 class TestStandardProblem4:
-    """Compare the results of standard problem #4 of mumax5 against mumax3.
+    """Compare the results of standard problem #4 of mumaxplus against mumax3.
     Standard Problems: http://www.ctcms.nist.gov/~rdm/mumag.org.html
     Number 4: https://www.ctcms.nist.gov/~rdm/std4/spec4.html
     """
@@ -109,57 +109,57 @@ class TestStandardProblem4:
     # of the spatially averaged magnetization first crosses zero
 
     def test_magnetization_x(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # absolute error: mx goes through 0, but is unitless
         err = max_absolute_error(
-            result=mumax5output["mx"], wanted=mumax3sim.get_column("mx")
+            result=mumaxplusoutput["mx"], wanted=mumax3sim.get_column("mx")
         )
         assert err < RTOL
 
     def test_magnetization_y(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # absolute error: my goes through 0, but is unitless
         err = max_absolute_error(
-            result=mumax5output["my"], wanted=mumax3sim.get_column("my")
+            result=mumaxplusoutput["my"], wanted=mumax3sim.get_column("my")
         )
         assert err < RTOL
 
     def test_magnetization_z(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # absolute error: mz goes through 0, but is unitless
         err = max_absolute_error(
-            result=mumax5output["mz"], wanted=mumax3sim.get_column("mz")
+            result=mumaxplusoutput["mz"], wanted=mumax3sim.get_column("mz")
         )
         assert err < RTOL
 
     def test_total_energy(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # semirelative: E_total goes through 0, but has a unit
         err = max_semirelative_error(
-            result=mumax5output["E_total"], wanted=mumax3sim.get_column("E_total")
+            result=mumaxplusoutput["E_total"], wanted=mumax3sim.get_column("E_total")
         )
         assert err < RTOL
 
     def test_exchange_energy(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # relative: E_exch is always positive
         err = max_relative_error(
-            result=mumax5output["E_exch"], wanted=mumax3sim.get_column("E_exch")
+            result=mumaxplusoutput["E_exch"], wanted=mumax3sim.get_column("E_exch")
         )
         assert err < RTOL
 
     def test_zeeman_energy(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # semirelative: E_Zeeman goes through 0, but has a unit
         err = max_semirelative_error(
-            result=mumax5output["E_Zeeman"], wanted=mumax3sim.get_column("E_Zeeman")
+            result=mumaxplusoutput["E_Zeeman"], wanted=mumax3sim.get_column("E_Zeeman")
         )
         assert err < RTOL
 
     def test_demag_energy(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # relative: E_demag is probably always positive
         err = max_relative_error(
-            result=mumax5output["E_demag"], wanted=mumax3sim.get_column("E_demag")
+            result=mumaxplusoutput["E_demag"], wanted=mumax3sim.get_column("E_demag")
         )
         assert err < RTOL

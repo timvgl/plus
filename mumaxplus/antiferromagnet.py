@@ -3,7 +3,7 @@
 import numpy as _np
 import warnings
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .magnet import Magnet
 from .fieldquantity import FieldQuantity
@@ -19,9 +19,9 @@ class Antiferromagnet(Magnet):
 
     Parameters
     ----------
-    world : mumax5.World
+    world : mumaxplus.World
         World in which the antiferromagnet lives.
-    grid : mumax5.Grid
+    grid : mumaxplus.Grid
         The number of cells in x, y, z the antiferromagnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
         The geometry of the antiferromagnet can be set in three ways.

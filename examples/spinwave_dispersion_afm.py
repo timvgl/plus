@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Antiferromagnet, Grid, World
+from mumaxplus import Antiferromagnet, Grid, World
 
 # Antiferromagnetic spinwave dispersion relation
 

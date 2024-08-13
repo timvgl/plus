@@ -8,11 +8,11 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import os
 import sys
-sys.path.insert(0, os.path.abspath("../mumax5"))
+sys.path.insert(0, os.path.abspath("../mumaxplus"))
 
 # -- Project information -----------------------------------------------------
 
-project = "mumax5"
+project = "mumaxplus"
 author = "Oleh Kozynets, Ian Lateur, Lars Moreels, Jeroen Mulkers"
 release = "0.0.0"
 

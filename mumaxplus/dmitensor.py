@@ -6,7 +6,7 @@ from .parameter import Parameter
 class DmiTensor:
     r"""Contains the DMI parameters of a ferromagnet.
 
-    In mumax5, the Dzyaloshinskii-Moriya interaction is defined by the energy density
+    In mumaxplus, the Dzyaloshinskii-Moriya interaction is defined by the energy density
 
     .. math:: \varepsilon_{\text{DMI}} = \frac{1}{2} D_{ijk}
               \left[ m_j \partial_i m_k - m_k \partial_i m_j \right]
@@ -62,7 +62,7 @@ class DmiTensor:
 
         Parameters
         ----------
-        impl: _mumax5cpp.dmi_tensor
+        impl: _mumaxpluscpp.dmi_tensor
         """
         self._impl = impl
 

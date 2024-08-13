@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 
 def spiral(x, kx):
@@ -54,7 +54,7 @@ fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(8,6), gridspec_kw=
 fig.subplots_adjust(hspace=0)
 
 # energy per angle
-ax1.plot(angles, E_mumax, 'o', label=r"Mumax$^5$: FM")
+ax1.plot(angles, E_mumax, 'o', label=r"Mumax$^+$: FM")
 ax1.plot(angles, E_analytical, 'k--', label="Analytical")
 ax1.set_xlim(0, 180)
 ax1.set_xlabel(r"spin-spin angle (deg)")

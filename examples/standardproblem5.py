@@ -4,7 +4,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 def get_initial_config(position, Radius):
     x0, y0, _ = position

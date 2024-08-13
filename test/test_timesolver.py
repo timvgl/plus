@@ -4,7 +4,7 @@ import numpy as np
 from numpy import arccos, arctan, cos, exp, pi, sin, sqrt, tan
 import pytest
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 VALID_METHOD_NAMES = [
     "Heun",

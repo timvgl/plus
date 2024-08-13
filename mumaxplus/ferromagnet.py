@@ -2,7 +2,7 @@
 
 import numpy as _np
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .magnet import Magnet
 from .dmitensor import DmiTensor
@@ -21,9 +21,9 @@ class Ferromagnet(Magnet):
 
     Parameters
     ----------
-    world : mumax5.World
+    world : mumaxplus.World
         World in which the ferromagnet lives.
-    grid : mumax5.Grid
+    grid : mumaxplus.Grid
         The number of cells in x, y, z the ferromagnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
         The geometry of the ferromagnet can be set in three ways.
@@ -658,7 +658,7 @@ class Ferromagnet(Magnet):
 
         Returns
         -------
-        dmi_field : mumax5.FieldQuantity
+        dmi_field : mumaxplus.FieldQuantity
 
         See Also
         --------
@@ -679,7 +679,7 @@ class Ferromagnet(Magnet):
 
         Returns
         -------
-        dmi_energy_density : mumax5.FieldQuantity
+        dmi_energy_density : mumaxplus.FieldQuantity
 
         See Also
         --------

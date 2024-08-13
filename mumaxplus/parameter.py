@@ -2,7 +2,7 @@
 
 import numpy as _np
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .fieldquantity import FieldQuantity
 
@@ -13,8 +13,8 @@ class Parameter(FieldQuantity):
     def __init__(self, impl):
         """Initialize a python Parameter from a c++ Parameter instance.
 
-        Parameters should only have to be initialized within the mumax5 module and not
-        by the end user.
+        Parameters should only have to be initialized within the mumaxplus
+        module and not by the end user.
         """
         self._impl = impl
 

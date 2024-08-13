@@ -22,7 +22,7 @@ class TimeSolver;
 typedef std::function<FM_FieldQuantity(const Ferromagnet*)> FM_Field;
 
 /** MumaxWorld is World with additional functionalities for the actual physics
- *  of mumax5.
+ *  of mumaxplus.
  */
 class MumaxWorld : public World {
  public:

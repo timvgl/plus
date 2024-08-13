@@ -6,7 +6,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 length, width, thickness = 500e-9, 125e-9, 3e-9
 nx, ny, nz = 128, 32, 1

@@ -6,8 +6,8 @@ https://doi.org/10.1063/1.4899186 """
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import twodomain
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util import twodomain
 
 def line(x, a, b):
     return a * x + b

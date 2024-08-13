@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 
 class TestGeometry:

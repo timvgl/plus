@@ -1,4 +1,4 @@
-"""Physical constants used in mumax5.
+"""Physical constants used in mumaxplus.
 This file copies src/physics/constants.hpp."""
 
 # Gyromagnetic ratio in rad/Ts

@@ -1,6 +1,6 @@
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World, _cpp
+from mumaxplus import Ferromagnet, Grid, World, _cpp
 
 
 def demag_field_py(magnet):

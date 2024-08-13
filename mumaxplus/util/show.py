@@ -4,7 +4,7 @@ import matplotlib.pyplot as _plt
 import numpy as _np
 import pyvista as _pv
 
-import mumax5 as _m5
+import mumaxplus as _mxp
 
 
 def hsl_to_rgb(H, S, L):
@@ -88,8 +88,8 @@ def get_rgba(field, quantity=None, layer=None):
 
 
 def show_field(quantity, layer=0):
-    """Plot a mumax5.FieldQuantity with 3 or 6 components using the mumax3 colorscheme."""
-    if not isinstance(quantity, _m5.FieldQuantity):
+    """Plot a mumaxplus.FieldQuantity with 3 or 6 components using the mumax3 colorscheme."""
+    if not isinstance(quantity, _mxp.FieldQuantity):
         raise TypeError("The first argument should be a FieldQuantity")
     
     if (quantity.ncomp != 3 and quantity.ncomp != 6):
@@ -111,7 +111,7 @@ def show_field(quantity, layer=0):
 
 def show_neel(quantity, layer=0):
     """Plot The Neel vector of an AFM using the mumax3 colorscheme."""
-    if not isinstance(quantity, _m5.FieldQuantity):
+    if not isinstance(quantity, _mxp.FieldQuantity):
         raise TypeError("The first argument should be a FieldQuantity")
     
     if (quantity.ncomp != 6):
@@ -141,8 +141,8 @@ def plotter(quantity, rgba, name=[]):
 
 
 def show_layer(quantity, component=0, layer=0):
-    """Visualize a single component of a mumax5.FieldQuantity."""
-    if not isinstance(quantity, _m5.FieldQuantity):
+    """Visualize a single component of a mumaxplus.FieldQuantity."""
+    if not isinstance(quantity, _mxp.FieldQuantity):
         raise TypeError("The first argument should be a FieldQuantity")
 
     field = quantity.eval()
@@ -202,7 +202,7 @@ def show_neel_quiver(quantity, title=''):
 
 
 def show_magnet_geometry(magnet):
-    """Show the geometry of a mumax5.ferromagnet."""
+    """Show the geometry of a mumaxplus.ferromagnet."""
     geom = magnet.geometry
 
                  # [::-1] for [x,y,z] not [z,y,x] and +1 for cells, not points
@@ -223,11 +223,11 @@ def show_magnet_geometry(magnet):
 
 
 def show_field_3D(quantity, cmap="mumax3", quiver=True):
-    """Plot a mumax5.FieldQuantity with 3 components as a vectorfield.
+    """Plot a mumaxplus.FieldQuantity with 3 components as a vectorfield.
 
     Parameters
     ----------
-    quantity : mumax5.FieldQuantity (3 components)
+    quantity : mumaxplus.FieldQuantity (3 components)
         The `FieldQuantity` to plot as a vectorfield.
     cmap : string, optional, default: "mumax3"
         A colormap to use. By default the mumax3 colormap is used.
@@ -238,7 +238,7 @@ def show_field_3D(quantity, cmap="mumax3", quiver=True):
         If False, colored voxels are used instead.
     """
 
-    if not isinstance(quantity, _m5.FieldQuantity):
+    if not isinstance(quantity, _mxp.FieldQuantity):
         raise TypeError("The first argument should be a FieldQuantity")
 
     if (quantity.ncomp != 3):  # TODO support 6 components somehow

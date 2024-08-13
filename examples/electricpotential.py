@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import *
-from mumax5.util import *
+from mumaxplus import *
+from mumaxplus.util import *
 
 length, width, height = 100e-9, 100e-9, 1e-9
 nx, ny, nz = 128, 128, 1

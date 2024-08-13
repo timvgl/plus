@@ -7,7 +7,7 @@ https://pubs.aip.org/aip/jap/article-abstract/87/9/5520/530184/Behavior-of-MAG-s
 """
 
 import numpy as np
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 rHc_anal = 0.057069478  # analytical value of relative coercive field H_C/Msat
 

@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm  # progress bar
 
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util.constants import MU0
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util.constants import MU0
 
 calculate_coercivity = False  # set to True for coercivity, but takes very long
 

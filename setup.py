@@ -66,20 +66,20 @@ class CMakeBuild(build_ext):
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env
         )
         subprocess.check_call(
-            ["cmake", "--build", ".", "--target", "_mumax5cpp"] + build_args,
+            ["cmake", "--build", ".", "--target", "_mumaxpluscpp"] + build_args,
             cwd=self.build_temp,
         )
 
 
 setup(
-    name="mumax5",
+    name="mumaxplus",
     version="0.0.0",
     author="Jeroen Mulkers",
     author_email="jeroen.mulkers@gmail.com",
     description="Finite difference micromagnetic solver",
     long_description="",
-    packages=find_packages(include=["mumax5", "mumax5.*"]),
-    ext_modules=[CMakeExtension("_mumax5cpp")],
+    packages=find_packages(include=["mumaxplus", "mumaxplus.*"]),
+    ext_modules=[CMakeExtension("_mumaxpluscpp")],
     cmdclass=dict(build_ext=CMakeBuild),
     install_requires=["numpy", "matplotlib"],
     zip_safe=False,

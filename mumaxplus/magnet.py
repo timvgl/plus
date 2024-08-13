@@ -3,7 +3,7 @@
 import numpy as _np
 from abc import ABC, abstractmethod
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .grid import Grid
 from .strayfield import StrayField
@@ -18,9 +18,9 @@ class Magnet(ABC):
     _impl_function : callable
         The appropriate `world._impl` method of the child magnet, for example
         `world._impl.add_ferromagnet` or `world._impl.add_antiferromagnet`.
-    world : mumax5.World
+    world : mumaxplus.World
         World in which the magnet lives.
-    grid : mumax5.Grid
+    grid : mumaxplus.Grid
         The number of cells in x, y, z the magnet should be divided into.
     geometry : None, ndarray, or callable (default=None)
         The geometry of the magnet can be set in three ways.

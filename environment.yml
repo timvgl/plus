@@ -1,4 +1,4 @@
-name: mumax5
+name: mumaxplus
 channels:
   - conda-forge
 dependencies:

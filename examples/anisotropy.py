@@ -4,7 +4,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 def polar(uni, cub):
     zeros = (0, 0, 0)

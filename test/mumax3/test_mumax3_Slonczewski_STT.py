@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from mumax3 import Mumax3Simulation
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 # fairly large tolerance because timepoints don't exactly match up
 # => large error for large change in magnetization
@@ -14,7 +14,7 @@ def max_absolute_error(result, wanted):
 
 @pytest.mark.mumax3
 class TestSlonczewskiSTT:
-    """Compare the results of a Slonczewski STT test of mumax5 against mumax3.
+    """Compare the results of a Slonczewski STT test of mumaxplus against mumax3.
     This is based on a test in the paper "The design and verification of MuMax3".
     https://doi.org/10.1063/1.4899186 """
 
@@ -41,7 +41,7 @@ class TestSlonczewskiSTT:
         step_time = 0.5e-12
 
 
-        # === mumax5 ===
+        # === mumaxplus ===
         world = World(cellsize=(cx, cy, cz))
         magnet = Ferromagnet(world, Grid((nx, ny, nz)))
         magnet.msat = msat
@@ -60,7 +60,7 @@ class TestSlonczewskiSTT:
         outputquantities = {"mx": lambda: magnet.magnetization.average()[0],
                             "my": lambda: magnet.magnetization.average()[1],
                             "mz": lambda: magnet.magnetization.average()[2]}
-        self.mumax5output = world.timesolver.solve(timepoints, outputquantities)
+        self.mumaxplusoutput = world.timesolver.solve(timepoints, outputquantities)
 
 
         # === mumax3 ===
@@ -89,18 +89,18 @@ class TestSlonczewskiSTT:
 
     def test_magnetization_x(self):
         # absolute error: mx goes through 0, but is unitless
-        err = max_absolute_error(result=self.mumax5output["mx"],
+        err = max_absolute_error(result=self.mumaxplusoutput["mx"],
                                  wanted=self.mumax3sim.get_column("mx"))
         assert err < ATOL
 
     def test_magnetization_y(self):
         # absolute error: my goes through 0, but is unitless
-        err = max_absolute_error(result=self.mumax5output["my"],
+        err = max_absolute_error(result=self.mumaxplusoutput["my"],
                                  wanted=self.mumax3sim.get_column("my"))
         assert err < ATOL
 
     def test_magnetization_z(self):
         # absolute error: mz goes through 0, but is unitless
-        err = max_absolute_error(result=self.mumax5output["mz"],
+        err = max_absolute_error(result=self.mumaxplusoutput["mz"],
                                  wanted=self.mumax3sim.get_column("mz"))
         assert err < ATOL

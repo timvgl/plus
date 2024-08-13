@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(mumax5 LANGUAGES CUDA CXX)
+project(mumaxplus LANGUAGES CUDA CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 

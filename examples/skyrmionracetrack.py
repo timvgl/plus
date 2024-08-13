@@ -1,5 +1,5 @@
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import neelskyrmion, show_field
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util import neelskyrmion, show_field
 import matplotlib.pyplot as plt
 
 # create the world

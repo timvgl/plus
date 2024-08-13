@@ -1,6 +1,6 @@
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 RTOL = 2e-3  # fairly large, because energies can approach 0 -> divide by 0
 

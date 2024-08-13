@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from mumax3 import Mumax3Simulation
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 
 def max_relative_error(result, wanted):
@@ -13,7 +13,7 @@ def max_relative_error(result, wanted):
 
 @pytest.mark.mumax3
 class TestMumax3:
-    """ Test the effective fields of mumax5 against mumax3 """
+    """ Test the effective fields of mumaxplus against mumax3 """
 
     def setup_class(self):
         """1. Creates a magnet with arbitrary material parameters and grid
@@ -89,7 +89,7 @@ class TestMumax3:
 
     def test_demag_field(self):
         # Here we compare to the demagfield of mumax with an increased tollerance.
-        # Because mumax3 and mumax5 approximate in a different way the demag kernel
+        # Because mumax3 and mumaxplus approximate in a different way the demag kernel
         err = max_relative_error(
             result=self.magnet.demag_field.eval(),
             wanted=self.mumax3sim.get_field("b_demag"),
@@ -98,7 +98,7 @@ class TestMumax3:
 
     def test_effective_field(self):
         # Here we compare to the demagfield of mumax with an increased tollerance.
-        # Because mumax3 and mumax5 approximate in a different way the demag kernel
+        # Because mumax3 and mumaxplus approximate in a different way the demag kernel
         err = max_relative_error(
             result=self.magnet.effective_field.eval(),
             wanted=self.mumax3sim.get_field("b_eff"),

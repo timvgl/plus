@@ -1,6 +1,6 @@
 """GPU accelerated micromagnetic simulator."""
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .antiferromagnet import Antiferromagnet
 from .dmitensor import DmiTensor

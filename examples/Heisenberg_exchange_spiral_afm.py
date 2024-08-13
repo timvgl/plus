@@ -8,8 +8,8 @@ https://doi.org/10.1063/1.4899186
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Antiferromagnet, Grid, World
-from mumax5.util import *
+from mumaxplus import Antiferromagnet, Grid, World
+from mumaxplus.util import *
 
 def sub1helical():
     """Assumes X to be array from meshgrid, then returns three helical

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import rfft, rfftfreq
 from scipy.signal import find_peaks
-from mumax5 import Antiferromagnet, Grid, World
+from mumaxplus import Antiferromagnet, Grid, World
 
 
 Ms = 200e3
@@ -72,7 +72,7 @@ f_ana2 = gamma * mu0 * (Hc - H/mu0) * 1e-9
 fig = plt.figure()
 plt.plot(H, f_ana1, 'k-', label="Analytical")
 plt.plot(H, f_ana2, 'k-')
-plt.plot(H, freq1, 'bo', label=r"Mumax$^5$, $H_0$ // $z$")
+plt.plot(H, freq1, 'bo', label=r"Mumax$^+$, $H_0$ // $z$")
 plt.plot(H, freq2, 'bo')
 plt.vlines(Hsf, 0, max(f_ana1), 'r', '--', label="Spin-flop field")
 plt.xlabel(r"Applied field $H_0$ (T)")

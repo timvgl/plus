@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from mumax3 import Mumax3Simulation
-from mumax5 import Ferromagnet, Grid, World
+from mumaxplus import Ferromagnet, Grid, World
 
 ATOL = 1e-3  # 0.1%
 
@@ -12,7 +12,7 @@ def max_absolute_error(result, wanted):
 xi1, xi2, xi3, xi4 = 0.0, 0.05, 0.1, 0.5
 @pytest.fixture(scope="class", params=[xi1, xi2, xi3, xi4])
 def simulations(request):
-    """Sets up and runs standard problem 5 for both mumax5 and mumax3, given
+    """Sets up and runs standard problem 5 for both mumaxplus and mumax3, given
     a specific non-adiabacity xi. The magnetization throughout time can later
     be compared quickly.
     This is very slow, but it rigorously tests Zhang-Li spin transfer torque.
@@ -58,7 +58,7 @@ def simulations(request):
         """
     )
 
-    # === mumax5 ===
+    # === mumaxplus ===
 
     world = World(cellsize=cellsize)
     magnet = Ferromagnet(world, Grid(gridsize))
@@ -81,41 +81,41 @@ def simulations(request):
         "my": lambda: magnet.magnetization.average()[1],
         "mz": lambda: magnet.magnetization.average()[2],
     }
-    mumax5output = world.timesolver.solve(timepoints, outputquantities)
+    mumaxplusoutput = world.timesolver.solve(timepoints, outputquantities)
 
-    return mumax5output, mumax3sim
+    return mumaxplusoutput, mumax3sim
 
 @pytest.mark.slow
 @pytest.mark.mumax3
 class TestStandardProblem5:
-    """Compare the results of standard problem #5 of mumax5 against mumax3.
+    """Compare the results of standard problem #5 of mumaxplus against mumax3.
     Standard Problems: http://www.ctcms.nist.gov/~rdm/mumag.org.html
     Number 5: https://www.ctcms.nist.gov/~rdm/std5/spec5.xhtml
     """
 
     def test_magnetization_x(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # absolute error: mx goes through 0, but is unitless
         err = max_absolute_error(
-            result=mumax5output["mx"], wanted=mumax3sim.get_column("mx")
+            result=mumaxplusoutput["mx"], wanted=mumax3sim.get_column("mx")
         )
         print(err)
         assert err < ATOL
 
     def test_magnetization_y(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # absolute error: my goes through 0, but is unitless
         err = max_absolute_error(
-            result=mumax5output["my"], wanted=mumax3sim.get_column("my")
+            result=mumaxplusoutput["my"], wanted=mumax3sim.get_column("my")
         )
         print(err)
         assert err < ATOL
 
     def test_magnetization_z(self, simulations):
-        mumax5output, mumax3sim = simulations
+        mumaxplusoutput, mumax3sim = simulations
         # absolute error: mz goes through 0, but is unitless
         err = max_absolute_error(
-            result=mumax5output["mz"], wanted=mumax3sim.get_column("mz")
+            result=mumaxplusoutput["mz"], wanted=mumax3sim.get_column("mz")
         )
         print(err)
         assert err < ATOL

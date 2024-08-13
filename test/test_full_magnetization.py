@@ -1,5 +1,5 @@
 import numpy as np
-from mumax5 import Antiferromagnet, World, Grid
+from mumaxplus import Antiferromagnet, World, Grid
 
 
 def max_relative_error(result, wanted):

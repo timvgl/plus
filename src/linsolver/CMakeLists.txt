@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16) 
-project(mumax5linsolver)
+project(mumaxpluslinsolver)
 
 add_library(linsolver STATIC 
     linsolver.cpp

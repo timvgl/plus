@@ -1,6 +1,6 @@
 """World imlementation."""
 
-import _mumax5cpp as _cpp
+import _mumaxpluscpp as _cpp
 
 from .timesolver import TimeSolver
 from .grid import Grid

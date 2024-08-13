@@ -1,8 +1,8 @@
-project(mumax5)
+project(mumaxplus)
 
 add_subdirectory(pybind11)
 
-pybind11_add_module(_mumax5cpp
+pybind11_add_module(_mumaxpluscpp
     cast.hpp
     main.cpp
     wrappers.hpp
@@ -24,5 +24,5 @@ pybind11_add_module(_mumax5cpp
     wrap_linsolver.cpp
 )
 
-target_include_directories(_mumax5cpp PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-target_link_libraries(_mumax5cpp PRIVATE core physics)
+target_include_directories(_mumaxpluscpp PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+target_link_libraries(_mumaxpluscpp PRIVATE core physics)

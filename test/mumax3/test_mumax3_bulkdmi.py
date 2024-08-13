@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 from mumax3 import Mumax3Simulation
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import formulary
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util import formulary
 
 RTOL = 1e-3
 

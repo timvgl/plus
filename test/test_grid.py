@@ -1,6 +1,6 @@
 import pytest
 
-from mumax5 import Grid
+from mumaxplus import Grid
 
 
 class TestGrid:

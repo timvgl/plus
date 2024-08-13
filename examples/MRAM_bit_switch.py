@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
 
-from mumax5 import Ferromagnet, Grid, World
-from mumax5.util import Ellipse
+from mumaxplus import Ferromagnet, Grid, World
+from mumaxplus.util import Ellipse
 
 
 # --- set up the world ---

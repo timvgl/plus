@@ -1,4 +1,4 @@
-# mumax5
+# MuMaxPlus
 GPU accelerated micromagnetic simulator.
 
 # Dependencies
@@ -28,22 +28,22 @@ export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
 ```
 The paths might differ if CUDA Toolkit has been installed in a different location. If successful, a command such as `nvcc --version` should work.
 
-Clone the mumax5 git repository. The `--recursive` flag is used here to get the pybind11 submodule which is needed to build mumax5.
+Clone the mumaxplus git repository. The `--recursive` flag is used here to get the pybind11 submodule which is needed to build mumaxplus.
 ```
-git clone --recursive https://github.ugent.be/mumax/mumax5 && cd mumax5
+git clone --recursive https://github.ugent.be/mumax/mumaxplus && cd mumaxplus
 ```
-Build and install mumax5 using pip
+Build and install mumaxplus using pip
 ```
 pip install .
 ```
-or, if you are planning to contribute to the development of mumax5, then we recommend to install miniconda or anaconda to install mumax5 in a clean conda environment, and to put the pre-commit hooks in place as follows
+or, if you are planning to contribute to the development of mumaxplus, then we recommend to install miniconda or anaconda to install mumaxplus in a clean conda environment, and to put the pre-commit hooks in place as follows
 ```
 conda env create -f environment.yml
-conda activate mumax5
+conda activate mumaxplus
 pip install -e .
 pre-commit install
 ```
-If changes are made to the c++ code, then `pip install -ve .` can be used to rebuild mumax5.
+If changes are made to the c++ code, then `pip install -ve .` can be used to rebuild mumaxplus.
 
 # Installation from Source (Windows)
 
@@ -59,14 +59,14 @@ git submodule update
 ```
 conda env create -f environment.yml
 ```
-6. Build `mumax5` using `setuptools`
+6. Build `mumaxplus` using `setuptools`
 ```
-activate mumax5
+activate mumaxplus
 python setup.py develop
 ```
 or `conda`
 ```
-conda activate mumax5
+conda activate mumaxplus
 conda develop -b .
 ```
 
@@ -76,11 +76,11 @@ Visual Studio (VS) can be used for debugging of the C++ host and device code. Fo
 
 To start debugging session:
 
-1. Launch `mumax5.sln` in VS, it is created automatically by cmake and placed in `mumax5/build`
+1. Launch `mumaxplus.sln` in VS, it is created automatically by cmake and placed in `mumaxplus/build`
 2. When project is loaded, in *Solution Configurations* select *Debug*, *x64*
 3. In *Solution Explorer* set `cmd` as startup project
 4. For the `core` and `physics` projects set *CUDA C/C++->Device->Generate GPU Debug Information* to *Yes* using [project properties](https://docs.nvidia.com/nsight-visual-studio-edition/2020.2/cuda-build-run/index.html)
-5. Rebuild the mumax5.sln solution with VS
+5. Rebuild the mumaxplus.sln solution with VS
 6. Launch a debugging session via *Extensions->NSight->Start CUDA Debugging*
 
 
@@ -90,7 +90,7 @@ Several automated tests are located inside the `test/` directory. Type `pytest` 
 
 # Building the documentation
 
-Documentation for mumax5 follows the [NumPy style guide](https://numpydoc.readthedocs.io/en/latest/format.html) and can be generated using [Sphinx](https://www.sphinx-doc.org). Run the following command in the docs directory to let Sphinx build the HTML documentation pages:
+Documentation for mumaxplus follows the [NumPy style guide](https://numpydoc.readthedocs.io/en/latest/format.html) and can be generated using [Sphinx](https://www.sphinx-doc.org). Run the following command in the docs directory to let Sphinx build the HTML documentation pages:
 ```
 make html
 ```

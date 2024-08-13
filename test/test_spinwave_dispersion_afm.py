@@ -5,7 +5,7 @@ This test copies the example and automatically tests the difference between the 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mumax5 import Antiferromagnet, Grid, World
+from mumaxplus import Antiferromagnet, Grid, World
 
 RTOL = 3e-2  # 3%
 
@@ -76,7 +76,7 @@ def test_spinwave_dispersion_afm():
     # Find maximum amplitude frequencies of FFT
     real_fft = np.abs(mx_fft)**2  # to real
     positive_fft = real_fft[real_fft.shape[0]//2:, :]  # keep positive part
-    freq_mumax5 = 1/T * np.argmax(positive_fft, axis=0)  # maximum of each column
+    freq_mumaxplus = 1/T * np.argmax(positive_fft, axis=0)  # maximum of each column
 
     # The analytically derived dispersion relation
     k = np.linspace(-np.pi/dx, np.pi/dx, nx)
@@ -87,7 +87,7 @@ def test_spinwave_dispersion_afm():
     freq_theory = mu0 * gamma / (2*np.pi) * np.sqrt((2*He + Ha + Hint * k**2) * (Ha + Hint * k**2)) + Bz * gamma/(2*np.pi)
 
     # difference
-    freq_diff = abs(freq_mumax5 - freq_theory)
+    freq_diff = abs(freq_mumaxplus - freq_theory)
     valid_k_i = np.argmin(abs(k - (-1/dx)))
     valid_k_j = np.argmin(abs(k - 1/dx))
     valid_freq_diff = freq_diff[valid_k_i:valid_k_j]  # only keep valid part
