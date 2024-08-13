@@ -1,6 +1,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "afmexchange.hpp"
 #include "anisotropy.hpp"
 #include "conductivitytensor.hpp"
 #include "demag.hpp"
@@ -76,11 +77,19 @@ void wrap_ferromagnet(py::module& m) {
   m.def("anisotropy_energy_density", &anisotropyEnergyDensityQuantity);
   m.def("anisotropy_energy", &anisotropyEnergyQuantity);
 
+  // normal Ferromagnet
   m.def("exchange_field", &exchangeFieldQuantity);
   m.def("exchange_energy_density", &exchangeEnergyDensityQuantity);
-  m.def("exchange_energy", &exchangeEnergyQuantity);
-  m.def("max_angle", &maxAngle);
-
+  m.def("exchange_energy", &exchangeEnergyQuantity);  
+  m.def("max_angle", py::overload_cast<const Ferromagnet*>(&maxAngle));
+  // ferromagnetic sublattice
+  m.def("inhomogeneous_exchange_field", &inHomoAfmExchangeFieldQuantity);
+  m.def("homogeneous_exchange_field", &homoAfmExchangeFieldQuantity);
+  m.def("inhomogeneous_exchange_energy_density", &inHomoAfmExchangeEnergyDensityQuantity);
+  m.def("homogeneous_exchange_energy_density", &homoAfmExchangeEnergyDensityQuantity);
+  m.def("inhomogeneous_exchange_energy", &inHomoAfmExchangeEnergyQuantity);
+  m.def("homogeneous_exchange_energy", &homoAfmExchangeEnergyQuantity);
+  //
   m.def("dmi_field", &dmiFieldQuantity);
   m.def("dmi_energy_density", &dmiEnergyDensityQuantity);
   m.def("dmi_energy", &dmiEnergyQuantity);

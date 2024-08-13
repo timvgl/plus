@@ -52,7 +52,8 @@ Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   if (!externalFieldAssuredZero(magnet)) {edens += evalZeemanEnergyDensity(magnet);}
   if (!dmiAssuredZero(magnet)) {edens += evalDmiEnergyDensity(magnet);}
   if (!demagFieldAssuredZero(magnet)) {edens += evalDemagEnergyDensity(magnet);}
-  if (!afmExchangeAssuredZero(magnet)) {edens += evalAFMExchangeEnergyDensity(magnet);}
+  if (!homoAfmExchangeAssuredZero(magnet)) {edens += evalHomoAfmExchangeEnergyDensity(magnet);}
+  if (!inHomoAfmExchangeAssuredZero(magnet)) {edens += evalInHomoAfmExchangeEnergyDensity(magnet);}
   return edens;
 }
 

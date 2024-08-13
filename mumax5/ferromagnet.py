@@ -809,3 +809,77 @@ class Ferromagnet(Magnet):
         magnetization, msat
         """
         return FieldQuantity(_cpp.full_magnetization(self._impl))
+
+    # ----- SUBLATTICE QUANTITIES -----------
+
+    @property
+    def inhomogeneous_exchange_field(self):
+        """Effective field of the inhomogeneous exchange interaction (J).
+        This field is related to the antiferromagnetic exchange interaction
+        between neighbouring cells.
+        
+        See Also
+        --------
+        inhomogeneous_energy_exchange_density, inhomogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.inhomogeneous_exchange_field(self._impl))
+    
+    @property
+    def homogeneous_exchange_field(self):
+        """Effective field of the homogeneous exchange interaction (J).
+        This field is related to the antiferromagnetic exchange interaction
+        between spins in a single simulation cell.
+        
+        See Also
+        --------
+        homogeneous_exchange_energy_density, homogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.homogeneous_exchange_field(self._impl))
+    
+    @property
+    def inhomogeneous_exchange_energy_density(self):
+        """Energy density related to the inhomogeneous exchange interaction (J).
+        This energy density is related to the antiferromagnetic exchange interaction
+        between neighbouring cells.
+        
+        See Also
+        --------
+        inhomogeneous_exchange_field, inhomogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.inhomogeneous_exchange_energy_density(self._impl))
+    
+    @property
+    def homogeneous_exchange_energy_density(self):
+        """Energy density related to the homogeneous exchange interaction (J).
+        This energy density is related to the antiferromagnetic exchange interaction
+        between spins in a single simulation cell.
+        
+        See Also
+        --------
+        homogeneous_exchange_field, homogeneous_exchange_energy
+        """
+        return FieldQuantity(_cpp.homogeneous_exchange_energy_density(self._impl))
+
+    @property
+    def inhomogeneous_exchange_energy(self):
+        """Energy related to the inhomogeneous exchange interaction (J).
+        This energy is related to the antiferromagnetic exchange interaction
+        between neighbouring cells.
+        
+        See Also
+        --------
+        inhomogeneous_exchange_field, inhomogeneous_exchange_energy_density
+        """
+        return ScalarQuantity(_cpp.inhomogeneous_exchange_energy(self._impl))
+    
+    @property
+    def homogeneous_exchange_energy(self):
+        """Energy related to the homogeneous exchange interaction (J).
+        This energy is related to the antiferromagnetic exchange interaction
+        between spins in a single simulation cell.
+        
+        See Also
+        --------
+        homogeneous_exchange_field, homogeneous_exchange_energy_density
+        """
+        return ScalarQuantity(_cpp.homogeneous_exchange_energy(self._impl))
