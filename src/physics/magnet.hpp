@@ -27,7 +27,7 @@ class Magnet {
                   std::string name,
                   GpuBuffer<bool> geometry = GpuBuffer<bool>());
 
-  virtual ~Magnet() = default; // default destructor, replace later (remove strayfield)
+  virtual ~Magnet();
 
   std::string name() const;
   std::shared_ptr<const System> system() const;

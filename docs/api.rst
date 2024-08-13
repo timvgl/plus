@@ -16,4 +16,5 @@ API Reference
     Parameter
     FieldQuantity
     ScalarQuantity
+    StrayField
     DmiTensor

@@ -24,7 +24,11 @@ class Antiferromagnet : public Magnet {
          std::string name,
          GpuBuffer<bool> geometry);
          
-  ~Antiferromagnet() override = default;
+  /** Empty destructor
+   *
+   * Sublattices are destroyed automatically. They are not pointers.
+   */
+  ~Antiferromagnet() override {};
   
  std::vector<const Ferromagnet*> sublattices() const;
  const Ferromagnet* sub1() const;

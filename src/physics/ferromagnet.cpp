@@ -79,9 +79,6 @@ Ferromagnet::Ferromagnet(MumaxWorld* world,
     : Ferromagnet(std::make_shared<System>(world, grid, geometry), name) {}
 
 Ferromagnet::~Ferromagnet() {
-  for (auto& entry : strayFields_) {
-    delete entry.second;
-  }
   curandDestroyGenerator(randomGenerator);
 }
 
