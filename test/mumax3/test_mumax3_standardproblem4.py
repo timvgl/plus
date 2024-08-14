@@ -142,8 +142,8 @@ class TestStandardProblem4:
 
     def test_exchange_energy(self, simulations):
         mumaxplusoutput, mumax3sim = simulations
-        # relative: E_exch is always positive
-        err = max_relative_error(
+        # semirelative: E_exch is always positive, but sometimes too close to 0
+        err = max_semirelative_error(
             result=mumaxplusoutput["E_exch"], wanted=mumax3sim.get_column("E_exch")
         )
         assert err < RTOL
@@ -158,8 +158,8 @@ class TestStandardProblem4:
 
     def test_demag_energy(self, simulations):
         mumaxplusoutput, mumax3sim = simulations
-        # relative: E_demag is probably always positive
-        err = max_relative_error(
+        # semirelative: E_demag is probably always positive, but sometimes too close to 0
+        err = max_semirelative_error(
             result=mumaxplusoutput["E_demag"], wanted=mumax3sim.get_column("E_demag")
         )
         assert err < RTOL
