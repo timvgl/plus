@@ -88,54 +88,30 @@ def get_rgba(field, quantity=None, layer=None):
 
 
 def show_field(quantity, layer=0):
-    """Plot a mumaxplus.FieldQuantity with 3 or 6 components using the mumax3 colorscheme."""
+    """Plot a mumaxplus.FieldQuantity with 3 components using the mumax3 colorscheme."""
     if not isinstance(quantity, _mxp.FieldQuantity):
         raise TypeError("The first argument should be a FieldQuantity")
     
-    if (quantity.ncomp != 3 and quantity.ncomp != 6):
+    if (quantity.ncomp != 3):
         raise ValueError(
             "Can not create a vector field image because the field quantity "
-            + "does not have 3 or 6 components."
+            + "does not have 3 components."
         )
 
     field = quantity.eval()
-    rgba = []
-    if quantity.ncomp == 6:
-        rgba = [get_rgba(field[0:3], quantity, layer), get_rgba(field[3:6], quantity, layer)]
-        name = ['\n' + " (Sublattice 1)", '\n' + " (Sublattice 2)"]
-    else:
-        rgba = [get_rgba(field, quantity, layer)]
-        name = [""]
-    plotter(quantity, rgba, name)
-
-
-def show_neel(quantity, layer=0):
-    """Plot The Neel vector of an AFM using the mumax3 colorscheme."""
-    if not isinstance(quantity, _mxp.FieldQuantity):
-        raise TypeError("The first argument should be a FieldQuantity")
     
-    if (quantity.ncomp != 6):
-        raise ValueError(
-            "Can not create a Neel vector field image because the field quantity "
-            + "does not have 6 components."
-        )
+    rgba = [get_rgba(field, quantity, layer)]
+    plotter(quantity, rgba)
 
-    field = quantity.eval()
-    neel_field = 0.5 * _np.subtract(field[0:3], field[3:6])
 
-    rgba = [get_rgba(neel_field, quantity, layer)]
-
-    plotter(quantity, rgba, [" (Neel vector field)"])
-
-def plotter(quantity, rgba, name=[]):
+def plotter(quantity, rgba, name=""):
     fig = _plt.figure()
-    for i in range(len(rgba)):
-        ax = fig.add_subplot(1, len(rgba), i+1)
-        ax.set_title(quantity.name + name[i])
-        ax.set_facecolor("gray")
-        ax.imshow(rgba[i], origin="lower", extent=_quantity_img_xy_extent(quantity))
-        ax.set_xlabel("$x$ (m)")
-        ax.set_ylabel("$y$ (m)")
+    ax = fig.add_subplot(1, 1, 1)
+    ax.set_title(quantity.name + name)
+    ax.set_facecolor("gray")
+    ax.imshow(rgba[0], origin="lower", extent=_quantity_img_xy_extent(quantity))
+    ax.set_xlabel("$x$ (m)")
+    ax.set_ylabel("$y$ (m)")
     _plt.show()
 
 
@@ -168,6 +144,8 @@ def show_layer(quantity, component=0, layer=0):
 def show_neel_quiver(quantity, title=''):
     
     # Still needs some fudging...
+    # Function uses ancient representation of Antiferromagnet.
+    # This does NOT work in the current version of Mumax+.
 
     field = quantity.eval()
     m1, m2 = field[0:3], field[3:6]
@@ -241,7 +219,7 @@ def show_field_3D(quantity, cmap="mumax3", quiver=True):
     if not isinstance(quantity, _mxp.FieldQuantity):
         raise TypeError("The first argument should be a FieldQuantity")
 
-    if (quantity.ncomp != 3):  # TODO support 6 components somehow
+    if (quantity.ncomp != 3):
         raise ValueError("Can not create a vector field image because the field"
                          + " quantity does not have 3 components.")
 
