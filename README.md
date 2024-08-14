@@ -1,5 +1,5 @@
-# MuMaxPlus
-GPU accelerated micromagnetic simulator.
+# MuMax+
+More versatile and extensible GPU-accelerated micromagnetic simulator.
 
 # Dependencies
 
@@ -30,7 +30,7 @@ The paths might differ if CUDA Toolkit has been installed in a different locatio
 
 Clone the mumaxplus git repository. The `--recursive` flag is used here to get the pybind11 submodule which is needed to build mumaxplus.
 ```
-git clone --recursive https://github.ugent.be/mumax/mumaxplus && cd mumaxplus
+git clone --recursive https://github.com/mumax/plus.git mumaxplus && cd mumaxplus
 ```
 Build and install mumaxplus using pip
 ```
@@ -41,7 +41,6 @@ or, if you are planning to contribute to the development of mumaxplus, then we r
 conda env create -f environment.yml
 conda activate mumaxplus
 pip install -e .
-pre-commit install
 ```
 If changes are made to the c++ code, then `pip install -ve .` can be used to rebuild mumaxplus.
 
