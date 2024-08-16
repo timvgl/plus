@@ -307,7 +307,7 @@ class World:
 
         This will recalculate all strayfield kernels of all magnets in the world.
         
-        Also See
+        See Also
         --------
         set_pbc
         """
