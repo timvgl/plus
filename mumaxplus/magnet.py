@@ -146,4 +146,4 @@ class Magnet(ABC):
         StrayField
         """
         return StrayField._from_impl(
-                          self._impl.stray_field_from_magnet(magnet._impl))
+                        self._impl.stray_field_from_magnet(source_magnet._impl))
