@@ -143,7 +143,8 @@ class Magnet(ABC):
 
     @property
     def enable_as_stray_field_destination(self):
-        """Enable/disable whether this magnet (self) is influenced by the stray fields of other magnets. This does not influence demagnetization.
+        """Enable/disable whether this magnet (self) is influenced by the stray
+        fields of other magnets. This does not influence demagnetization.
         
         Default = True.
 
