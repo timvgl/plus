@@ -17,6 +17,7 @@
 #include "thermalnoise.hpp"
 #include "timesolver.hpp"
 #include "torque.hpp"
+#include "magnetoelastics.hpp"
 
 MumaxWorld::MumaxWorld(real3 cellsize)
     : World(cellsize),
@@ -169,8 +170,33 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
         std::shared_ptr<FieldQuantity>(torque(magnet).clone()),
         std::shared_ptr<FieldQuantity>(thermalNoiseQuantity(magnet).clone()));
     equations.push_back(eq);
+
+    // add elastodynamics if enabled
+    // TODO: this might not play nice with relax()
+    if (magnet->getEnableElastodynamics()) {
+
+      // make a usable FM_FieldQuantity from the const Variable* elasticVelocity
+      FM_FieldQuantity elasticVelocityQuantity(magnet,
+       [](const Ferromagnet* magnet){return magnet->elasticVelocity()->eval();},
+                                               3, "elastic_velocity", "m/s");
+
+      // change in displacement = velocity
+      DynamicEquation dvEq(
+          magnet->elasticDisplacement(),
+          std::shared_ptr<FieldQuantity>(&elasticVelocityQuantity));
+          // No thermal noise
+      equations.push_back(dvEq);
+
+      // change in velocity = acceleration
+      DynamicEquation vaEq(
+          magnet->elasticVelocity(),
+          std::shared_ptr<FieldQuantity>(elasticAccelerationQuantity(magnet).clone()));
+          // No thermal noise
+      equations.push_back(vaEq);
+    }
   }
 
+  // TODO: elastodynamics not properly working for AFM or sub FM
   for (const auto& namedMagnet : antiferromagnets_) {
     const Antiferromagnet* magnet = namedMagnet.second.get();
     for (const Ferromagnet* sub : magnet->sublattices()) {

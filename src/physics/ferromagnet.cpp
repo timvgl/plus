@@ -47,11 +47,20 @@ Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr,
       enableOpenBC(false),
       enableZhangLiTorque(true),
       enableSlonczewskiTorque(true),
+      enableElastodynamics_(false),
       appliedPotential(system(), std::nanf("0")),
       conductivity(system(), 0.0),
       amrRatio(system(), 0.0),
       RelaxTorqueThreshold(-1.0),
-      poissonSystem(this) {
+      poissonSystem(this), 
+      // magnetoelasticity
+      c11(system(), 0.0),
+      c12(system(), 0.0),
+      c44(system(), 0.0),
+      eta(system(), 0.0),
+      rho(system(), 1.0),  // TODO: different default?
+      B1(system(), 0.0),
+      B2(system(), 0.0) {
     {
     // TODO: this can be done much more efficient somewhere else
     int nvalues = 3 * this->grid().ncells();
@@ -86,6 +95,14 @@ const Variable* Ferromagnet::magnetization() const {
   return &magnetization_;
 }
 
+const Variable* Ferromagnet::elasticDisplacement() const {
+  return elasticDisplacement_.get();
+}
+
+const Variable* Ferromagnet::elasticVelocity() const {
+  return elasticVelocity_.get();
+}
+
 bool Ferromagnet::isSublattice() const {
   return !(hostMagnet_ == nullptr);
 }
@@ -103,4 +120,22 @@ void Ferromagnet::relax(real tol) {
   real threshold = this->RelaxTorqueThreshold;
   Relaxer relaxer(this, {threshold}, tol);
   relaxer.exec();
+}
+
+void Ferromagnet::setEnableElastodynamics(bool value) {
+  enableElastodynamics_ = value;
+
+  if (value) {
+    // properly initialize Variables now
+    elasticDisplacement_ = std::make_unique<Variable>(
+                             name() + ":elasticDisplacement", "m", system(), 3);
+    elasticVelocity_ = std::make_unique<Variable>(
+                               name() + ":elasticVelocity", "m/s", system(), 3);
+  } else {
+    // free memory of unnecessary Variables
+    elasticDisplacement_.reset();
+    elasticVelocity_.reset();
+  }
+
+  this->mumaxWorld()->resetTimeSolverEquations();
 }

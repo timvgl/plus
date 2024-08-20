@@ -32,6 +32,8 @@ add_library(physics STATIC
     ferromagnetquantity.hpp
     magnet.cpp
     magnet.hpp 
+    magnetoelastics.cu
+    magnetoelastics.hpp
     minimizer.cu
     minimizer.hpp
     mumaxworld.cpp
