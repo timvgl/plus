@@ -20,6 +20,8 @@ add_library(physics STATIC
     dmitensor.hpp
     effectivefield.hpp 
     effectivefield.cpp
+    elasticforce.cu
+    elasticforce.hpp
     electricalpotential.hpp
     electricalpotential.cu
     energy.hpp 

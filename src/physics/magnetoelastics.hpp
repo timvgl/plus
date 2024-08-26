@@ -42,14 +42,11 @@ class Field;
 // FM_ScalarQuantity
 
 
-bool elasticForceAssuredZero(const Ferromagnet*);
 bool magnetoelasticAssuredZero(const Ferromagnet*);
 
 
 Field evalMagnetoelasticField(const Ferromagnet*);
 
-Field evalElasticForce2D(const Ferromagnet*);  // TODO: best to make 2D and 3D?
-Field evalElasticForce3D(const Ferromagnet*);
 Field evalMagnetoelasticForce(const Ferromagnet*);
 Field evalElasticAcceleration(const Ferromagnet*);
 
@@ -57,8 +54,6 @@ Field evalElasticAcceleration(const Ferromagnet*);
 // Magnetoelastic effective field due to effects of inverse magnetostriction
 FM_FieldQuantity magnetoelasticFieldQuantity(const Ferromagnet*);
 
-// Elastic body force due to mechanical stress gradients f = ∇σ = ∇(cε)
-FM_FieldQuantity elasticForceQuantity(const Ferromagnet*);
 // Magnetoelastic body force due to the magnetostriction effect
 FM_FieldQuantity magnetoelasticForceQuantity(const Ferromagnet*);
 
