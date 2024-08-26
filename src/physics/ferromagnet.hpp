@@ -33,6 +33,7 @@ class Ferromagnet : public Magnet {
   ~Ferromagnet() override;
 
   const Variable* magnetization() const;
+  // TODO: make displacement/velocity safe even if enableElastodynamics==false
   const Variable* elasticDisplacement() const;
   const Variable* elasticVelocity() const;
 

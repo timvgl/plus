@@ -56,6 +56,40 @@ class Ferromagnet(Magnet):
         self.magnetization.set(value)
 
     @property
+    def elastic_displacement(self):
+        """Elastic displacement vector (m).
+
+        The elastic displacement is uninitialized (does not exist) if the
+        elastodynamics are disabled.
+        
+        See Also
+        --------
+        elastic_velocity
+        enableElastodynamics
+        """
+        return Variable(self._impl.elastic_displacement)
+
+    @elastic_displacement.setter
+    def elastic_displacement(self, value):
+        self.elastic_displacement.set(value)
+
+    @property
+    def elastic_velocity(self):
+        """Elastic velocity vector (m/s).
+        
+        The elastic velocity is uninitialized (does not exist) if the
+        elastodynamics are disabled.
+
+        elastic_displacement
+        enableElastodynamics
+        """
+        return Variable(self._impl.elastic_velocity)
+
+    @elastic_velocity.setter
+    def elastic_velocity(self, value):
+        self.elastic_velocity.set(value)
+
+    @property
     def enable_demag(self):
         """Enable/disable demagnetization switch.
         
@@ -111,6 +145,19 @@ class Ferromagnet(Magnet):
     @enable_slonczewski_torque.setter
     def enable_slonczewski_torque(self, value):
         self._impl.enable_slonczewski_torque = value
+
+    @property
+    def enable_elastodynamics(self):
+        """Enable/disable elastodynamic time evolution.
+
+        If elastodynamics are disabled (default), the elastic displacement and
+        velocity are uninitialized to save memory.
+        """
+        return self._impl.enable_elastodynamics
+
+    @enable_elastodynamics.setter
+    def enable_elastodynamics(self, value):
+        self._impl.enable_elastodynamics = value
 
     @property
     def bias_magnetic_field(self):
@@ -507,6 +554,98 @@ class Ferromagnet(Magnet):
     def amr_ratio(self, value):
         self.amr_ratio.set(value)
 
+    # --- magnetoelasticity ---
+    @property
+    def c11(self):
+        """Stiffness constant c11 = c22 = c33 of the stiffness tensor (N/m²).
+        
+        See Also
+        --------
+        c12, c44
+        """
+        return Parameter(self._impl.c11)
+
+    @c11.setter
+    def c11(self, value):
+        self.c11.set(value)
+
+    @property
+    def c12(self):
+        """Stiffness constant c12 = c13 = c23 of the stiffness tensor (N/m²).
+        
+        See Also
+        --------
+        c11, c44
+        """
+        return Parameter(self._impl.c12)
+
+    @c12.setter
+    def c12(self, value):
+        self.c12.set(value)
+
+    @property
+    def c44(self):
+        """Stiffness constant c44 = c55 = c66 of the stiffness tensor (N/m²).
+        
+        See Also
+        --------
+        c11, c12
+        """
+        return Parameter(self._impl.c44)
+
+    @c44.setter
+    def c44(self, value):
+        self.c44.set(value)
+
+    @property
+    def eta(self):
+        """Phenomenological elastic damping constant (kg/m³s)."""
+        return Parameter(self._impl.eta)
+
+    @eta.setter
+    def eta(self, value):
+        self.eta.set(value)
+
+    @property
+    def rho(self):
+        """Mass density (kg/m³).
+        
+        Default = 1.0
+        """
+        return Parameter(self._impl.rho)
+
+    @rho.setter
+    def rho(self, value):
+        self.rho.set(value)
+
+    @property
+    def B1(self):
+        """First magnetoelastic coupling constant (J/m³).
+        
+        See Also
+        --------
+        B2
+        """
+        return Parameter(self._impl.B1)
+
+    @B1.setter
+    def B1(self, value):
+        self.B1.set(value)
+
+    @property
+    def B2(self):
+        """Second magnetoelastic coupling constant (J/m³).
+        
+        See Also
+        --------
+        B1
+        """
+        return Parameter(self._impl.B2)
+
+    @B2.setter
+    def B2(self, value):
+        self.B2.set(value)
+
     # ----- POISSON SYSTEM ----------------------
 
     @property
@@ -883,3 +1022,12 @@ class Ferromagnet(Magnet):
         homogeneous_exchange_field, homogeneous_exchange_energy_density
         """
         return ScalarQuantity(_cpp.homogeneous_exchange_energy(self._impl))
+
+    # ----- MAGNETOELASTIC QUANTITIES -------
+
+    @property
+    def elastic_force(self):
+        """Elastic body force due to mechanical stress gradients (N/m³).
+
+        f = ∇σ = ∇(cε)"""
+        return FieldQuantity(_cpp.elastic_force(self._impl))

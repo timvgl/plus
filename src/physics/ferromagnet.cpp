@@ -123,19 +123,21 @@ void Ferromagnet::relax(real tol) {
 }
 
 void Ferromagnet::setEnableElastodynamics(bool value) {
-  enableElastodynamics_ = value;
+  if (enableElastodynamics_ != value) {
+    enableElastodynamics_ = value;
 
-  if (value) {
-    // properly initialize Variables now
-    elasticDisplacement_ = std::make_unique<Variable>(
-                             name() + ":elasticDisplacement", "m", system(), 3);
-    elasticVelocity_ = std::make_unique<Variable>(
-                               name() + ":elasticVelocity", "m/s", system(), 3);
-  } else {
-    // free memory of unnecessary Variables
-    elasticDisplacement_.reset();
-    elasticVelocity_.reset();
+    if (value) {
+      // properly initialize Variables now
+      elasticDisplacement_ = std::make_unique<Variable>(
+                              name() + ":elasticDisplacement", "m", system(), 3);
+      elasticVelocity_ = std::make_unique<Variable>(
+                                name() + ":elasticVelocity", "m/s", system(), 3);
+    } else {
+      // free memory of unnecessary Variables
+      elasticDisplacement_.reset();
+      elasticVelocity_.reset();
+    }
+
+    this->mumaxWorld()->resetTimeSolverEquations();
   }
-
-  this->mumaxWorld()->resetTimeSolverEquations();
 }
