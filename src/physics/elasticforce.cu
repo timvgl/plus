@@ -102,7 +102,7 @@ __global__ void k_elasticForce(CuField fField,
   }
 
   // array instead of real3 to get indexing [i]
-  real cs[3] = {cellsize.x, cellsize.y, cellsize.z};
+  const real cs[3] = {cellsize.x, cellsize.y, cellsize.z};
   const int3 ip1_arr[3] = {int3{ 1, 0, 0}, int3{0, 1, 0}, int3{0, 0, 1}};
   const int3 im1_arr[3] = {int3{-1, 0, 0}, int3{0,-1, 0}, int3{0, 0,-1}};
   const int3 coo = grid.index2coord(idx);
@@ -130,8 +130,9 @@ __global__ void k_elasticForce(CuField fField,
                             uField.valueAt(safeIdx_ip1, i), di);
 
 #pragma unroll  // might not be possible
-    for (int j=i+1; j<i+3; j++) {
+    for (int j_=i+1; j_<i+3; j_++) {
       // j is one of the *other* {x, y, z} components/directions
+      int j = j_;
       if (j > 2) {j -= 3;};
 
       // translate in direction j
