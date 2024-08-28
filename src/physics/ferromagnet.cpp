@@ -80,7 +80,8 @@ Ferromagnet::Ferromagnet(std::shared_ptr<System> system_ptr,
   curandCreateGenerator(&randomGenerator, CURAND_RNG_PSEUDO_DEFAULT);
   curandSetPseudoRandomGeneratorSeed(randomGenerator,
         static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-  }
+}
+
 Ferromagnet::Ferromagnet(MumaxWorld* world,
                          Grid grid,
                          std::string name,
@@ -130,8 +131,10 @@ void Ferromagnet::setEnableElastodynamics(bool value) {
       // properly initialize Variables now
       elasticDisplacement_ = std::make_unique<Variable>(
                               name() + ":elasticDisplacement", "m", system(), 3);
+      elasticDisplacement_->set(real3{0,0,0});
       elasticVelocity_ = std::make_unique<Variable>(
                                 name() + ":elasticVelocity", "m/s", system(), 3);
+      elasticVelocity_->set(real3{0,0,0});
     } else {
       // free memory of unnecessary Variables
       elasticDisplacement_.reset();
