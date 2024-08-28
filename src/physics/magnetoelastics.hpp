@@ -57,6 +57,9 @@ FM_FieldQuantity magnetoelasticFieldQuantity(const Ferromagnet*);
 // Magnetoelastic body force due to the magnetostriction effect
 FM_FieldQuantity magnetoelasticForceQuantity(const Ferromagnet*);
 
+// Translate const Variable* elasticVelocity to usable FM_fieldQuantity
+FM_FieldQuantity elasticVelocityQuantity(const Ferromagnet*);
+
 // Elastic acceleration includes all effects that influence the elastic velocity
 // including elastic, magnetoelastic and external body forces, and elastic damping.
 FM_FieldQuantity elasticAccelerationQuantity(const Ferromagnet*);

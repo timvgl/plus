@@ -11,13 +11,13 @@
 #include "gpubuffer.hpp"
 #include "grid.hpp"
 #include "magnet.hpp"
+#include "magnetoelastics.hpp"
 #include "minimizer.hpp"
 #include "relaxer.hpp"
 #include "system.hpp"
 #include "thermalnoise.hpp"
 #include "timesolver.hpp"
 #include "torque.hpp"
-#include "magnetoelastics.hpp"
 
 MumaxWorld::MumaxWorld(real3 cellsize)
     : World(cellsize),
@@ -175,15 +175,10 @@ void MumaxWorld::resetTimeSolverEquations(FM_Field torque) const {
     // TODO: this might not play nice with relax()
     if (magnet->getEnableElastodynamics()) {
 
-      // make a usable FM_FieldQuantity from the const Variable* elasticVelocity
-      FM_FieldQuantity elasticVelocityQuantity(magnet,
-       [](const Ferromagnet* magnet){return magnet->elasticVelocity()->eval();},
-                                               3, "elastic_velocity", "m/s");
-
       // change in displacement = velocity
       DynamicEquation dvEq(
           magnet->elasticDisplacement(),
-          std::shared_ptr<FieldQuantity>(&elasticVelocityQuantity));
+          std::shared_ptr<FieldQuantity>(elasticVelocityQuantity(magnet).clone()));
           // No thermal noise
       equations.push_back(dvEq);
 

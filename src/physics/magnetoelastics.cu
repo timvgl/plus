@@ -86,6 +86,12 @@ FM_FieldQuantity magnetoelasticForceQuantity(const Ferromagnet* magnet) {
                           "magnetoelastic_force", "N/m3");
 }
 
+FM_FieldQuantity elasticVelocityQuantity(const Ferromagnet* magnet) {
+  return FM_FieldQuantity(magnet,  // use lambda function
+       [](const Ferromagnet* magnet){return magnet->elasticVelocity()->eval();},
+                          3, "elastic_velocity", "m/s");
+}
+
 FM_FieldQuantity elasticAccelerationQuantity(const Ferromagnet* magnet) {
   return FM_FieldQuantity(magnet, evalElasticAcceleration, 3,
                           "elastic_acceleration", "m/s2");
