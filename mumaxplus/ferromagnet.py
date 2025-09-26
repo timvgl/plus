@@ -409,6 +409,48 @@ class Ferromagnet(Magnet):
         self.anisC2.set(value)
 
     @property
+    def khex(self) -> Parameter:
+        """Hexagonal anisotropy parameter Khex (J/m³).
+        
+        See Also
+        --------
+        anisC1Hex, anisC1Hex
+        """
+        return Parameter(self._impl.khex)
+    
+    @khex.setter
+    def khex(self, value):
+        self.khex.set(value)
+
+    @property
+    def anisCHex(self) -> Parameter:
+        """Hexagonal anisotropy C direction.
+        
+        See Also
+        --------
+        khex, anisAHex
+        """
+        return Parameter(self._impl.anisCHex)
+    
+    @anisCHex.setter
+    def anisCHex(self, value):
+        self.anisCHex.set(value)
+
+    @property
+    def anisAHex(self) -> Parameter:
+        """Hexagonal anisotropy A direction.
+        
+        See Also
+        --------
+        khex, anisCHex
+        """
+        return Parameter(self._impl.anisAHex)
+    
+    @anisAHex.setter
+    def anisAHex(self, value):
+        self.anisAHex.set(value)
+
+    @property
     def Lambda(self) -> Parameter:
         """Slonczewski Λ parameter.
         

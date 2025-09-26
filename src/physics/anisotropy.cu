@@ -18,9 +18,15 @@ bool cubicanisotropyAssuredZero(const Ferromagnet* magnet) {
        || magnet->msat.assuredZero();
 }
 
+bool hexanisotropyAssuredZero(const Ferromagnet* magnet) {
+    return magnet->khex.assuredZero()
+        || magnet->anisCHex.assuredZero()
+        || magnet->anisAHex.assuredZero();
+}
+
 bool anisotropyAssuredZero(const Ferromagnet* magnet) {
   return (unianisotropyAssuredZero(magnet)
-          && cubicanisotropyAssuredZero(magnet));
+          && cubicanisotropyAssuredZero(magnet)) && hexanisotropyAssuredZero(magnet);
 }
 
 __global__ void k_unianisotropyField(CuField hField,
@@ -107,6 +113,66 @@ __global__ void k_cubicanisotropyField(CuField hField,
 }
 
 
+__global__ void k_hexagonalAnisotropyField(
+    CuField hField,
+    const CuField mField,
+    const CuVectorParameter anisC,   // Hauptachse c
+    const CuVectorParameter anisA,   // Referenzachse a in der Ebene
+    const CuParameter Khex,          // 6-fach In-Plane-Anisotropie
+    const CuParameter msat)
+{
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (!hField.cellInGeometry(idx)) {
+        if (hField.cellInGrid(idx)) hField.setVectorInCell(idx, real3{0,0,0});
+        return;
+    }
+
+    real Ms = msat.valueAt(idx);
+    if (Ms == 0.) { hField.setVectorInCell(idx, real3{0,0,0}); return; }
+
+    real khex = Khex.valueAt(idx);
+
+    // --- Orthonormales Dreibein (c, a, b) ---
+    real3 c = normalized(anisC.vectorAt(idx));
+
+    real3 a_raw = anisA.vectorAt(idx);
+    // a in die Ebene projizieren und normalisieren
+    a_raw = a_raw - dot(a_raw, c) * c;
+    real3 a = normalized(a_raw);
+
+    // b = c × a, dann normalisieren
+    real3 b = normalized(cross(c, a));
+
+    // Fallback, falls Projektion degeneriert (anisA ~ c)
+    if (!isfinite(a.x) || !isfinite(a.y) || !isfinite(a.z)) {
+        real3 t = (fabs(c.x) < 0.9) ? real3{1,0,0} : real3{0,1,0};
+        a = normalized(t - dot(t, c)*c);
+        b = normalized(cross(c, a));
+    }
+
+    // Magnetisierung + Projektionen
+    real3 m  = mField.vectorAt(idx);
+    real ma  = dot(m, a);
+    real mb  = dot(m, b);
+
+    // Polynome für Ableitungen
+    real ma2 = ma*ma, mb2 = mb*mb;
+    real ma3 = ma2*ma, mb3 = mb2*mb;
+    real ma4 = ma2*ma2, mb4 = mb2*mb2;
+    real ma5 = ma4*ma,  mb5 = mb4*mb;
+
+    // dE/d(ma), dE/d(mb) für Re[(ma + i mb)^6] = ma^6 - 15 ma^4 mb^2 + 15 ma^2 mb^4 - mb^6
+    real dE_dma =  ma5 - 10.*ma3*mb2 + 5.*ma*mb4;
+    real dE_dmb =  5.*ma4*mb - 10.*ma2*mb3 + mb5;
+
+    // H_hex = -(1/Ms) * (dE/dma * a + dE/dmb * b) * 6*Khex
+    real3 h_hex = (-6.*khex / Ms) * (dE_dma * a + dE_dmb * b);
+
+    hField.setVectorInCell(idx, h_hex);
+}
+
+
 Field evalAnisotropyField(const Ferromagnet* magnet) {
 
   Field result(magnet->system(), 3);
@@ -136,6 +202,13 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     auto kc3 = magnet->kc3.cu();
     cudaLaunch(ncells, k_cubicanisotropyField, h, m,
                anisC1, anisC2, kc1, kc2, kc3, msat);
+  }
+  else if (!hexanisotropyAssuredZero(magnet)) {
+    auto anisCHex = magnet->anisCHex.cu();
+    auto anisAHex = magnet->anisAHex.cu();
+    auto khex = magnet->khex.cu();
+    cudaLaunch(ncells, k_hexagonalAnisotropyField, h, m,
+               anisCHex, anisAHex, khex, msat);
   }
   return result;
 }

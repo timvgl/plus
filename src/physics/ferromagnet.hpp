@@ -60,6 +60,8 @@ class Ferromagnet : public Magnet {
   VectorParameter anisU;
   VectorParameter anisC1;
   VectorParameter anisC2;
+  VectorParameter anisCHex;
+  VectorParameter anisAHex;
   VectorParameter jcur;
   VectorParameter fixedLayer;
   /** Uniform bias magnetic field which will affect a ferromagnet.
@@ -75,6 +77,7 @@ class Ferromagnet : public Magnet {
   Parameter kc1;
   Parameter kc2;
   Parameter kc3;
+  Parameter khex;
   Parameter alpha;
   Parameter temperature;
   Parameter Lambda;
