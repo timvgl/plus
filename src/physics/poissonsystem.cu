@@ -305,5 +305,6 @@ Field PoissonSystem::solve() {
   GVec y = solver_.solve();
   Field pot(magnet_->system(), 1);
   cudaLaunch("poissonsystem.cu", pot.grid().ncells(), k_putSolutionInField, pot.cu(), y.get());
+  checkCudaError(cudaDeviceSynchronize());
   return pot;
 }

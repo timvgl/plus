@@ -122,6 +122,7 @@ void Minimizer::step() {
     int ncells = m1[i].grid().ncells();
 
     cudaLaunch("minimizer.cu", ncells, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
+    checkCudaError(cudaDeviceSynchronize());
   }
   
   for (size_t i = 0; i < magnets_.size(); i++)
