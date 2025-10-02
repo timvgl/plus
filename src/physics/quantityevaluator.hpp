@@ -27,11 +27,17 @@ class FieldQuantityEvaluator : public FieldQuantity {
                          std::function<bool(const T*)> assuredZeroFunc =
                            [](const T* ptr){ return false; })
       : ptr_(ptr),
-        evalfunc_(evalfunc),
+        //evalfunc_(evalfunc),
         ncomp_(ncomp),
         name_(name),
         unit_(unit),
-        assuredZeroFunc_(assuredZeroFunc) {}
+        assuredZeroFunc_(assuredZeroFunc) {
+          evalfunc_ = [base = std::move(evalfunc)](const T* p) -> Field {
+            Field out = base(p);
+            checkCudaError(cudaStreamSynchronize(getCudaStream()));
+            return out;
+          };
+        }
 
   FieldQuantityEvaluator<T>* clone() {
     return new FieldQuantityEvaluator<T>(ptr_, evalfunc_, ncomp_, name_, unit_,
@@ -78,10 +84,16 @@ class ScalarQuantityEvaluator : public ScalarQuantity {
                           std::function<bool(const T*)> assuredZeroFunc =
                             [](const T* ptr){ return false; })
       : ptr_(ptr),
-        evalfunc_(evalfunc),
+        //evalfunc_(evalfunc),
         name_(name),
         unit_(unit),
-        assuredZeroFunc_(assuredZeroFunc) {}
+        assuredZeroFunc_(assuredZeroFunc) {
+          evalfunc_ = [base = std::move(evalfunc)](const T* p) -> real {
+            real out = base(p);
+            checkCudaError(cudaStreamSynchronize(getCudaStream()));
+            return out;
+          };
+        }
 
   std::string name() const { return name_; }
   std::string unit() const { return unit_; }

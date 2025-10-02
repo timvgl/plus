@@ -191,7 +191,7 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     auto anisU = magnet->anisU.cu();
     auto ku1 = magnet->ku1.cu();
     auto ku2 = magnet->ku2.cu();
-    cudaLaunch(ncells, k_unianisotropyField, h, m,
+    cudaLaunch("anisotropy.cu", ncells, k_unianisotropyField, h, m,
                anisU, ku1, ku2, msat);
   }
   else if(!cubicanisotropyAssuredZero(magnet)) {
@@ -200,14 +200,14 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     auto kc1 = magnet->kc1.cu();
     auto kc2 = magnet->kc2.cu();
     auto kc3 = magnet->kc3.cu();
-    cudaLaunch(ncells, k_cubicanisotropyField, h, m,
+    cudaLaunch("anisotropy.cu", ncells, k_cubicanisotropyField, h, m,
                anisC1, anisC2, kc1, kc2, kc3, msat);
   }
   else if (!hexanisotropyAssuredZero(magnet)) {
     auto anisCHex = magnet->anisCHex.cu();
     auto anisAHex = magnet->anisAHex.cu();
     auto khex = magnet->khex.cu();
-    cudaLaunch(ncells, k_hexagonalAnisotropyField, h, m,
+    cudaLaunch("anisotropy.cu", ncells, k_hexagonalAnisotropyField, h, m,
                anisCHex, anisAHex, khex, msat);
   }
   return result;
@@ -313,7 +313,7 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
     auto anisU = magnet->anisU.cu();
     auto ku1 = magnet->ku1.cu();
     auto ku2 = magnet->ku2.cu();
-    cudaLaunch(ncells, k_unianisotropyEnergyDensity, e, m,
+    cudaLaunch("anisotropy.cu", ncells, k_unianisotropyEnergyDensity, e, m,
                anisU, ku1, ku2, msat);
   }
   else if(!cubicanisotropyAssuredZero(magnet)) {
@@ -322,7 +322,7 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
     auto kc1 = magnet->kc1.cu();
     auto kc2 = magnet->kc2.cu();
     auto kc3 = magnet->kc3.cu();
-    cudaLaunch(ncells, k_cubanisotropyEnergyDensity, e, m,
+    cudaLaunch("anisotropy.cu", ncells, k_cubanisotropyEnergyDensity, e, m,
                anisC1, anisC2, kc1, kc2, kc3, msat);
   }
   return edens;

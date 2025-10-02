@@ -41,7 +41,7 @@ Field evalPoyntingVector(const Magnet* magnet) {
   Field stress = evalStressTensor(magnet);
   CuField velocity = magnet->elasticVelocity()->field().cu();
 
-  cudaLaunch(ncells, k_poyntingVector, poyntingField.cu(), stress.cu(), velocity);
+  cudaLaunch("poyntingvector.cu", ncells, k_poyntingVector, poyntingField.cu(), stress.cu(), velocity);
   return poyntingField;
 }
 

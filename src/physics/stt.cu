@@ -182,10 +182,10 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
 
   // Either Zhang Li xor Slonczewski, can't have both TODO: should that be possible?
   if (SlonczewskiSTTAssuredZero(magnet))
-    cudaLaunch(ncells, k_ZhangLi, torque.cu(), m, msat, pol, xi, alpha, frozenSpins, jcur,
+    cudaLaunch("sst.cu", ncells, k_ZhangLi, torque.cu(), m, msat, pol, xi, alpha, frozenSpins, jcur,
                magnet->world()->mastergrid());
   else
-    cudaLaunch(ncells, k_Slonczewski, torque.cu(), m, msat, pol, lambda, alpha,
+    cudaLaunch("sst.cu", ncells, k_Slonczewski, torque.cu(), m, msat, pol, lambda, alpha,
              jcur, epsilonPrime, fixedLayer, freeLayerThickness, frozenSpins, fixedLayerOnTop);
   return torque;
 }

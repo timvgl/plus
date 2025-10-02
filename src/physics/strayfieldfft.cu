@@ -199,12 +199,12 @@ Field StrayFieldFFTExecutor::exec() const {
   if (const Ferromagnet* mag = magnet_->asFM()) {
     auto m = mag->magnetization()->field().cu();
     auto ms = mag->msat.cu();
-    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
+    cudaLaunch("strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
   }
   else {
     auto hostmag = evalHMFullMag(magnet_->asHost());
     auto ms = Parameter(magnet_->system(), 1.0);
-    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
+    cudaLaunch("strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
   }
 
   // Forward fourier transforms
@@ -219,11 +219,11 @@ Field StrayFieldFFTExecutor::exec() const {
     // if the h field and m field are two dimensional AND are in the same plane
     // (kernel grid origin at z=0) then the kernel matrix has only 4 relevant
     // components and a more efficient cuda kernel can be used:
-    cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunch("strayfieldfft.cu", ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), preFactor, ncells);
   } else {
-    cudaLaunch(ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunch("strayfieldfft.cu", ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor,
                ncells);
@@ -236,6 +236,6 @@ Field StrayFieldFFTExecutor::exec() const {
 
   // unpad
   Field h(system_, 3);
-  cudaLaunch(h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  cudaLaunch("strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
   return h;
 }

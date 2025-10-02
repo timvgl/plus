@@ -65,12 +65,12 @@ Field StrayFieldBruteExecutor::exec() const {
   if(const Ferromagnet* mag = magnet_->asFM()) {
     auto m = mag->magnetization()->field().cu();
     auto msat = mag->msat.cu();
-    cudaLaunch(ncells, k_demagfield, h.cu(), m, kernel_.field().cu(), msat);
+    cudaLaunch("strayfieldbrute.cu", ncells, k_demagfield, h.cu(), m, kernel_.field().cu(), msat);
   }
   else {
     auto hostmag = evalHMFullMag(magnet_->asHost());
     auto msat = Parameter(magnet_->system(), 1.0);
-    cudaLaunch(ncells, k_demagfield, h.cu(), hostmag.cu(), kernel_.field().cu(), msat.cu());
+    cudaLaunch("strayfieldbrute.cu", ncells, k_demagfield, h.cu(), hostmag.cu(), kernel_.field().cu(), msat.cu());
   }
   return h;
 }

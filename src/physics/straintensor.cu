@@ -108,7 +108,7 @@ Field evalStrainTensor(const Magnet* magnet) {
   real3 w = 1 / magnet->cellsize();
   Grid mastergrid = magnet->world()->mastergrid();
 
-  cudaLaunch(ncells, k_strainTensor, strain.cu(), u, w, mastergrid);
+  cudaLaunch("straintensor.cu", ncells, k_strainTensor, strain.cu(), u, w, mastergrid);
   return strain;
 }
 
@@ -134,7 +134,7 @@ Field evalStrainRate(const Magnet* magnet) {
 
   // The math for strain rate is exactly the same as for strain tensor,
   // but applied to velocity instead of displacement.
-  cudaLaunch(ncells, k_strainTensor, strainRate.cu(), v, w, mastergrid);
+  cudaLaunch("straintensor.cu", ncells, k_strainTensor, strainRate.cu(), v, w, mastergrid);
 
   return strainRate;
 }

@@ -37,13 +37,14 @@ static GVec apply(const LinearSystem& sys,
                   const GVec& x,
                   lsReal ka,
                   lsReal kb) {
-  if (x.size() != sys.nRows()) {
+  if ((int)x.size() != sys.nRows()) {
     throw std::invalid_argument(
         "The numbers of rows in the linear system does not match the number of "
         "cells of the field");
   }
   GVec y(x.size());
-  cudaLaunch(x.size(), k_apply, y.get(), sys.cu(), x.get(), ka, kb);
+  cudaLaunch("linsystem.cu", x.size(), k_apply, y.get(), sys.cu(), x.get(), ka, kb);
+  checkCudaError(cudaDeviceSynchronize());
   return y;
 }
 

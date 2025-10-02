@@ -65,7 +65,7 @@ Field evalThermalNoise(const Ferromagnet* magnet) {
   auto temp = magnet->temperature.cu();
   real cellVolume = magnet->world()->cellVolume();
   real preFactor = 2 * KB * GAMMALL / cellVolume;
-  cudaLaunch(N, k_thermalNoise, noise.cu(), msat, alpha, temp, preFactor);
+  cudaLaunch("thermalnoise.cu", N, k_thermalNoise, noise.cu(), msat, alpha, temp, preFactor);
   return noise;
 }
 

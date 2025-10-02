@@ -77,7 +77,7 @@ Field evalElasticAcceleration(const Magnet* magnet) {
   
   // divide by rho if possible
   if (!magnet->rho.assuredZero())
-    cudaLaunch(aField.grid().ncells(), k_divideByParam,
+    cudaLaunch("elastodynamics.cu", aField.grid().ncells(), k_divideByParam,
                aField.cu(), magnet->rho.cu());
 
   return aField;

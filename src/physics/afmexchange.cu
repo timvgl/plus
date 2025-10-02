@@ -179,7 +179,7 @@ Field evalHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
   for (auto sub : host->getOtherSublattices(magnet)) {
     // Accumulate seperate sublattice contributions
     auto mag2 = sub->magnetization()->field().cu();
-    cudaLaunch(hField.grid().ncells(), k_afmExchangeFieldSite, hField.cu(),
+    cudaLaunch("afmexchange.cu", hField.grid().ncells(), k_afmExchangeFieldSite, hField.cu(),
                mag2, msat, afmex_cell, latcon);
   }
   return hField;
@@ -206,7 +206,7 @@ Field evalInHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
     // Accumulate seperate sublattice contributions
     auto mag2 = sub->magnetization()->field().cu();
     auto msat2 = sub->msat.cu();
-    cudaLaunch(hField.grid().ncells(), k_afmExchangeFieldNN, hField.cu(),
+    cudaLaunch("afmexchange.cu", hField.grid().ncells(), k_afmExchangeFieldNN, hField.cu(),
               mag, mag2, aex, afmex_nn, inter, scale, msat, msat2,
               magnet->world()->mastergrid(), dmiTensor, BC);
   }
@@ -299,7 +299,7 @@ __global__ void k_angle(CuField angleField,
 Field evalAngleField(const Antiferromagnet* magnet) {
   Field angleField(magnet->system(), 1);
 
-  cudaLaunch(angleField.grid().ncells(), k_angle, angleField.cu(),
+  cudaLaunch("afmexchange.cu", angleField.grid().ncells(), k_angle, angleField.cu(),
             magnet->sub1()->magnetization()->field().cu(),
             magnet->sub2()->magnetization()->field().cu(),
             magnet->afmex_cell.cu(),

@@ -181,7 +181,7 @@ template <>
 inline std::vector<bool> GpuBuffer<bool>::getData() const {
   bool* buf = getHostCopy();
   std::vector<bool> data(size_);
-  for (int i = 0; i < size_; i++) {
+  for (int i = 0; i < (int)size_; i++) {
     data[i] = buf[i];
   }
   delete[] buf;

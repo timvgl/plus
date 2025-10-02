@@ -36,7 +36,7 @@ Field evalConductivityTensor(const Ferromagnet* magnet) {
   auto conduct0 = magnet->conductivity.cu();
   auto amr = magnet->amrRatio.cu();
   auto mField = magnet->magnetization()->field().cu();
-  cudaLaunch(ncells, k_conductTensor, conductivity.cu(), conduct0, amr, mField);
+  cudaLaunch("conductivitytensor.cu", ncells, k_conductTensor, conductivity.cu(), conduct0, amr, mField);
   return conductivity;
 }
 
