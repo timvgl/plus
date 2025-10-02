@@ -34,6 +34,18 @@ void cudaLaunch(std::string src, int N,
 }
 
 template <typename... Arguments>
+void cudaLaunchFFT(std::string src, int N,
+                void (*kernelfunction)(Arguments...),
+                Arguments... args) {
+  dim3 blockDims(BLOCKDIM);
+  dim3 gridDims((N + blockDims.x - 1) / blockDims.x);
+  cudaStream_t s0 = getCudaStreamFFT();
+  kernelfunction<<<gridDims, blockDims, 0, s0>>>(args...);
+  checkCudaError(cudaPeekAtLastError());
+  //checkCudaError(cudaDeviceSynchronize());
+}
+
+template <typename... Arguments>
 void cudaLaunchReductionKernel(void (*kernelfunction)(Arguments...),
                                Arguments... args) {
   dim3 blockDims(BLOCKDIM);
