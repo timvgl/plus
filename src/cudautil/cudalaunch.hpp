@@ -34,15 +34,15 @@ void cudaLaunch(std::string src, int N,
 }
 
 template <typename... Arguments>
-void cudaLaunchFFT(std::string src, int N,
+void cudaLaunchStrayfieldKernel(int N,
                 void (*kernelfunction)(Arguments...),
                 Arguments... args) {
-  dim3 blockDims(BLOCKDIM);
+  dim3 blockDims(BLOCKDIM / 2);
   dim3 gridDims((N + blockDims.x - 1) / blockDims.x);
-  cudaStream_t s0 = getCudaStreamFFT();
+  cudaStream_t s0 = getCudaStream();
   kernelfunction<<<gridDims, blockDims, 0, s0>>>(args...);
   checkCudaError(cudaPeekAtLastError());
-  //checkCudaError(cudaDeviceSynchronize());
+  checkCudaError(cudaDeviceSynchronize());
 }
 
 template <typename... Arguments>

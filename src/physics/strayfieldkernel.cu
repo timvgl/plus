@@ -113,7 +113,7 @@ __global__ void k_strayFieldKernel(CuField kernel, const Grid mastergrid,
 }
 
 void StrayFieldKernel::compute() {
-  cudaLaunch("strayfieldkernel.cu", grid().ncells(), k_strayFieldKernel, kernel_->cu(),
+  cudaLaunchStrayfieldKernel(grid().ncells(), k_strayFieldKernel, kernel_->cu(),
              mastergrid(), pbcRepetitions(), order_, eps_, switchingradius_);
   checkCudaError(cudaDeviceSynchronize());
 }
