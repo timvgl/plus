@@ -427,7 +427,7 @@ Field evalDmiField(const Ferromagnet* magnet) {
   
   if (!magnet->isSublattice())
     // magnet is stand-alone FM
-    cudaLaunch(ncells, k_dmiFieldFM, hField.cu(),
+    cudaLaunch("dmi.cu", ncells, k_dmiFieldFM, hField.cu(),
               mag, dmiTensor, msat, grid, aex, BC);
   else if (auto host = magnet->hostMagnet()->asAFM()){
     // magnet is sublattice in AFM
@@ -437,7 +437,7 @@ Field evalDmiField(const Ferromagnet* magnet) {
     auto msat2 = host->getOtherSublattices(magnet)[0]->msat.cu();
     auto inter = host->interAfmExchNN.cu();
     auto scale = host->scaleAfmExchNN.cu();
-    cudaLaunch(ncells, k_dmiFieldAFM, hField.cu(), mag, mag2,
+    cudaLaunch("dmi.cu", ncells, k_dmiFieldAFM, hField.cu(), mag, mag2,
               dmiTensor, interDmiTensor, msat, msat2, grid, aex, afmex_nn, inter, scale, BC);
   }
   else {
@@ -452,7 +452,7 @@ Field evalDmiField(const Ferromagnet* magnet) {
     auto interDmiTensor = magnet->hostMagnet()->dmiTensor.cu();
     auto inter = magnet->hostMagnet()->interAfmExchNN.cu();
     auto scale = magnet->hostMagnet()->scaleAfmExchNN.cu();
-    cudaLaunch(ncells, k_dmiFieldNcAfm, hField.cu(), mag, mag2, mag3, dmiTensor,
+    cudaLaunch("dmi.cu", ncells, k_dmiFieldNcAfm, hField.cu(), mag, mag2, mag3, dmiTensor,
                interDmiTensor, msat, msat2, msat3, grid, aex, ncafmex_nn, inter, scale, BC);
   }
   return hField;

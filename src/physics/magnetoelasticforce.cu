@@ -106,7 +106,7 @@ Field evalMagnetoelasticForce(const Ferromagnet* magnet) {
   CuParameter B2 = magnet->B2.cu();
   real3 w = 1 / magnet->cellsize();
   Grid mastergrid = magnet->world()->mastergrid();
-  cudaLaunch(ncells, k_magnetoelasticForce, fField.cu(), m, B1, B2, w, mastergrid);
+  cudaLaunch("magnetoelasticforce.cu", ncells, k_magnetoelasticForce, fField.cu(), m, B1, B2, w, mastergrid);
   return fField;
 }
 

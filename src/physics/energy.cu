@@ -44,7 +44,7 @@ Field evalEnergyDensity(const Ferromagnet* magnet,
     return edens;
   }
 
-  cudaLaunch(edens.grid().ncells(), k_energyDensity, edens.cu(),
+  cudaLaunch("energy.cu", edens.grid().ncells(), k_energyDensity, edens.cu(),
              magnet->magnetization()->field().cu(), h.cu(),
              magnet->msat.cu(), prefactor);
   return edens;
@@ -80,6 +80,7 @@ Field evalTotalEnergyDensity(const Antiferromagnet* magnet) {
                 evalTotalEnergyDensity(magnet->sub2());
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
+  checkCudaError(cudaDeviceSynchronize());
   return edens;
 }
 
@@ -89,6 +90,7 @@ Field evalTotalEnergyDensity(const NcAfm* magnet) {
                 evalTotalEnergyDensity(magnet->sub3());
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
+  checkCudaError(cudaDeviceSynchronize());
   return edens;
 }
 

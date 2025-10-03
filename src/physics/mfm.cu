@@ -178,7 +178,7 @@ Field MFM::eval() const {
                                         "is no Ferromagnet or HostMagnet.");
         }
 
-        cudaLaunch(ncells, k_magneticForceMicroscopy, mfm.cu(), magnetization.cu(), magnetNCells, mastergrid, pbcRepetitions, lift, tipsize, V, crashed.get());
+        cudaLaunch("mfm.cu", ncells, k_magneticForceMicroscopy, mfm.cu(), magnetization.cu(), magnetNCells, mastergrid, pbcRepetitions, lift, tipsize, V, crashed.get());
         
         bool crashedResult;
         checkCudaError(cudaMemcpyAsync(&crashedResult, crashed.get(), sizeof(bool), cudaMemcpyDeviceToHost, getCudaStream()));

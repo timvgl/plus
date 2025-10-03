@@ -121,7 +121,8 @@ void Minimizer::step() {
     m1[i] = Field(magnets_[i]->system(), 3);
     int ncells = m1[i].grid().ncells();
 
-    cudaLaunch(ncells, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
+    cudaLaunch("minimizer.cu", ncells, k_step, m1[i].cu(), m0[i].cu(), t0[i].cu(), stepsizes_[i]);
+    checkCudaError(cudaDeviceSynchronize());
   }
   
   for (size_t i = 0; i < magnets_.size(); i++)
@@ -142,7 +143,7 @@ void Minimizer::step() {
 }
 
 bool Minimizer::converged() const {
-  if (lastMagDiffs_.size() < nMagDiffSamples_)
+  if ((int)lastMagDiffs_.size() < nMagDiffSamples_)
     return false;
  
   for (auto dm : lastMagDiffs_)

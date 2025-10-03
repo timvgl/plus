@@ -81,7 +81,7 @@ Field evalHomoDmiField(const Ferromagnet* magnet) {
   for (auto sub : subs) {
     auto m2 = sub->magnetization()->field().cu();
     real symmetry_factor = (i % 2 == 0) ? 1 : -1;
-    cudaLaunch(ncells, k_homoDmiFieldAFM, hField.cu(), m2, D, msat, symmetry_factor);
+    cudaLaunch("local_dmi.cu", ncells, k_homoDmiFieldAFM, hField.cu(), m2, D, msat, symmetry_factor);
     i += 1;
   }
   return hField;

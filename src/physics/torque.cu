@@ -51,7 +51,8 @@ Field evalLlgTorque(const Ferromagnet* magnet) {
   const Parameter& alpha = magnet->alpha;
   const Parameter& frozenSpins = magnet->frozenSpins;
   int ncells = torque.grid().ncells();
-  cudaLaunch(ncells, k_llgtorque, torque.cu(), m.cu(), h.cu(), alpha.cu(), frozenSpins.cu());
+  cudaLaunch("torque.cu", ncells, k_llgtorque, torque.cu(), m.cu(), h.cu(), alpha.cu(), frozenSpins.cu());
+  checkCudaError(cudaDeviceSynchronize());
   return torque;
 }
 
@@ -82,7 +83,7 @@ Field evalRelaxTorque(const Ferromagnet* magnet) {
   Field h = evalEffectiveField(magnet);
   const Parameter& frozenSpins = magnet->frozenSpins;
   int ncells = torque.grid().ncells();
-  cudaLaunch(ncells, k_dampingtorque, torque.cu(), m.cu(), h.cu(), frozenSpins.cu());
+  cudaLaunch("torque.cu", ncells, k_dampingtorque, torque.cu(), m.cu(), h.cu(), frozenSpins.cu());
   return torque;
 }
 

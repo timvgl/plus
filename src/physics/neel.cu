@@ -33,7 +33,7 @@ Field evalNeelvector(const Antiferromagnet* magnet) {
     neel.makeZero();
     return neel;
   }
-  cudaLaunch(neel.grid().ncells(), k_neelvector, neel.cu(),
+  cudaLaunch("neel.cu", neel.grid().ncells(), k_neelvector, neel.cu(),
              magnet->sub1()->magnetization()->field().cu(),
              magnet->sub2()->magnetization()->field().cu(),
              magnet->sub1()->msat.cu(), magnet->sub2()->msat.cu());

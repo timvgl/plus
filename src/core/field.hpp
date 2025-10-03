@@ -119,6 +119,7 @@ struct CuField {
   __device__ real valueAt(int idx, int comp = 0) const;
   __device__ real valueAt(int3 coo, int comp = 0) const;
 
+
   __device__ real3 vectorAt(int idx) const;
   __device__ real3 vectorAt(int3 coo) const;
 

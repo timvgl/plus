@@ -166,11 +166,17 @@ StrayFieldFFTExecutor::StrayFieldFFTExecutor(
   for (auto& p : hfft)
     cudaMalloc(reinterpret_cast<void**>(&p), ncells * sizeof(complex));
 
-  checkCufftResult(cufftPlan3d(&forwardPlan, size.z, size.y, size.x, FFT));
-  checkCufftResult(cufftPlan3d(&backwardPlan, size.z, size.y, size.x, IFFT));
+  if (size.z == 1 && magnet_->grid().origin().z == 0) {
+    checkCufftResult(cufftPlan2d(&forwardPlan, size.y, size.x, FFT));
+    checkCufftResult(cufftPlan2d(&backwardPlan, size.y, size.x, IFFT));
+  } else {
+    checkCufftResult(cufftPlan3d(&forwardPlan, size.z, size.y, size.x, FFT));
+    checkCufftResult(cufftPlan3d(&backwardPlan, size.z, size.y, size.x, IFFT));
+  }
 
-  cufftSetStream(forwardPlan, getCudaStream());
-  cufftSetStream(backwardPlan, getCudaStream());
+
+  cufftSetStream(forwardPlan, getCudaStreamFFT());
+  cufftSetStream(backwardPlan, getCudaStreamFFT());
 
   for (int comp = 0; comp < 6; comp++)
     checkCufftResult(
@@ -199,12 +205,12 @@ Field StrayFieldFFTExecutor::exec() const {
   if (const Ferromagnet* mag = magnet_->asFM()) {
     auto m = mag->magnetization()->field().cu();
     auto ms = mag->msat.cu();
-    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
+    cudaLaunchFFT("strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
   }
   else {
     auto hostmag = evalHMFullMag(magnet_->asHost());
     auto ms = Parameter(magnet_->system(), 1.0);
-    cudaLaunch(mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
+    cudaLaunchFFT("strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
   }
 
   // Forward fourier transforms
@@ -219,11 +225,11 @@ Field StrayFieldFFTExecutor::exec() const {
     // if the h field and m field are two dimensional AND are in the same plane
     // (kernel grid origin at z=0) then the kernel matrix has only 4 relevant
     // components and a more efficient cuda kernel can be used:
-    cudaLaunch(ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunchFFT("strayfieldfft.cu", ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), preFactor, ncells);
   } else {
-    cudaLaunch(ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunchFFT("strayfieldfft.cu", ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor,
                ncells);
@@ -236,6 +242,6 @@ Field StrayFieldFFTExecutor::exec() const {
 
   // unpad
   Field h(system_, 3);
-  cudaLaunch(h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  cudaLaunchFFT("strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
   return h;
 }

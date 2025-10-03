@@ -81,7 +81,7 @@ inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
         "components.");
   }
   int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
 }
 
 inline void add(Field& y,
@@ -103,7 +103,7 @@ inline void add(Field& y,
     throw std::invalid_argument("Fields should have 3 components.");
   }
   int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
 }
 
 inline void add(Field& y,
@@ -131,7 +131,7 @@ inline void add(Field& y,
   }
 
   int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_addFields, y.cu(), a1.cu(), x1.cu(), a2.cu(), x2.cu());
+  cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), a1.cu(), x1.cu(), a2.cu(), x2.cu());
 }
 
 Field add(real a1, const Field& x1, real a2, const Field& x2) {
@@ -188,7 +188,7 @@ void addTo(Field& y, const Field& a, const Field& x) {
   }
 
   int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
+  cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
 }
 
 // TODO: this can be done much more efficient
@@ -199,7 +199,7 @@ Field add(std::vector<const Field*> x, std::vector<real> weights) {
     return y;
   }
 
-  for (int n = 1; n < x.size(); n++) {
+  for (int n = 1; n < (int)x.size(); n++) {
     if (weights.at(n) != 0.0) {
       addTo(y, weights.at(n), *x.at(n));
     }
@@ -224,7 +224,7 @@ __global__ void k_addConstant(CuField y,
 Field addConstant(const Field& x, real value) {
   Field y(x.system(), x.ncomp());
   for (int i = 0; i < x.ncomp(); i++) {
-    cudaLaunch(y.grid().ncells(), k_addConstant, y.cu(), x.cu(), value, i);
+    cudaLaunch("fieldops.cu", y.grid().ncells(), k_addConstant, y.cu(), x.cu(), value, i);
   }
   return y;
 }
@@ -249,12 +249,12 @@ __global__ void k_normalize(CuField dst, const CuField src) {
 
 Field normalized(const Field& src) {
   Field dst(Field(src.system(), src.ncomp()));
-  cudaLaunch(dst.grid().ncells(), k_normalize, dst.cu(), src.cu());
+  cudaLaunch("fieldops.cu", dst.grid().ncells(), k_normalize, dst.cu(), src.cu());
   return dst;
 }
 
 void normalize(Field& f) {
-  cudaLaunch(f.grid().ncells(), k_normalize, f.cu(), f.cu());
+  cudaLaunch("fieldops.cu", f.grid().ncells(), k_normalize, f.cu(), f.cu());
 }
 
 Field operator*(real3 a, const Field& x) {
@@ -294,7 +294,7 @@ inline void multiply(Field& y, const Field& a, const Field& x) {
     );
   }
   int ncells = y.grid().ncells();
-  cudaLaunch(ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());
+  cudaLaunch("fieldops.cu", ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());
 }
 
 Field multiply(const Field& a, const Field& x) {
@@ -374,7 +374,7 @@ __global__ void k_fieldGetRGB(CuField dst, const CuField src) {
 Field fieldGetRGB(const Field& src) {
   if (src.ncomp() == 3) {  // 3D
     Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
-    cudaLaunch(dst.grid().ncells(), k_fieldGetRGB, dst.cu(), dst.cu());  // src is dst
+    cudaLaunch("fieldops.cu", dst.grid().ncells(), k_fieldGetRGB, dst.cu(), dst.cu());  // src is dst
     return dst;
   } else {
     throw std::invalid_argument(

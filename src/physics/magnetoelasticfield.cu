@@ -122,13 +122,13 @@ Field evalMagnetoelasticField(const Ferromagnet* magnet) {
       CuVectorParameter normStrain = magnet->hostMagnet()->rigidNormStrain.cu();
       CuVectorParameter shearStrain = magnet->hostMagnet()->rigidShearStrain.cu();
 
-      cudaLaunch(ncells, k_rigidMagnetoelasticField, hField.cu(), mField,
+      cudaLaunch("magnetoelasticfield.cu", ncells, k_rigidMagnetoelasticField, hField.cu(), mField,
                 normStrain, shearStrain, B1, B2, msat);
     } else {  // independent magnet
       CuVectorParameter normStrain = magnet->rigidNormStrain.cu();
       CuVectorParameter shearStrain = magnet->rigidShearStrain.cu();
 
-      cudaLaunch(ncells, k_rigidMagnetoelasticField, hField.cu(), mField,
+      cudaLaunch("magnetoelasticfield.cu", ncells, k_rigidMagnetoelasticField, hField.cu(), mField,
                 normStrain, shearStrain, B1, B2, msat);
     }
 
@@ -143,7 +143,7 @@ Field evalMagnetoelasticField(const Ferromagnet* magnet) {
     strain = evalStrainTensor(magnet);
   }
 
-  cudaLaunch(ncells, k_dynamicMagnetoelasticField, hField.cu(), mField,
+  cudaLaunch("magnetoelasticfield.cu", ncells, k_dynamicMagnetoelasticField, hField.cu(), mField,
             strain.cu(), B1, B2, msat);
   return hField;
 }

@@ -50,7 +50,7 @@ Field evalOctupoleVector(const NcAfm* magnet) {
         octupole.makeZero();
         return octupole;
   }
-  cudaLaunch(octupole.grid().ncells(), k_octupolevector, octupole.cu(),
+  cudaLaunch("octopole.cu", octupole.grid().ncells(), k_octupolevector, octupole.cu(),
              magnet->sub1()->magnetization()->field().cu(),
              magnet->sub2()->magnetization()->field().cu(),
              magnet->sub3()->magnetization()->field().cu(),

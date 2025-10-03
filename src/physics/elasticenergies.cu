@@ -43,7 +43,7 @@ Field evalKineticEnergyDensity(const Magnet* magnet) {
   int ncells = kinField.grid().ncells();
   CuField velocity = magnet->elasticVelocity()->field().cu();
   CuParameter rho = magnet->rho.cu();
-  cudaLaunch(ncells, k_kineticEnergyDensity, kinField.cu(), velocity, rho);
+  cudaLaunch("elasticenergies.cu", ncells, k_kineticEnergyDensity, kinField.cu(), velocity, rho);
   return kinField;
 }
 
@@ -98,7 +98,7 @@ Field evalElasticEnergyDensity(const Magnet* magnet) {
   int ncells = elField.grid().ncells();
   Field stress = evalStressTensor(magnet);
   Field strain = evalStrainTensor(magnet);
-  cudaLaunch(ncells, k_elasticEnergyDensity, elField.cu(), stress.cu(), strain.cu());
+  cudaLaunch("elasticenergies.cu", ncells, k_elasticEnergyDensity, elField.cu(), stress.cu(), strain.cu());
   return elField;
 }
 

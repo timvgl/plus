@@ -55,7 +55,7 @@ Field evalElasticStress(const Magnet* magnet) {
   CuParameter C12 = magnet->C12.cu();
   CuParameter C44 = magnet->C44.cu();
 
-  cudaLaunch(ncells, k_elasticStress, stressTensor.cu(), strain.cu(), C11, C12, C44);
+  cudaLaunch("stresstensor.cu", ncells, k_elasticStress, stressTensor.cu(), strain.cu(), C11, C12, C44);
   return stressTensor;
 }
 
@@ -113,7 +113,7 @@ Field evalViscousStress(const Magnet* magnet) {
     CuParameter eta44 = magnet->eta44.cu();
 
     // same mathematics
-    cudaLaunch(ncells, k_elasticStress, stressTensor.cu(), strainRate.cu(), eta11, eta12, eta44);
+    cudaLaunch("stresstensor.cu", ncells, k_elasticStress, stressTensor.cu(), strainRate.cu(), eta11, eta12, eta44);
 
   } else {  // or use stiffness tensor multiplied by rayleigh damping stiffness coefficient
     CuParameter C11 = magnet->C11.cu();
@@ -122,11 +122,11 @@ Field evalViscousStress(const Magnet* magnet) {
     CuField stressCu = stressTensor.cu();
 
     // same mathematics
-    cudaLaunch(ncells, k_elasticStress, stressCu, strainRate.cu(), C11, C12, C44);
+    cudaLaunch("stresstensor.cu", ncells, k_elasticStress, stressCu, strainRate.cu(), C11, C12, C44);
 
     // use linearity, multiply at the end
     CuParameter coeff = magnet->stiffnessDamping.cu();
-    cudaLaunch(ncells, k_multiplyParameterField, stressCu, coeff, stressCu);
+    cudaLaunch("stresstensor.cu", ncells, k_multiplyParameterField, stressCu, coeff, stressCu);
   }
 
   return stressTensor;

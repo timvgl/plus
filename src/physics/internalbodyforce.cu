@@ -122,7 +122,7 @@ Field evalInternalBodyForce(const Magnet* magnet) {
   real3 w = 1. / magnet->cellsize();
   Grid mastergrid = magnet->world()->mastergrid();
 
-  cudaLaunch(ncells, k_internalBodyForce, fField.cu(), stressTensor.cu(),
+  cudaLaunch("internalbodyforce.cu", ncells, k_internalBodyForce, fField.cu(), stressTensor.cu(),
              traction, w, mastergrid);
 
   return fField;

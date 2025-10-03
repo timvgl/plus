@@ -82,7 +82,7 @@ Field evalAngleField(const NcAfm* magnet) {
   // Three components for the angles between 1-2, 1-3 and 2-3
   Field angleField(magnet->system(), 3);
 
-  cudaLaunch(angleField.grid().ncells(), k_angle, angleField.cu(),
+  cudaLaunch("ncafmangle.cu", angleField.grid().ncells(), k_angle, angleField.cu(),
              magnet->sub1()->magnetization()->field().cu(),
              magnet->sub2()->magnetization()->field().cu(),
              magnet->sub3()->magnetization()->field().cu(),

@@ -38,7 +38,7 @@ Field evalElasticDamping(const Magnet* magnet) {
     CuField vField = magnet->elasticVelocity()->field().cu();
     CuParameter eta = magnet->eta.cu();
 
-    cudaLaunch(ncells, k_elasticDamping, fField.cu(), vField, eta);
+    cudaLaunch("elasticdamping.cu", ncells, k_elasticDamping, fField.cu(), vField, eta);
 
     return fField;
 }

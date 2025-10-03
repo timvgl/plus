@@ -246,7 +246,7 @@ Field evalEffectiveSublattice(const Ferromagnet* magnet) {
   for (auto sub : host->getOtherSublattices(magnet)) {
     auto m = sub->magnetization()->field().cu();
     auto msat = sub->msat.cu();
-    cudaLaunch(netSub.grid().ncells(), k_effectiveSublattice, netSub.cu(), m, msat,
+    cudaLaunch("exchange.cu", netSub.grid().ncells(), k_effectiveSublattice, netSub.cu(), m, msat,
                Ann, inter, scale, magnet->world()->mastergrid());
   }
   return netSub;
@@ -274,13 +274,13 @@ Field evalExchangeField(const Ferromagnet* magnet) {
   auto scaleEx = magnet->scaleExch.cu();
 
   if (!magnet->isSublattice() || magnet->enableOpenBC)
-    cudaLaunch(ncells, k_exchangeField, hField.cu(), mag, aex, msat, w, grid,
+    cudaLaunch("exchange.cu", ncells, k_exchangeField, hField.cu(), mag, aex, msat, w, grid,
                magnet->enableOpenBC, dmiTensor, interEx, scaleEx);
   else {
     // In case `magnet` is a sublattice, it's sister sublattice(s) affect(s)
     // the Neumann BC. There are no open boundaries when in this scope.
     auto sister = evalEffectiveSublattice(magnet);
-    cudaLaunch(ncells, k_exchangeField, hField.cu(), mag, sister.cu(), aex,
+    cudaLaunch("exchange.cu", ncells, k_exchangeField, hField.cu(), mag, sister.cu(), aex,
               msat, w, grid, dmiTensor, interEx, scaleEx);
   }
   return hField;
@@ -363,7 +363,7 @@ __global__ void k_maxangle(CuField maxAngleField,
 
 real evalMaxAngle(const Ferromagnet* magnet) {
   Field maxAngleField(magnet->system(), 1);
-  cudaLaunch(maxAngleField.grid().ncells(), k_maxangle, maxAngleField.cu(),
+  cudaLaunch("exchange.cu", maxAngleField.grid().ncells(), k_maxangle, maxAngleField.cu(),
              magnet->magnetization()->field().cu(), magnet->aex.cu(),
              magnet->msat.cu(), magnet->world()->mastergrid());
   return maxAbsValue(maxAngleField);

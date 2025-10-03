@@ -31,7 +31,8 @@ __global__ void k_set(real* values, real value) {
 }
 
 void InterParameter::setBuffer(real value) {
-  cudaLaunch(valuesLimit_, k_set, valuesBuffer_.get(), value);
+  cudaLaunch("inter_parameter.cu", valuesLimit_, k_set, valuesBuffer_.get(), value);
+  checkCudaError(cudaDeviceSynchronize());
 }
 
 void InterParameter::set(real value) {
