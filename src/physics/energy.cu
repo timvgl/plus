@@ -71,6 +71,7 @@ Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   // elastics; only works if independent host
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
+  checkCudaError(cudaDeviceSynchronize());
   return edens;
 }
 

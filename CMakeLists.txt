@@ -15,7 +15,9 @@ if (WIN32)
     set(CMAKE_CUDA_RESOLVE_DEVICE_SYMBOLS TRUE)
 endif()
 
-set(CMAKE_CUDA_ARCHITECTURES native)
+#set(CMAKE_CUDA_ARCHITECTURES native)
+set(CMAKE_CUDA_ARCHITECTURES "61" CACHE STRING "CUDA SM list" FORCE)
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --compiler-options -Wall -Xptxas -O3" CACHE STRING "" FORCE)
 
 add_definitions(-DFP_PRECISION=SINGLE) # FP_PRECISION should be SINGLE or DOUBLE
 add_definitions(-D_USE_MATH_DEFINES) # Needed for cmath constants on Windows
