@@ -7,8 +7,10 @@ class Ferromagnet;
 class Field;
 class NcAfm;
 
-Field evalFMFullMag(const Ferromagnet*);
-Field evalHMFullMag(const HostMagnet*);
+Field evalFMFullMag(const Ferromagnet* magnet);
+Field evalHMFullMag(const HostMagnet* magnet);
+Field evalHMFullMagOn(const HostMagnet* magnet, cudaStream_t stream_);
+
 
 FM_FieldQuantity fullMagnetizationQuantity(const Ferromagnet*);
 AFM_FieldQuantity fullMagnetizationQuantity(const Antiferromagnet*);

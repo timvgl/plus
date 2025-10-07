@@ -6,13 +6,16 @@
 #include "cudastream.hpp"
 #include "gpumemorypool.hpp"
 
+enum class ZeroInitMode { Default, FFT };
+
 template <typename T>
 class GpuBuffer {
  public:
   // _______________________________________________________________CONSTRUCTORS
 
   GpuBuffer() {}                     /** Empty gpu buffer. */
-  explicit GpuBuffer(size_t N);      /** Gpu buffer for N objects */
+  explicit GpuBuffer(size_t N); 
+  explicit GpuBuffer(size_t N, cudaStream_t stream_);      /** Gpu buffer for N objects */
   GpuBuffer(const GpuBuffer& other); /** Copy constructor */
   GpuBuffer(GpuBuffer&& other);      /** Move constructor */
 
@@ -22,9 +25,11 @@ class GpuBuffer {
    * The values are copied from the vector on the host to the gpu.
    */
   explicit GpuBuffer(const std::vector<T>& other);
+  explicit GpuBuffer(const std::vector<T>& other, cudaStream_t stream_);
 
   /** Gpubuffer with size N, and copy N values from data pointer. */
   GpuBuffer(int N, T* data);
+  GpuBuffer(int N, T* data, cudaStream_t stream_);
 
   // ________________________________________________________________DESTRUCTION
 
@@ -44,6 +49,8 @@ class GpuBuffer {
    */
   T* getHostCopy() const;
 
+  cudaStream_t getStream() const { return stream_; }
+
   // ___________________________________________________________________MODIFIERS
 
   GpuBuffer<T>& operator=(const GpuBuffer<T>& other); /** Copy assignment */
@@ -61,32 +68,67 @@ class GpuBuffer {
  private:
   T* ptr_ = nullptr;
   size_t size_ = 0;
+  cudaStream_t stream_ = nullptr; // non-owning, borrowed
 };
 
 //-------------------------------------------------------------------------------
 // IMPLEMENTATION OF GPUBUFFER METHODS
 //-------------------------------------------------------------------------------
-
 template <class T>
-inline GpuBuffer<T>::GpuBuffer(size_t N) {
+inline GpuBuffer<T>::GpuBuffer(size_t N) :
+    stream_(getCudaStream())
+{
   allocate(N);
 }
 
 template <class T>
-inline GpuBuffer<T>::GpuBuffer(const std::vector<T>& other) {
+inline GpuBuffer<T>::GpuBuffer(size_t N, cudaStream_t stream_) :
+    stream_(stream_)
+{
+  allocate(N);
+}
+
+template <class T>
+inline GpuBuffer<T>::GpuBuffer(const std::vector<T>& other) : 
+    stream_(getCudaStream())
+{
   allocate(other.size());
   if (size_ > 0) {
     checkCudaError(cudaMemcpyAsync(ptr_, other.data(), size_ * sizeof(T),
-                                   cudaMemcpyHostToDevice, getCudaStream()));
+                                   cudaMemcpyHostToDevice, stream_));
   }
 }
 
 template <class T>
-inline GpuBuffer<T>::GpuBuffer(int N, T* data) {
+inline GpuBuffer<T>::GpuBuffer(const std::vector<T>& other, cudaStream_t stream_) : 
+    stream_(stream_)
+{
+  allocate(other.size());
+  if (size_ > 0) {
+    checkCudaError(cudaMemcpyAsync(ptr_, other.data(), size_ * sizeof(T),
+                                   cudaMemcpyHostToDevice, stream_));
+  }
+}
+
+template <class T>
+inline GpuBuffer<T>::GpuBuffer(int N, T* data) :
+    stream_(getCudaStream())
+{
   allocate(N);
   if (size_ > 0) {
     checkCudaError(cudaMemcpyAsync(ptr_, data, size_ * sizeof(T),
-                                   cudaMemcpyHostToDevice, getCudaStream()));
+                                   cudaMemcpyHostToDevice, stream_));
+  }
+}
+
+template <class T>
+inline GpuBuffer<T>::GpuBuffer(int N, T* data, cudaStream_t stream_) :
+    stream_(stream_)
+{
+  allocate(N);
+  if (size_ > 0) {
+    checkCudaError(cudaMemcpyAsync(ptr_, data, size_ * sizeof(T),
+                                   cudaMemcpyHostToDevice, stream_));
   }
 }
 
@@ -96,7 +138,7 @@ inline GpuBuffer<T>::GpuBuffer(const GpuBuffer& other) {
   if (size_ == 0)
     return;
   checkCudaError(cudaMemcpyAsync(ptr_, other.ptr_, size_ * sizeof(T),
-                                 cudaMemcpyDeviceToDevice, getCudaStream()));
+                                 cudaMemcpyDeviceToDevice, other.stream_));
 }
 
 template <class T>
@@ -113,7 +155,7 @@ inline GpuBuffer<T>& GpuBuffer<T>::operator=(const GpuBuffer<T>& other) {
   allocate(other.size());
   if (size_ > 0) {
     checkCudaError(cudaMemcpyAsync(ptr_, other.ptr_, size_ * sizeof(T),
-                                   cudaMemcpyDeviceToDevice, getCudaStream()));
+                                   cudaMemcpyDeviceToDevice, other.stream_));
   }
   return *this;
 }
@@ -152,12 +194,13 @@ inline void GpuBuffer<T>::recycle() {
   size_ = 0;
 }
 
+
 template <class T>
 inline T* GpuBuffer<T>::getHostCopy() const {
   T* data = new T[size_];
   if (size_ > 0) {
     checkCudaError(cudaMemcpyAsync(data, ptr_, size_ * sizeof(T),
-                                   cudaMemcpyDeviceToHost, getCudaStream()));
+                                   cudaMemcpyDeviceToHost, stream_));
   }
   return data;
 }
@@ -167,7 +210,7 @@ inline std::vector<T> GpuBuffer<T>::getData() const {
   std::vector<T> vec(size_);
   if (size_ > 0) {
     checkCudaError(cudaMemcpyAsync(vec.data(), ptr_, size_ * sizeof(T),
-                                   cudaMemcpyDeviceToHost, getCudaStream()));
+                                   cudaMemcpyDeviceToHost, stream_));
   }
   return vec;
 }

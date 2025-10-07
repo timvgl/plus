@@ -73,6 +73,7 @@ __global__ void k_pad(CuField out,
   }
 }
 
+
 __global__ void k_unpad(CuField out, CuField in) {
   int outIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -154,7 +155,8 @@ StrayFieldFFTExecutor::StrayFieldFFTExecutor(
       kernel_(system->grid(), magnet_->grid(), magnet->world(), order, eps, switchingradius),
       kfft(6),
       hfft(3),
-      mfft(3) {
+      mfft(3),
+      stream_(getCudaStreamFFT()) {
   int3 size = kernel_.grid().size();
   fftSize = {size.x / 2 + 1, size.y, size.z};
   int ncells = fftSize.x * fftSize.y * fftSize.z;
@@ -165,25 +167,23 @@ StrayFieldFFTExecutor::StrayFieldFFTExecutor(
     cudaMalloc(reinterpret_cast<void**>(&p), ncells * sizeof(complex));
   for (auto& p : hfft)
     cudaMalloc(reinterpret_cast<void**>(&p), ncells * sizeof(complex));
-
-  if (size.z == 1 && magnet_->grid().origin().z == 0) {
-    checkCufftResult(cufftPlan2d(&forwardPlan, size.y, size.x, FFT));
-    checkCufftResult(cufftPlan2d(&backwardPlan, size.y, size.x, IFFT));
-  } else {
-    checkCufftResult(cufftPlan3d(&forwardPlan, size.z, size.y, size.x, FFT));
-    checkCufftResult(cufftPlan3d(&backwardPlan, size.z, size.y, size.x, IFFT));
-  }
+  checkCufftResult(cufftPlan3d(&forwardPlan, size.z, size.y, size.x, FFT));
+  checkCufftResult(cufftPlan3d(&backwardPlan, size.z, size.y, size.x, IFFT));
+  
 
 
-  cufftSetStream(forwardPlan, getCudaStreamFFT());
-  cufftSetStream(backwardPlan, getCudaStreamFFT());
+  cufftSetStream(forwardPlan, stream_);
+  cufftSetStream(backwardPlan, stream_);
 
   for (int comp = 0; comp < 6; comp++)
     checkCufftResult(
         fftExec(forwardPlan, kernel_.field().device_ptr(comp), kfft.at(comp)));
+  checkCudaError(cudaPeekAtLastError());
+  checkCudaError(cudaDeviceSynchronize());
 }
 
 StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
+  checkCudaError(cudaStreamSynchronize(stream_));
   for (auto p : mfft)
     cudaFree(p);
   for (auto p : kfft)
@@ -196,28 +196,31 @@ StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
 }
 
 Field StrayFieldFFTExecutor::exec() const {
-
   // pad m, and multiply with msat
   std::shared_ptr<System> kernelSystem =
       std::make_shared<System>(magnet_->world(), kernel_.grid());
-  std::unique_ptr<Field> mpad(new Field(kernelSystem, 3));
+
+  std::unique_ptr<Field> mpad(new Field(kernelSystem, 3, stream_));
 
   if (const Ferromagnet* mag = magnet_->asFM()) {
     auto m = mag->magnetization()->field().cu();
     auto ms = mag->msat.cu();
-    cudaLaunchFFT("strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
+    cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
+    mag->msat.markLastUse(stream_);
   }
   else {
-    auto hostmag = evalHMFullMag(magnet_->asHost());
+    auto hostmag = evalHMFullMagOn(magnet_->asHost(), stream_);
     auto ms = Parameter(magnet_->system(), 1.0);
-    cudaLaunchFFT("strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
+    cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
+    hostmag.markLastUse(stream_);
+    ms.markLastUse(stream_);
   }
 
   // Forward fourier transforms
   for (int comp = 0; comp < 3; comp++)
     checkCufftResult(
         fftExec(forwardPlan, mpad->device_ptr(comp), mfft.at(comp)));
-  
+
   // apply kernel on m_fft
   int ncells = fftSize.x * fftSize.y * fftSize.z;
   complex preFactor{-MU0 / kernel_.grid().ncells(), 0};
@@ -225,23 +228,22 @@ Field StrayFieldFFTExecutor::exec() const {
     // if the h field and m field are two dimensional AND are in the same plane
     // (kernel grid origin at z=0) then the kernel matrix has only 4 relevant
     // components and a more efficient cuda kernel can be used:
-    cudaLaunchFFT("strayfieldfft.cu", ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunchStream(stream_, "strayfieldfft.cu", ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), preFactor, ncells);
   } else {
-    cudaLaunchFFT("strayfieldfft.cu", ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunchStream(stream_, "strayfieldfft.cu", ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor,
                ncells);
   }
 
-  // backward fourier transfrom
   for (int comp = 0; comp < 3; comp++)
     checkCufftResult(
       ifftExec(backwardPlan, hfft.at(comp), mpad->device_ptr(comp)));
-
-  // unpad
-  Field h(system_, 3);
-  cudaLaunchFFT("strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  mpad->markLastUse(stream_);
+  Field h(system_, 3, stream_);
+  cudaLaunch("strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  h.markLastUse(stream_);
   return h;
 }

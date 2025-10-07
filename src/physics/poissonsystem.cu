@@ -277,11 +277,11 @@ LinearSystem PoissonSystem::construct() const {
 
   if (anisotropic) {
     conductivity = evalConductivityTensor(magnet_);  // 6 components!
-    checkCudaError(cudaDeviceSynchronize());
+    //checkCudaError(cudaDeviceSynchronize());
     maxNonZeros = threeDimenstional ? 19 : 9;
   } else {
     conductivity = magnet_->conductivity.eval();  // only 1 component
-    checkCudaError(cudaDeviceSynchronize());
+    //checkCudaError(cudaDeviceSynchronize());
     maxNonZeros = threeDimenstional ? 7 : 5;
   }
 
@@ -289,7 +289,7 @@ LinearSystem PoissonSystem::construct() const {
 
   cudaLaunch("poissonsystem.cu", grid.ncells(), k_construct, system.cu(), conductivity.cu(),
              magnet_->appliedPotential.cu());
-  checkCudaError(cudaDeviceSynchronize());
+  //checkCudaError(cudaDeviceSynchronize());
   return system;
 }
 
@@ -305,6 +305,6 @@ Field PoissonSystem::solve() {
   GVec y = solver_.solve();
   Field pot(magnet_->system(), 1);
   cudaLaunch("poissonsystem.cu", pot.grid().ncells(), k_putSolutionInField, pot.cu(), y.get());
-  checkCudaError(cudaDeviceSynchronize());
+  //checkCudaError(cudaDeviceSynchronize());
   return pot;
 }

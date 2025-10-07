@@ -52,7 +52,7 @@ Field evalLlgTorque(const Ferromagnet* magnet) {
   const Parameter& frozenSpins = magnet->frozenSpins;
   int ncells = torque.grid().ncells();
   cudaLaunch("torque.cu", ncells, k_llgtorque, torque.cu(), m.cu(), h.cu(), alpha.cu(), frozenSpins.cu());
-  checkCudaError(cudaDeviceSynchronize());
+  //checkCudaError(cudaDeviceSynchronize());
   return torque;
 }
 

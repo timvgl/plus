@@ -282,7 +282,9 @@ Field evalExchangeField(const Ferromagnet* magnet) {
     auto sister = evalEffectiveSublattice(magnet);
     cudaLaunch("exchange.cu", ncells, k_exchangeField, hField.cu(), mag, sister.cu(), aex,
               msat, w, grid, dmiTensor, interEx, scaleEx);
+    sister.markLastUse();
   }
+  hField.markLastUse();
   return hField;
 }
 

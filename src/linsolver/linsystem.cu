@@ -44,7 +44,7 @@ static GVec apply(const LinearSystem& sys,
   }
   GVec y(x.size());
   cudaLaunch("linsystem.cu", x.size(), k_apply, y.get(), sys.cu(), x.get(), ka, kb);
-  checkCudaError(cudaDeviceSynchronize());
+  //checkCudaError(cudaDeviceSynchronize());
   return y;
 }
 

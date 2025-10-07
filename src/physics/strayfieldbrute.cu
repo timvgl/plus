@@ -72,6 +72,6 @@ Field StrayFieldBruteExecutor::exec() const {
     auto msat = Parameter(magnet_->system(), 1.0);
     cudaLaunch("strayfieldbrute.cu", ncells, k_demagfield, h.cu(), hostmag.cu(), kernel_.field().cu(), msat.cu());
   }
-  checkCudaError(cudaDeviceSynchronize());
+  //checkCudaError(cudaDeviceSynchronize());
   return h;
 }

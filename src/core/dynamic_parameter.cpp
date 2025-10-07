@@ -60,6 +60,26 @@ void DynamicParameter<T>::evalTimeDependentTerms(real t, Field& p) const {
 }
 
 template <typename T>
+void DynamicParameter<T>::evalTimeDependentTerms(real t, Field& p, cudaStream_t s) const {
+  p.makeZero(s);
+
+  for (auto& term : time_dep_terms) {
+    auto& func = std::get<std::function<T(real)>>(term);
+    auto& mask = std::get<Field>(term);
+    if (!mask.empty()) {
+      addTo(p, func(t), mask, s);
+      mask.markLastUse(s);
+    } else {
+      Field f(p.system(), p.ncomp(), s);
+      f.setUniformValue(func(t), s);
+      addTo(p, real{1}, f, s);
+      f.markLastUse(s);
+    }
+  }
+  p.markLastUse(s);
+}
+
+template <typename T>
 bool DynamicParameter<T>::isUniform() const {
   for (auto& term : time_dep_terms) {
     auto& mask = std::get<Field>(term);

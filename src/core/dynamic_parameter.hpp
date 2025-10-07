@@ -63,4 +63,5 @@ class DynamicParameter {
    * @param p output value defined for the current system.
    */
   void evalTimeDependentTerms(real t, Field& p) const;
+  void evalTimeDependentTerms(real t, Field& p, cudaStream_t s) const;
 };

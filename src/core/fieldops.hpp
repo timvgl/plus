@@ -21,10 +21,13 @@ Field operator+(const Field& x1, const Field& x2);
 
 /// y += a*x
 void addTo(Field& y, real a, const Field& x);
+void addTo(Field& y, real a, const Field& x, cudaStream_t s);
 
 void addTo(Field& y, real3 a, const Field& x);
+void addTo(Field& y, real3 a, const Field& x, cudaStream_t s);
 
 void addTo(Field& y, const Field& a, const Field& x);
+void addTo(Field& y, const Field& a, const Field& x, cudaStream_t s);
 
 /// sum_i( weight[i]*x[i] )
 Field add(std::vector<const Field*> x, std::vector<real> weights);
@@ -35,6 +38,7 @@ Field operator*(real3 a, const Field& x);
 
 /// positional multiplication
 Field multiply(const Field& a, const Field& x);
+Field multiplyFFT(const Field& a, const Field& x);
 /// positional x*y
 Field operator*(const Field& a, const Field& x);
 

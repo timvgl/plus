@@ -156,7 +156,7 @@ Field MFM::eval() const {
     checkCudaError(cudaMemcpyAsync(crashed.get(), &init, sizeof(bool),
                                    cudaMemcpyHostToDevice, getCudaStream()));
 
-    Field mfm(system_, 1, 0);
+    Field mfm(system_, 1, real{0});
 
     // loop over all magnets
     for (const auto& pair : magnets_) {

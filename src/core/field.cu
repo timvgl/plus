@@ -14,55 +14,225 @@
 #include "gpubuffer.hpp"
 #include "system.hpp"
 
-Field::Field() : system_(nullptr), ncomp_(0) {}
+Field::~Field() {
+  if (lastUseEvent_) {
+    cudaEventSynchronize(lastUseEvent_);
+    cudaEventDestroy(lastUseEvent_);
+    lastUseEvent_ = nullptr;
+  }
+  free();
+}
+
+void Field::markLastUse() const {
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, stream_));
+}
+
+void Field::markLastUse(cudaStream_t s) const {
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, s));
+}
+
+Field::Field() : system_(nullptr), ncomp_(0), stream_(getCudaStream()) {}
+
 
 Field::Field(std::shared_ptr<const System> system, int nComponents)
-    : system_(system), ncomp_(nComponents) {
+    : system_(system), ncomp_(nComponents), stream_(getCudaStream()) {
+  allocate();
+  setZeroOutsideGeometry();
+}
+
+Field::Field(std::shared_ptr<const System> system, int nComponents, cudaStream_t s)
+    : system_(system), ncomp_(nComponents), stream_(s) {
   allocate();
   setZeroOutsideGeometry();
 }
 
 Field::Field(std::shared_ptr<const System> system, int nComponents, real value)
-    : Field(system, nComponents) {
+    : Field(system, nComponents, getCudaStream()) {
+  setUniformValue(value);
+}
+
+Field::Field(std::shared_ptr<const System> system, int nComponents, real value, cudaStream_t s)
+    : Field(system, nComponents, s) {
   setUniformValue(value);
 }
 
 Field::Field(std::shared_ptr<const System> system, int nComponents, real3 value)
-    : Field(system, nComponents) {
+    : Field(system, nComponents, getCudaStream()) {
   setUniformValue(value);
 }
 
-Field::Field(const Field& other) : system_(other.system_), ncomp_(other.ncomp_) {
-  buffers_ = other.buffers_;
-  updateDevicePointersBuffer();
+Field::Field(std::shared_ptr<const System> system, int nComponents, real3 value, cudaStream_t s)
+    : Field(system, nComponents, s) {
+  setUniformValue(value);
 }
 
-Field::Field(Field&& other) : system_(other.system_), ncomp_(other.ncomp_) {
-  buffers_ = std::move(other.buffers_);
-  bufferPtrs_ = std::move(other.bufferPtrs_);
-  other.clear();
+Field Field::eval() const { return Field(*this); } // echtes Override
+
+//Field::Field(const Field& other) : system_(other.system_), ncomp_(other.ncomp_) {
+//  buffers_ = other.buffers_;
+//  updateDevicePointersBuffer();
+//}
+
+/* Field::Field(const Field& other)
+  : system_(other.system_), ncomp_(other.ncomp_), stream_(other.stream_) {
+  buffers_.resize(other.buffers_.size());
+  for (size_t i = 0; i < buffers_.size(); ++i) {
+    buffers_[i] = GpuBuffer<real>(other.buffers_[i].size(), stream_);
+    checkCudaError(cudaMemcpyAsync(
+      buffers_[i].get(), other.buffers_[i].get(),
+      buffers_[i].size() * sizeof(real),
+      cudaMemcpyDeviceToDevice, stream_    // <— nicht getCudaStream()
+    ));
+  }
+  updateDevicePointersBuffer();
+} */
+
+Field::Field(const Field& other)
+  : system_(other.system_), ncomp_(other.ncomp_), stream_(other.stream_) {
+  buffers_.resize(other.buffers_.size());
+  for (size_t i = 0; i < buffers_.size(); ++i) {
+    buffers_[i] = GpuBuffer<real>(other.buffers_[i].size(), stream_);
+    checkCudaError(cudaMemcpyAsync(
+      buffers_[i].get(), other.buffers_[i].get(),
+      buffers_[i].size() * sizeof(real),
+      cudaMemcpyDeviceToDevice, stream_
+    ));
+  }
+  updateDevicePointersBuffer();
+  lastUseEvent_ = nullptr;
 }
+
+
+//Field::Field(Field&& other) : system_(other.system_), ncomp_(other.ncomp_) {
+//  buffers_ = std::move(other.buffers_);
+//  bufferPtrs_ = std::move(other.bufferPtrs_);
+//  other.clear();
+//}
+
+/* Field::Field(Field&& other)
+  : ncomp_(other.ncomp_),
+    system_(std::move(other.system_)),
+    buffers_(std::move(other.buffers_)),
+    bufferPtrs_(std::move(other.bufferPtrs_)),
+    stream_(other.stream_)
+{
+  other.ncomp_ = 0;
+  other.system_.reset();
+  other.buffers_.clear();
+  other.bufferPtrs_ = GpuBuffer<real*>{};  // default
+  other.stream_ = nullptr;
+} */
+
+Field::Field(Field&& other)
+  : ncomp_(other.ncomp_),
+    system_(std::move(other.system_)),
+    buffers_(std::move(other.buffers_)),
+    bufferPtrs_(std::move(other.bufferPtrs_)),
+    stream_(other.stream_),
+    lastUseEvent_(other.lastUseEvent_)
+{
+  other.ncomp_ = 0;
+  other.system_.reset();
+  other.buffers_.clear();
+  other.bufferPtrs_ = GpuBuffer<real*>{};
+  other.stream_ = nullptr;
+  other.lastUseEvent_ = nullptr;
+}
+
+//Field& Field::operator=(const Field& other) {
+//  if (this == &other)
+//    return *this;
+//  return *this = std::move(Field(other));  // moves a copy of other to this
+//}
 
 Field& Field::operator=(const Field& other) {
-  if (this == &other)
-    return *this;
-  return *this = std::move(Field(other));  // moves a copy of other to this
+  if (this == &other) return *this;
+  Field tmp(other);           // deep copy
+  // move-assign (siehe korrigiertes Move unten)
+  return *this = std::move(tmp);
 }
 
 Field& Field::operator=(const FieldQuantity& q) {
-  return *this = std::move(q.eval());
+  Field tmp = q.eval();      // tmp hat irgendeinen stream_
+  tmp.stream_ = this->stream_;   // angleichen
+  return *this = std::move(tmp); // move-assign
 }
 
+//Field& Field::operator=(Field&& other) {
+//  system_ = other.system_;
+//  ncomp_ = other.ncomp_;
+//  buffers_ = std::move(other.buffers_);
+//  bufferPtrs_ = std::move(other.bufferPtrs_);
+//  other.clear();
+//  return *this;
+//}
+
+/* Field& Field::operator=(Field&& other) {
+  if (this != &other) {
+    stream_      = other.stream_;
+    ncomp_       = other.ncomp_;
+    system_      = std::move(other.system_);
+    buffers_     = std::move(other.buffers_);
+    bufferPtrs_  = std::move(other.bufferPtrs_);
+
+    other.ncomp_ = 0;
+    other.system_.reset();
+    other.buffers_.clear();
+    other.bufferPtrs_ = GpuBuffer<real*>{};
+    other.stream_ = nullptr;
+  }
+  return *this;
+} */
+
 Field& Field::operator=(Field&& other) {
-  system_ = other.system_;
-  ncomp_ = other.ncomp_;
-  buffers_ = std::move(other.buffers_);
-  bufferPtrs_ = std::move(other.bufferPtrs_);
-  other.clear();
+  if (this != &other) {
+    // Eigenes laufendes Event sicher beenden
+    if (lastUseEvent_) {
+      cudaEventSynchronize(lastUseEvent_);
+      cudaEventDestroy(lastUseEvent_);
+      lastUseEvent_ = nullptr;
+    }
+    // Eigene Ressourcen freigeben
+    free();
+
+    // Übernahme
+    stream_      = other.stream_;
+    ncomp_       = other.ncomp_;
+    system_      = std::move(other.system_);
+    buffers_     = std::move(other.buffers_);
+    bufferPtrs_  = std::move(other.bufferPtrs_);
+    lastUseEvent_ = other.lastUseEvent_;   // <--- NEU
+
+    // Donor invalidieren
+    other.ncomp_ = 0;
+    other.system_.reset();
+    other.buffers_.clear();
+    other.bufferPtrs_ = GpuBuffer<real*>{};
+    other.stream_ = nullptr;
+    other.lastUseEvent_ = nullptr;         // <--- NEU
+  }
   return *this;
 }
 
+/* void Field::clear() {
+  system_ = nullptr;
+  ncomp_ = 0;
+  free();
+} */
+
 void Field::clear() {
+  // Falls noch ein Event aussteht, darauf warten & zerstören
+  if (lastUseEvent_) {
+    cudaEventSynchronize(lastUseEvent_);
+    cudaEventDestroy(lastUseEvent_);
+    lastUseEvent_ = nullptr;
+  }
   system_ = nullptr;
   ncomp_ = 0;
   free();
@@ -76,7 +246,7 @@ void Field::updateDevicePointersBuffer() {
   std::vector<real*> bufferPtrsOnHost(ncomp_);
   std::transform(buffers_.begin(), buffers_.end(), bufferPtrsOnHost.begin(),
                  [](auto& buf) { return buf.get(); });
-  bufferPtrs_ = GpuBuffer<real*>(bufferPtrsOnHost);
+  bufferPtrs_ = GpuBuffer<real*>(bufferPtrsOnHost, stream_);
 }
 
 void Field::allocate() {
@@ -86,7 +256,7 @@ void Field::allocate() {
     return;
 
   buffers_ =
-      std::vector<GpuBuffer<real>>(ncomp_, GpuBuffer<real>(grid().ncells()));
+      std::vector<GpuBuffer<real>>(ncomp_, GpuBuffer<real>(grid().ncells(), stream_));
 
   updateDevicePointersBuffer();
 }
@@ -105,7 +275,7 @@ void Field::getData(real* buffer) const {
     real* bufferComponent = buffer + c * grid().ncells();
     checkCudaError(cudaMemcpyAsync(bufferComponent, buffers_[c].get(),
                                    grid().ncells() * sizeof(real),
-                                   cudaMemcpyDeviceToHost, getCudaStream()));
+                                   cudaMemcpyDeviceToHost, stream_));
   }
 }
 
@@ -122,13 +292,27 @@ void Field::setData(const real* buffer) {
     auto bufferComponent = buffer + c * grid().ncells();
     checkCudaError(cudaMemcpyAsync(buffers_[c].get(), bufferComponent,
                                    grid().ncells() * sizeof(real),
-                                   cudaMemcpyHostToDevice, getCudaStream()));
+                                   cudaMemcpyHostToDevice, stream_));
+  }
+  setZeroOutsideGeometry();
+}
+
+void Field::setData(const real* buffer, cudaStream_t s) {
+  for (int c = 0; c < ncomp_; c++) {
+    auto bufferComponent = buffer + c * grid().ncells();
+    checkCudaError(cudaMemcpyAsync(buffers_[c].get(), bufferComponent,
+                                   grid().ncells() * sizeof(real),
+                                   cudaMemcpyHostToDevice, s));
   }
   setZeroOutsideGeometry();
 }
 
 void Field::setData(const std::vector<real>& buffer) {
   setData(buffer.data());
+}
+
+void Field::setData(const std::vector<real>& buffer, cudaStream_t s) {
+  setData(buffer.data(), s);
 }
 
 __global__ void k_setComponent(CuField f, real value, int comp) {
@@ -181,14 +365,25 @@ __global__ void k_setVectorValueInRegion(CuField f, real3 value, unsigned int re
 }
 
 void Field::setUniformComponent(int comp, real value) {
-  cudaLaunch("field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
-  checkCudaError(cudaDeviceSynchronize());
+  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
+  //checkCudaError(cudaDeviceSynchronize());
+}
+
+void Field::setUniformComponent(int comp, real value, cudaStream_t s) {
+  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
+  //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformComponentInRegion(unsigned int regionIdx, int comp, real value) {
   system_->checkIdxInRegions(regionIdx);
-  cudaLaunch("field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
-  checkCudaError(cudaDeviceSynchronize());
+  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
+  //checkCudaError(cudaDeviceSynchronize());
+}
+
+void Field::setUniformComponentInRegion(unsigned int regionIdx, int comp, real value, cudaStream_t s) {
+  system_->checkIdxInRegions(regionIdx);
+  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
+  //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformValue(real value) {
@@ -196,9 +391,20 @@ void Field::setUniformValue(real value) {
     setUniformComponent(comp, value);
 }
 
+void Field::setUniformValue(real value, cudaStream_t s) {
+  for (int comp = 0; comp < ncomp_; comp++)
+    setUniformComponent(comp, value, s);
+}
+
+
 void Field::setUniformValue(real3 value) {
-  cudaLaunch("field.cu", grid().ncells(), k_setVectorValue, cu(), value);
-  checkCudaError(cudaDeviceSynchronize());
+  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setVectorValue, cu(), value);
+  //checkCudaError(cudaDeviceSynchronize());
+}
+
+void Field::setUniformValue(real3 value, cudaStream_t s) {
+  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setVectorValue, cu(), value);
+  //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformValueInRegion(unsigned int regionIdx, real value) {
@@ -209,12 +415,16 @@ void Field::setUniformValueInRegion(unsigned int regionIdx, real value) {
 
 void Field::setUniformValueInRegion(unsigned int regionIdx, real3 value) {
   system_->checkIdxInRegions(regionIdx);
-  cudaLaunch("field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
-  checkCudaError(cudaDeviceSynchronize());
+  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
+  //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::makeZero() {
   setUniformValue(0);
+}
+
+void Field::makeZero(cudaStream_t s) {
+  setUniformValue(0, s);
 }
 
 __global__ void k_setZeroOutsideGeometry(CuField f) {
@@ -229,8 +439,8 @@ void Field::setZeroOutsideGeometry() {
   if (!system_)
     return;
   if (system_->geometry().size() > 0)
-    cudaLaunch("field.cu", grid().ncells(), k_setZeroOutsideGeometry, cu());
-    checkCudaError(cudaDeviceSynchronize());
+    cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setZeroOutsideGeometry, cu());
+    //checkCudaError(cudaDeviceSynchronize());
 }
 
 Field& Field::operator+=(const Field& other) {

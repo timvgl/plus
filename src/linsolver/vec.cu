@@ -22,7 +22,7 @@ GVec add(lsReal a1, const GVec& x1, lsReal a2, const GVec& x2) {
         "match");
   }
   int N = x1.size();
-  GVec y(N);
+  GVec y(N, x2.getStream());
   cudaLaunch("vec.cu", N, k_add, y.get(), a1, x1.get(), a2, x2.get(), N);
   return y;
 }

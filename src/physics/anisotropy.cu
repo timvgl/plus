@@ -193,6 +193,9 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     auto ku2 = magnet->ku2.cu();
     cudaLaunch("anisotropy.cu", ncells, k_unianisotropyField, h, m,
                anisU, ku1, ku2, msat);
+    magnet->anisU.markLastUse();
+    magnet->ku1.markLastUse();
+    magnet->ku2.markLastUse();
   }
   else if(!cubicanisotropyAssuredZero(magnet)) {
     auto anisC1 = magnet->anisC1.cu();
@@ -202,6 +205,11 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     auto kc3 = magnet->kc3.cu();
     cudaLaunch("anisotropy.cu", ncells, k_cubicanisotropyField, h, m,
                anisC1, anisC2, kc1, kc2, kc3, msat);
+    magnet->anisC1.markLastUse();
+    magnet->anisC2.markLastUse();
+    magnet->kc1.markLastUse();
+    magnet->kc2.markLastUse();
+    magnet->kc3.markLastUse();
   }
   else if (!hexanisotropyAssuredZero(magnet)) {
     auto anisCHex = magnet->anisCHex.cu();
@@ -209,7 +217,12 @@ Field evalAnisotropyField(const Ferromagnet* magnet) {
     auto khex = magnet->khex.cu();
     cudaLaunch("anisotropy.cu", ncells, k_hexagonalAnisotropyField, h, m,
                anisCHex, anisAHex, khex, msat);
+    magnet->anisCHex.markLastUse();
+    magnet->anisAHex.markLastUse();
+    magnet->khex.markLastUse();
   }
+  magnet->msat.markLastUse();
+  result.markLastUse();
   return result;
 }
 

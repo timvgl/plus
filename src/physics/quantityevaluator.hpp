@@ -12,6 +12,8 @@
 #include "ncafm.hpp"
 #include "scalarquantity.hpp"
 #include "system.hpp"
+#include "gpubuffer.hpp"
+
 
 
 // ========== FieldQuantityEvaluator ==========
@@ -32,7 +34,7 @@ class FieldQuantityEvaluator : public FieldQuantity {
         name_(name),
         unit_(unit),
         assuredZeroFunc_(assuredZeroFunc) {
-          evalfunc_ = [base = std::move(evalfunc)](const T* p) -> Field {
+          evalfunc_ = [base = std::move(evalfunc), this](const T* p) -> Field {
             Field out = base(p);
             checkCudaError(cudaStreamSynchronize(getCudaStream()));
             return out;
@@ -50,7 +52,7 @@ class FieldQuantityEvaluator : public FieldQuantity {
   std::string unit() const { return unit_; }
 
   Field eval() const {
-    if (assuredZero()) { return Field(system(), ncomp(), 0); }
+    if (assuredZero()) { return Field(system(), ncomp(), real{0}); }
     return evalfunc_(ptr_);
   }
   Field operator()() const { return this->eval(); }
@@ -88,7 +90,7 @@ class ScalarQuantityEvaluator : public ScalarQuantity {
         name_(name),
         unit_(unit),
         assuredZeroFunc_(assuredZeroFunc) {
-          evalfunc_ = [base = std::move(evalfunc)](const T* p) -> real {
+          evalfunc_ = [base = std::move(evalfunc), this](const T* p) -> real {
             real out = base(p);
             checkCudaError(cudaStreamSynchronize(getCudaStream()));
             return out;

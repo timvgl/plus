@@ -40,7 +40,7 @@ __global__ void k_maxAbsValue(real* result, CuField f) {
 }
 
 real maxAbsValue(const Field& f) {
-  GpuBuffer<real> d_result(1);
+  GpuBuffer<real> d_result(1, f.getStream());
   cudaLaunchReductionKernel(k_maxAbsValue, d_result.get(), f.cu());
 
   // copy the result to the host and return
@@ -88,7 +88,7 @@ real maxVecNorm(const Field& f) {
         "the input field of maxVecNorm should have 3 components");
   }
   
-  GpuBuffer<real> d_result(1);
+  GpuBuffer<real> d_result(1, f.getStream());
   cudaLaunchReductionKernel(k_maxVecNorm, d_result.get(), f.cu());
 
   // copy the result to the host and return
@@ -136,7 +136,7 @@ real fieldComponentAverage(const Field& f, int comp) {
   
   real result;
   int cellsingeo = f.system()->cellsInGeo();
-  GpuBuffer<real> d_result(1);
+  GpuBuffer<real> d_result(1, f.getStream());
   cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp, cellsingeo);
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
@@ -184,7 +184,7 @@ real dotSum(const Field& f, const Field& g) {
         "Can not take the dot sum of the two fields because they are not "
         "defined on the same system.");
 
-  GpuBuffer<real> d_result(1);
+  GpuBuffer<real> d_result(1, f.getStream());
   cudaLaunchReductionKernel(k_dotSum, d_result.get(), f.cu(), g.cu());
 
   // copy the result to the host and return
@@ -225,7 +225,7 @@ __global__ void k_idxInRegions(bool* result, unsigned int* regions, size_t size,
 
 bool idxInRegions(GpuBuffer<unsigned int> regions, unsigned int idx) {
 
-  GpuBuffer<bool> d_result(1);
+  GpuBuffer<bool> d_result(1, getCudaStream());
   cudaLaunchReductionKernel(k_idxInRegions, d_result.get(), regions.get(), regions.size(), idx);
 
   // copy the result to the host and return
@@ -273,7 +273,7 @@ __global__ void k_isUniformComponent(bool* isUniform, CuField f, int c) {
 }
 
 bool isUniformFieldComponent(const Field& f, int comp) {
-  GpuBuffer<bool> d_isUniform(1);
+  GpuBuffer<bool> d_isUniform(1, f.getStream());
 
   cudaLaunchReductionKernel(k_isUniformComponent, d_isUniform.get(), f.cu(), comp);
 

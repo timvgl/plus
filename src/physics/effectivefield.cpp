@@ -15,11 +15,17 @@
 
 Field evalEffectiveField(const Ferromagnet* magnet) {
   // there will probably be exchange, otherwise safely initialized as 0
+  //checkCudaError(cudaStreamSynchronize(getCudaStream()));
+  Field hdemag;
+  bool calcDemag = !demagFieldAssuredZero(magnet);
+  if (calcDemag) {
+    checkCudaError(cudaStreamSynchronize(getCudaStream()));
+    hdemag = evalDemagField(magnet);
+  }
   Field h = evalExchangeField(magnet);
   if (!anisotropyAssuredZero(magnet)) {h += evalAnisotropyField(magnet);}
   if (!externalFieldAssuredZero(magnet)) {h += evalExternalField(magnet);}
   if (!inhomoDmiAssuredZero(magnet)) {h += evalDmiField(magnet);}
-  if (!demagFieldAssuredZero(magnet)) {h += evalDemagField(magnet);}
   if (!magnetoelasticAssuredZero(magnet)) {
       h += evalMagnetoelasticField(magnet);}
   if (magnet->isSublattice())
@@ -28,7 +34,12 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
       if (!homoAfmExchangeAssuredZero(magnet)) {h += evalHomogeneousAfmExchangeField(magnet);}
       // Homogeneous (local) DMI term
       if (!homoDmiAssuredZero(magnet)) {h += evalHomoDmiField(magnet);}
-  checkCudaError(cudaDeviceSynchronize());
+  if (calcDemag) { 
+    checkCudaError(cudaStreamSynchronize(getCudaStreamFFT()))
+    addTo(h, real{1}, hdemag, getCudaStream());
+  }
+  checkCudaError(cudaStreamSynchronize(getCudaStream()));
+
   return h;
 }
 

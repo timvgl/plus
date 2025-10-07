@@ -12,11 +12,42 @@ Parameter::Parameter(std::shared_ptr<const System> system, real value,
       name_(name), unit_(unit) {}
 
 Parameter::~Parameter() {
-  if (staticField_)
+  waitForLastUse_();
+  if (staticField_) {
     delete staticField_;
+    staticField_ = nullptr;
+  }
+  // DynamicParameter<real>::dynamicField_ ist (vermutlich) unique_ptr im Basistyp:
+  // sie wird beim Zerstören von 'this' automatisch freigegeben; das Event-Fence oben schützt vorher.
+}
+
+void Parameter::waitForLastUse_() const {
+  if (lastUseEvent_) {
+    cudaEventSynchronize(lastUseEvent_);
+    cudaEventDestroy(lastUseEvent_);
+    const_cast<cudaEvent_t&>(lastUseEvent_) = nullptr;
+  }
+}
+
+void Parameter::markLastUse() const {
+  // Fallback ohne expliziten Stream: versuche, aus statischem Feld den Stream zu nehmen
+  cudaStream_t s = nullptr;
+  if (staticField_) s = staticField_->getStream();
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, s));
+}
+
+void Parameter::markLastUse(cudaStream_t s) const {
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, s));
 }
 
 void Parameter::set(real value) {
+  waitForLastUse_();         
   uniformValue_ = value;
   if (staticField_) {
     delete staticField_;
@@ -25,6 +56,7 @@ void Parameter::set(real value) {
 }
 
 void Parameter::set(const Field& values) {
+  waitForLastUse_(); 
   if (isUniformField(values)) {
     real* value = values.device_ptr(0);
     checkCudaError(cudaMemcpy(&uniformValue_, value, sizeof(real),
@@ -39,6 +71,7 @@ void Parameter::set(const Field& values) {
 }
 
 void Parameter::setInRegion(const unsigned int region_idx, real value) {
+  waitForLastUse_();
   if (isUniform()) {
     if (value == uniformValue_) return;
     staticField_ = new Field(system_, 1, uniformValue_);
@@ -83,6 +116,27 @@ Field Parameter::eval() const {
   return staticField;
 }
 
+Field Parameter::eval(cudaStream_t s) const {
+  Field staticField(system_, ncomp(), s);
+
+  if (staticField_) {
+    staticField = *staticField_;
+  } else {
+    staticField.setUniformValue(uniformValue_, s);
+  }
+
+  if (isDynamic()) {
+    auto t = system_->world()->time();
+    Field dynamicField(system_, ncomp(), s);
+
+    evalTimeDependentTerms(t, dynamicField, s);
+    addTo(staticField, real{1}, dynamicField, s);
+    dynamicField.markLastUse(s);
+  }
+  staticField.markLastUse(s);
+  return staticField;
+}
+
 real Parameter::getUniformValue() const {
   if (!isUniform()) {
     throw std::invalid_argument("Cannot get uniform value of non-uniform Parameter.");
@@ -108,11 +162,38 @@ VectorParameter::VectorParameter(std::shared_ptr<const System> system,
       name_(name), unit_(unit) {}
 
 VectorParameter::~VectorParameter() {
+  waitForLastUse_();
   if (staticField_)
     delete staticField_;
+    staticField_ = nullptr;
+}
+
+void VectorParameter::waitForLastUse_() const {
+  if (lastUseEvent_) {
+    cudaEventSynchronize(lastUseEvent_);
+    cudaEventDestroy(lastUseEvent_);
+    const_cast<cudaEvent_t&>(lastUseEvent_) = nullptr;
+  }
+}
+
+void VectorParameter::markLastUse() const {
+  cudaStream_t s = nullptr;
+  if (staticField_) s = staticField_->getStream();
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, s));
+}
+
+void VectorParameter::markLastUse(cudaStream_t s) const {
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, s));
 }
 
 void VectorParameter::set(real3 value) {
+  waitForLastUse_();
   uniformValue_ = value;
   if (staticField_) {
     delete staticField_;
@@ -121,6 +202,7 @@ void VectorParameter::set(real3 value) {
 }
 
 void VectorParameter::set(const Field& values) {
+  waitForLastUse_();
   if (isUniformField(values)) {
     real* valueX = values.device_ptr(0);
     real* valueY = values.device_ptr(1);
@@ -142,6 +224,7 @@ void VectorParameter::set(const Field& values) {
 }
 
 void VectorParameter::setInRegion(const unsigned int region_idx, real3 value) {
+  waitForLastUse_();
   if (isUniform()) {
     if (value == uniformValue_) return;
     staticField_ = new Field(system_, 3, uniformValue_);

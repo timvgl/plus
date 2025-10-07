@@ -51,4 +51,5 @@ class StrayFieldFFTExecutor : public StrayFieldExecutor {
   std::vector<complex*> kfft, mfft, hfft;
   cufftHandle forwardPlan;
   cufftHandle backwardPlan;
+  cudaStream_t stream_;
 };

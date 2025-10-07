@@ -11,84 +11,105 @@
 #include "system.hpp"
 
 class CuField;
-
 class Field : public FieldQuantity {
   int ncomp_;
   std::shared_ptr<const System> system_;
   std::vector<GpuBuffer<real>> buffers_;
   GpuBuffer<real*> bufferPtrs_;
 
- public:
-  Field();
-  Field(std::shared_ptr<const System> system, int nComponents);
-  Field(std::shared_ptr<const System> system, int nComponents, real value);
-  Field(std::shared_ptr<const System> system, int nComponents, real3 value);
-  Field(const Field&);   // copies gpu field data
-  Field(Field&& other);  // moves gpu field data
+  public:
+    Field();
+    Field(std::shared_ptr<const System> system, int nComponents);
+    Field(std::shared_ptr<const System> system, int nComponents, cudaStream_t stream_);
+    Field(std::shared_ptr<const System> system, int nComponents, real value);
+    Field(std::shared_ptr<const System> system, int nComponents, real value, cudaStream_t stream_);
+    Field(std::shared_ptr<const System> system, int nComponents, real3 value);
+    Field(std::shared_ptr<const System> system, int nComponents, real3 value, cudaStream_t stream_);
+    Field(const Field&);   // copies gpu field data
+    Field(Field&& other);  // moves gpu field data
 
-  ~Field() = default;
+    //~Field() = default;
+    ~Field();
+    void markLastUse(cudaStream_t stream) const;
+    void markLastUse() const;
 
-  Field eval() const { return Field(*this); }
+    Field eval() const override;
 
-  Field& operator=(Field&& other);               // moves gpu field data
-  Field& operator=(const Field& other);          // copies gpu field data
-  Field& operator=(const FieldQuantity& other);  // evaluates quantity on this
+    Field& operator=(Field&& other);               // moves gpu field data
+    Field& operator=(const Field& other);          // copies gpu field data
+    Field& operator=(const FieldQuantity& other);  // evaluates quantity on this
 
-  Field& operator+=(const Field& other);
-  Field& operator-=(const Field& other);
-  Field& operator+=(const FieldQuantity& other);
-  Field& operator-=(const FieldQuantity& other);
+    Field& operator+=(const Field& other);
+    Field& operator-=(const Field& other);
+    Field& operator+=(const FieldQuantity& other);
+    Field& operator-=(const FieldQuantity& other);
 
-  void clear();
+    cudaStream_t getStream() const { return stream_; }
 
-  bool empty() const { return !system_ || grid().ncells() == 0 || ncomp_ == 0; }
-  std::shared_ptr<const System> system() const;
-  int ncomp() const { return ncomp_; }
-  real* device_ptr(int comp) const { return buffers_[comp].get(); }
+    void clear();
 
-  CuField cu() const;
+    bool empty() const { return !system_ || grid().ncells() == 0 || ncomp_ == 0; }
+    std::shared_ptr<const System> system() const;
+    int ncomp() const { return ncomp_; }
+    real* device_ptr(int comp) const { return buffers_[comp].get(); }
 
-  /** Copy field values into a C-style array from the device to host memory.
-   *
-   * @param buffer a pointer to an array of size number of cells by number of
-   * components.
-   */
-  void getData(real* buffer) const;
-  /** Copy field values into a vector from the device to host memory. */
-  std::vector<real> getData() const;
-  /** Set field values using a C-style array.
-   *
-   * Values should be provided for every cell and every component.
-   * The buffer content will be copied from the host to device memory.
-   *
-   * @param buffer a pointer to an array of size number of cells by number of
-   * components.
-   */
-  void setData(const real* buffer);
-  /** Set field values using a vector instance.
-   *
-   * Values should be provided for every cell and every component.
-   * The buffer content will be copied from the host to device memory.
-   *
-   * @param buffer a vector of size number of cells by number of components.
-   */
-  void setData(const std::vector<real>& buffer);
-  void setUniformComponent(int comp, real value);
-  void setUniformComponentInRegion(unsigned int regionIdx, int comp, real value);
-  void setUniformValue(real value);
-  void setUniformValue(real3 value);
-  void setUniformValueInRegion(unsigned int regionIdx, real value);
-  void setUniformValueInRegion(unsigned int regionIdx, real3 value);
+    CuField cu() const;
+
+    /** Copy field values into a C-style array from the device to host memory.
+     *
+     * @param buffer a pointer to an array of size number of cells by number of
+     * components.
+     */
+    void getData(real* buffer) const;
+    /** Copy field values into a vector from the device to host memory. */
+    std::vector<real> getData() const;
+    /** Set field values using a C-style array.
+     *
+     * Values should be provided for every cell and every component.
+     * The buffer content will be copied from the host to device memory.
+     *
+     * @param buffer a pointer to an array of size number of cells by number of
+     * components.
+     */
+    void setData(const real* buffer);
+    void setData(const real* buffer, cudaStream_t s);
+    /** Set field values using a vector instance.
+     *
+     * Values should be provided for every cell and every component.
+     * The buffer content will be copied from the host to device memory.
+     *
+     * @param buffer a vector of size number of cells by number of components.
+     */
+    void setData(const std::vector<real>& buffer);
+    void setData(const std::vector<real>& buffer, cudaStream_t s);
+    void setUniformComponent(int comp, real value);
+    void setUniformComponent(int comp, real value, cudaStream_t s);
+    void setUniformComponentInRegion(unsigned int regionIdx, int comp, real value);
+    void setUniformComponentInRegion(unsigned int regionIdx, int comp, real value, cudaStream_t s);
+    void setUniformValue(real value);
+    void setUniformValue(real3 value);
+    void setUniformValueInRegion(unsigned int regionIdx, real value);
+    void setUniformValueInRegion(unsigned int regionIdx, real3 value);
+
+    void setUniformValue(real value, cudaStream_t s);
+    void setUniformValue(real3 value, cudaStream_t s);
+    void setUniformValueInRegion(unsigned int regionIdx, real value, cudaStream_t s);
+    void setUniformValueInRegion(unsigned int regionIdx, real3 value, cudaStream_t s);
 
 
-  void makeZero();
+    void makeZero();
+    void makeZero(cudaStream_t s);
 
-  void setZeroOutsideGeometry();
+    void setZeroOutsideGeometry();
 
- private:
-  void updateDevicePointersBuffer();
-  void allocate();
-  void free();
+  //~Field() noexcept;
+
+  private:
+    void updateDevicePointersBuffer();
+    void allocate();
+    void free();
+    cudaStream_t stream_ = nullptr; // non-owning, borrowed
+    mutable cudaEvent_t lastUseEvent_ = nullptr;
 
   friend CuField;
 };

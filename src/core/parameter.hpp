@@ -18,6 +18,9 @@ class Parameter : public FieldQuantity, public DynamicParameter<real> {
   explicit Parameter(std::shared_ptr<const System> system, real value = 0.0,
                      std::string name = "", std::string unit = "");
   ~Parameter();
+  
+  void markLastUse() const;
+  void markLastUse(cudaStream_t s) const;
 
   void set(real value);
   void set(const Field& values);
@@ -31,6 +34,7 @@ class Parameter : public FieldQuantity, public DynamicParameter<real> {
   std::string unit() const {return unit_;}
   /** Evaluate parameter on its field. */
   Field eval() const;
+  Field eval(cudaStream_t stream_) const;
   /** Get value of uniform parameter.*/
   real getUniformValue() const;
 
@@ -45,6 +49,8 @@ class Parameter : public FieldQuantity, public DynamicParameter<real> {
 
   std::string name_;
   std::string unit_;
+  mutable cudaEvent_t lastUseEvent_ = nullptr;
+  void waitForLastUse_() const;
 
   friend CuParameter;
 };
@@ -119,6 +125,9 @@ class VectorParameter : public FieldQuantity, public DynamicParameter<real3> {
                   std::string name = "", std::string unit = "");
   ~VectorParameter();
 
+  void markLastUse() const;
+  void markLastUse(cudaStream_t s) const;
+
   void set(real3 value);
   void set(const Field& values);
   void setInRegion(const unsigned int region_idx, real3 value);
@@ -130,6 +139,7 @@ class VectorParameter : public FieldQuantity, public DynamicParameter<real3> {
   std::string name() const {return name_;}
   std::string unit() const {return unit_;}
   Field eval() const;
+  Field eval(cudaStream_t stream_) const;
   real3 getUniformValue() const;
 
   CuVectorParameter cu() const;
@@ -141,6 +151,8 @@ class VectorParameter : public FieldQuantity, public DynamicParameter<real3> {
 
   std::string name_;
   std::string unit_;
+  mutable cudaEvent_t lastUseEvent_ = nullptr;
+  void waitForLastUse_() const;
 
   friend CuVectorParameter;
 };

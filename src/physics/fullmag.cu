@@ -11,11 +11,42 @@ Field evalFMFullMag(const Ferromagnet* magnet) {
 }
 
 Field evalHMFullMag(const HostMagnet* magnet) {
-  // TODO: do we want one general evalfunc?
   auto sublattices = magnet->sublattices();
-  Field result = sublattices[0]->msat.eval() * sublattices[0]->magnetization()->field();
-  for (int i = 1; i < (int)sublattices.size(); i++)
-    addTo(result, sublattices[i]->msat.eval(), sublattices[i]->magnetization()->field());
+  Field result = Field(sublattices[0]->system(), 3);   
+
+  Field ms0 = sublattices[0]->msat.eval();      
+  const Field& m0 = sublattices[0]->magnetization()->field();
+
+  result = ms0 * m0;
+  ms0.markLastUse();
+  
+  for (int i = 1; i < (int)sublattices.size(); ++i) {
+    Field msi = sublattices[i]->msat.eval(); 
+    const Field& mi = sublattices[i]->magnetization()->field();
+    addTo(result, msi, mi);
+    msi.markLastUse();
+  }
+  result.markLastUse();
+  return result;
+}
+
+Field evalHMFullMagOn(const HostMagnet* magnet, cudaStream_t stream_) {
+  auto sublattices = magnet->sublattices();
+  Field result = Field(sublattices[0]->system(), 3, stream_);   
+
+  Field ms0 = sublattices[0]->msat.eval(stream_);      
+  const Field& m0 = sublattices[0]->magnetization()->field();
+
+  result = ms0 * m0;
+  ms0.markLastUse(stream_);
+  
+  for (int i = 1; i < (int)sublattices.size(); ++i) {
+    Field msi = sublattices[i]->msat.eval(stream_); 
+    const Field& mi = sublattices[i]->magnetization()->field();
+    addTo(result, msi, mi);
+    msi.markLastUse();
+  }
+  result.markLastUse();
   return result;
 }
 

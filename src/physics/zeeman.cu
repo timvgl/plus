@@ -55,6 +55,7 @@ Field evalExternalField(const Ferromagnet* magnet) {
   Field h(magnet->system(), 3);
   if (externalFieldAssuredZero(magnet)) {
     h.makeZero();
+    h.markLastUse();
     return h;
   }
 
@@ -66,7 +67,8 @@ Field evalExternalField(const Ferromagnet* magnet) {
   h.setUniformComponent(2, wB_bias.z);
 
   mB_bias.addToField(h);
-
+  mB_bias.markLastUse();
+  
   // stray fields
   const Magnet* dstMagnet;  // destination magnet of strayfields
   if (magnet->isSublattice()) {
@@ -86,7 +88,7 @@ Field evalExternalField(const Ferromagnet* magnet) {
       strayField->addToField(h);
     }
   }
-
+  h.markLastUse();
   return h;
 }
 
