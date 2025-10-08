@@ -14,14 +14,68 @@
 #include "gpubuffer.hpp"
 #include "system.hpp"
 
-Field::~Field() {
-  if (lastUseEvent_) {
-    cudaEventSynchronize(lastUseEvent_);
-    cudaEventDestroy(lastUseEvent_);
-    lastUseEvent_ = nullptr;
+namespace {
+  struct FieldCleanup {
+    GpuBuffer<real*> bufferPtrs;
+    std::vector<GpuBuffer<real>> buffers;
+    cudaEvent_t lastUseEvent = nullptr;
+  };
+
+  static void CUDART_CB field_cleanup_cb(void* p) noexcept {
+    auto* cap = static_cast<FieldCleanup*>(p);
+
+    if (cap->lastUseEvent) {
+      cudaEventDestroy(cap->lastUseEvent);
+      cap->lastUseEvent = nullptr;
+    }
+    delete cap;
   }
-  free();
 }
+
+Field::~Field() {
+  // Nichts zu tun?
+  if (!has_buffers_()) {
+    if (lastUseEvent_) {
+      cudaEventDestroy(lastUseEvent_);
+      lastUseEvent_ = nullptr;
+    }
+    return;
+  }
+
+  auto* cap = new (std::nothrow) FieldCleanup{};
+  if (!cap) {
+    if (lastUseEvent_) {
+      cudaEventSynchronize(lastUseEvent_);
+      cudaEventDestroy(lastUseEvent_);
+      lastUseEvent_ = nullptr;
+    }
+    free();
+    printf("Warning: Field destructor failed to allocate cleanup structure, falling back to synchronous cleanup.\n");
+    return;
+  }
+
+  cap->buffers       = std::move(buffers_);
+  cap->bufferPtrs    = std::move(bufferPtrs_);
+  cap->lastUseEvent  = lastUseEvent_;
+  lastUseEvent_      = nullptr;
+
+  cudaStream_t s_reaper = getCudaStreamGC();
+
+  if (cap->lastUseEvent) {
+    checkCudaError(cudaStreamWaitEvent(s_reaper, cap->lastUseEvent, 0));
+  }
+
+  cudaError_t st = cudaLaunchHostFunc(s_reaper, field_cleanup_cb, cap);
+  if (st != cudaSuccess) {
+    if (cap->lastUseEvent) {
+      cudaEventSynchronize(cap->lastUseEvent);
+      cudaEventDestroy(cap->lastUseEvent);
+      cap->lastUseEvent = nullptr;
+    }
+    delete cap;
+  }
+}
+
 
 void Field::markLastUse() const {
   if (!lastUseEvent_) {
@@ -413,9 +467,21 @@ void Field::setUniformValueInRegion(unsigned int regionIdx, real value) {
     setUniformComponentInRegion(regionIdx, comp, value);
 }
 
+void Field::setUniformValueInRegion(unsigned int regionIdx, real value, cudaStream_t s) {
+  system_->checkIdxInRegions(regionIdx);
+  for (int comp = 0; comp < ncomp_; comp++)
+    setUniformComponentInRegion(regionIdx, comp, value, s);
+}
+
 void Field::setUniformValueInRegion(unsigned int regionIdx, real3 value) {
   system_->checkIdxInRegions(regionIdx);
   cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
+  //checkCudaError(cudaDeviceSynchronize());
+}
+
+void Field::setUniformValueInRegion(unsigned int regionIdx, real3 value, cudaStream_t s) {
+  system_->checkIdxInRegions(regionIdx);
+  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
   //checkCudaError(cudaDeviceSynchronize());
 }
 

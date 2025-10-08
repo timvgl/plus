@@ -248,7 +248,12 @@ Field evalEffectiveSublattice(const Ferromagnet* magnet) {
     auto msat = sub->msat.cu();
     cudaLaunch("exchange.cu", netSub.grid().ncells(), k_effectiveSublattice, netSub.cu(), m, msat,
                Ann, inter, scale, magnet->world()->mastergrid());
+    sub->msat.markLastUse();
   }
+  magnet->hostMagnet()->afmex_nn.markLastUse();
+  magnet->hostMagnet()->interAfmExchNN.markLastUse();
+  magnet->hostMagnet()->scaleAfmExchNN.markLastUse();
+  netSub.markLastUse();
   return netSub;
 }
 
@@ -284,6 +289,11 @@ Field evalExchangeField(const Ferromagnet* magnet) {
               msat, w, grid, dmiTensor, interEx, scaleEx);
     sister.markLastUse();
   }
+  magnet->msat.markLastUse();
+  magnet->aex.markLastUse();
+  magnet->dmiTensor.markLastUse();
+  magnet->interExch.markLastUse();
+  magnet->scaleExch.markLastUse();
   hField.markLastUse();
   return hField;
 }
@@ -368,6 +378,9 @@ real evalMaxAngle(const Ferromagnet* magnet) {
   cudaLaunch("exchange.cu", maxAngleField.grid().ncells(), k_maxangle, maxAngleField.cu(),
              magnet->magnetization()->field().cu(), magnet->aex.cu(),
              magnet->msat.cu(), magnet->world()->mastergrid());
+  magnet->aex.markLastUse();
+  magnet->msat.markLastUse();
+  maxAngleField.markLastUse();
   return maxAbsValue(maxAngleField);
 }
 

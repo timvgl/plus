@@ -17,7 +17,10 @@ class InterParameter {
                            real value,
                            std::string name = "",
                            std::string unit = "");
-  ~InterParameter() {};
+  ~InterParameter();
+
+  void markLastUse() const;
+  void markLastUse(cudaStream_t s) const;
 
   std::string name() const { return name_; }
   std::string unit() const { return unit_; }
@@ -42,6 +45,7 @@ class InterParameter {
  private:
   /** Set full buffer to uniform value. */
   void setBuffer(real value);
+  void scheduleBufGC_() const;
 
   std::string name_;
   std::string unit_;
@@ -50,6 +54,9 @@ class InterParameter {
   real uniformValue_;
   GpuBuffer<real> valuesBuffer_;
   size_t valuesLimit_;  // N(N-1)/2 with N = maxRegionIdx+1
+
+  mutable cudaEvent_t lastUseEvent_ = nullptr;
+  cudaStream_t stream_ = nullptr;
 
   friend CuInterParameter;
 };

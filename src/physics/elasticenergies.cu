@@ -37,6 +37,7 @@ Field evalKineticEnergyDensity(const Magnet* magnet) {
   Field kinField(magnet->system(), 1);
   if (kineticEnergyAssuredZero(magnet)) {
     kinField.makeZero();
+    kinField.markLastUse();
     return kinField;
   }
 
@@ -44,6 +45,7 @@ Field evalKineticEnergyDensity(const Magnet* magnet) {
   CuField velocity = magnet->elasticVelocity()->field().cu();
   CuParameter rho = magnet->rho.cu();
   cudaLaunch("elasticenergies.cu", ncells, k_kineticEnergyDensity, kinField.cu(), velocity, rho);
+  magnet->rho.markLastUse();
   return kinField;
 }
 
@@ -92,6 +94,7 @@ Field evalElasticEnergyDensity(const Magnet* magnet) {
   Field elField(magnet->system(), 1);
   if (elasticityAssuredZero(magnet)) {
     elField.makeZero();
+    elField.markLastUse();
     return elField;
   }
 
@@ -99,6 +102,9 @@ Field evalElasticEnergyDensity(const Magnet* magnet) {
   Field stress = evalStressTensor(magnet);
   Field strain = evalStrainTensor(magnet);
   cudaLaunch("elasticenergies.cu", ncells, k_elasticEnergyDensity, elField.cu(), stress.cu(), strain.cu());
+  stress.markLastUse();
+  strain.markLastUse();
+  elField.markLastUse();
   return elField;
 }
 

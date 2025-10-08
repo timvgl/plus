@@ -48,6 +48,7 @@ void DynamicParameter<T>::evalTimeDependentTerms(real t, Field& p) const {
   for (auto& term : time_dep_terms) {
     auto& func = std::get<std::function<T(real)>>(term);
     auto& mask = std::get<Field>(term);
+    mask.markLastUse();
 
     if (!mask.empty()) {
       addTo(p, func(t), mask);
@@ -55,8 +56,10 @@ void DynamicParameter<T>::evalTimeDependentTerms(real t, Field& p) const {
       Field f(p.system(), p.ncomp());
       f.setUniformValue(func(t));
       p += f;
+      f.markLastUse();
     }
   }
+  p.markLastUse();
 }
 
 template <typename T>

@@ -68,6 +68,7 @@ Field evalHomoDmiField(const Ferromagnet* magnet) {
   Field hField(magnet->system(), 3, real3{0, 0, 0});
   if (homoDmiAssuredZero(magnet)) {
     hField.makeZero();
+    hField.markLastUse();
     return hField;
   }
 
@@ -84,6 +85,9 @@ Field evalHomoDmiField(const Ferromagnet* magnet) {
     cudaLaunch("local_dmi.cu", ncells, k_homoDmiFieldAFM, hField.cu(), m2, D, msat, symmetry_factor);
     i += 1;
   }
+  magnet->msat.markLastUse();
+  host->dmiVector.markLastUse();
+  hField.markLastUse();
   return hField;
 }
 

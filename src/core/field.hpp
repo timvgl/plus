@@ -30,6 +30,8 @@ class Field : public FieldQuantity {
 
     //~Field() = default;
     ~Field();
+    bool has_buffers_() const { return !buffers_.empty() || bufferPtrs_.size() != 0; }
+
     void markLastUse(cudaStream_t stream) const;
     void markLastUse() const;
 

@@ -89,5 +89,5 @@ void cudaLaunchReductionKernel(void (*kernelfunction)(Arguments...),
   cudaStream_t s0 = getCudaStream();
   kernelfunction<<<gridDims, blockDims, 0, s0>>>(args...);
   checkCudaError(cudaPeekAtLastError());
-  checkCudaError(cudaDeviceSynchronize());
+  checkCudaError(cudaStreamSynchronize(s0));
 }

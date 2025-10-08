@@ -66,12 +66,16 @@ Field StrayFieldBruteExecutor::exec() const {
     auto m = mag->magnetization()->field().cu();
     auto msat = mag->msat.cu();
     cudaLaunch("strayfieldbrute.cu", ncells, k_demagfield, h.cu(), m, kernel_.field().cu(), msat);
+    mag->msat.markLastUse();
   }
   else {
     auto hostmag = evalHMFullMag(magnet_->asHost());
     auto msat = Parameter(magnet_->system(), 1.0);
     cudaLaunch("strayfieldbrute.cu", ncells, k_demagfield, h.cu(), hostmag.cu(), kernel_.field().cu(), msat.cu());
+    hostmag.markLastUse();
+    msat.markLastUse();
   }
   //checkCudaError(cudaDeviceSynchronize());
+  h.markLastUse();
   return h;
 }

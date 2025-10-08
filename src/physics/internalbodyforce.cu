@@ -113,6 +113,7 @@ Field evalInternalBodyForce(const Magnet* magnet) {
   Field fField(magnet->system(), 3);
   if (stressTensorAssuredZero(magnet)) {
     fField.makeZero();
+    fField.markLastUse();
     return fField;
   }
 
@@ -124,7 +125,8 @@ Field evalInternalBodyForce(const Magnet* magnet) {
 
   cudaLaunch("internalbodyforce.cu", ncells, k_internalBodyForce, fField.cu(), stressTensor.cu(),
              traction, w, mastergrid);
-
+  stressTensor.markLastUse();
+  fField.markLastUse();
   return fField;
 }
 

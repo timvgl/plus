@@ -47,6 +47,7 @@ real maxAbsValue(const Field& f) {
   real result;
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), 1 * sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
+  f.markLastUse();
   return result;
 }
 
@@ -95,6 +96,7 @@ real maxVecNorm(const Field& f) {
   real result;
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), 1 * sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
+  f.markLastUse();
   return result;
 }
 
@@ -140,6 +142,7 @@ real fieldComponentAverage(const Field& f, int comp) {
   cudaLaunchReductionKernel(k_average, d_result.get(), f.cu(), comp, cellsingeo);
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
+  f.markLastUse();
   return result;
 }
 
@@ -191,6 +194,8 @@ real dotSum(const Field& f, const Field& g) {
   real result;
   checkCudaError(cudaMemcpyAsync(&result, d_result.get(), sizeof(real),
                                  cudaMemcpyDeviceToHost, getCudaStream()));
+  f.markLastUse();
+  g.markLastUse();
   return result;
 }
 

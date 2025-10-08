@@ -289,6 +289,9 @@ LinearSystem PoissonSystem::construct() const {
 
   cudaLaunch("poissonsystem.cu", grid.ncells(), k_construct, system.cu(), conductivity.cu(),
              magnet_->appliedPotential.cu());
+  conductivity.markLastUse();
+  magnet_->appliedPotential.markLastUse();
+  system.markLastUse();
   //checkCudaError(cudaDeviceSynchronize());
   return system;
 }
@@ -305,6 +308,7 @@ Field PoissonSystem::solve() {
   GVec y = solver_.solve();
   Field pot(magnet_->system(), 1);
   cudaLaunch("poissonsystem.cu", pot.grid().ncells(), k_putSolutionInField, pot.cu(), y.get());
+  pot.markLastUse();
   //checkCudaError(cudaDeviceSynchronize());
   return pot;
 }

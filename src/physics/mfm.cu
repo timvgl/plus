@@ -188,7 +188,9 @@ Field MFM::eval() const {
                                         "the lift or the z component of the "
                                         "origin of the MFM grid.");
         }
+        magnetization.markLastUse();
     }
+    mfm.markLastUse();
     return mfm;
 }
 

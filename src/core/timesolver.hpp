@@ -59,8 +59,10 @@ class TimeSolver {
   //------------- EXECUTING THE SOLVER -----------------------------------------
 
   void step();
+  void stepAsync();
   void steps(unsigned int nsteps);
   void runwhile(std::function<bool(void)>);
+  void runwhileAsync(std::function<bool(void)>);
   void run(real duration);
 
   //------------- HELPER FUNCTIONS FOR ADAPTIVE TIMESTEPPING -------------------

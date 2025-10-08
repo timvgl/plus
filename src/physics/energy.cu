@@ -41,12 +41,15 @@ Field evalEnergyDensity(const Ferromagnet* magnet,
   Field edens(magnet->system(), 1);
   if (magnet->msat.assuredZero()) {
     edens.makeZero();
+    edens.markLastUse();
     return edens;
   }
 
   cudaLaunch("energy.cu", edens.grid().ncells(), k_energyDensity, edens.cu(),
              magnet->magnetization()->field().cu(), h.cu(),
              magnet->msat.cu(), prefactor);
+  magnet->msat.markLastUse();
+  edens.markLastUse();
   return edens;
 }
 
@@ -58,11 +61,13 @@ real energyFromEnergyDensity(const Magnet* magnet, real edens) {
 
 Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   Field edens(magnet->system(), 1, 0.0);
+  Field edemag;
+  bool calcDemag = !demagFieldAssuredZero(magnet);
+  if (calcDemag) {edemag = evalDemagEnergyDensity(magnet);}
   if (!exchangeAssuredZero(magnet)) {edens += evalExchangeEnergyDensity(magnet);}
   if (!anisotropyAssuredZero(magnet)) {edens += evalAnisotropyEnergyDensity(magnet);}
   if (!externalFieldAssuredZero(magnet)) {edens += evalZeemanEnergyDensity(magnet);}
   if (!inhomoDmiAssuredZero(magnet)) {edens += evalDmiEnergyDensity(magnet);}
-  if (!demagFieldAssuredZero(magnet)) {edens += evalDemagEnergyDensity(magnet);}
   if (!homoAfmExchangeAssuredZero(magnet)) {edens += evalHomoAfmExchangeEnergyDensity(magnet);}
   if (!inHomoAfmExchangeAssuredZero(magnet)) {edens += evalInHomoAfmExchangeEnergyDensity(magnet);}
   
@@ -71,7 +76,11 @@ Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   // elastics; only works if independent host
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
-  checkCudaError(cudaDeviceSynchronize());
+  if (calcDemag) {
+    fenceStreamToStream(getCudaStreamFFT(), getCudaStream());
+    addTo(edens, real{1}, edemag, getCudaStream());
+  }
+  checkCudaError(cudaStreamSynchronize(getCudaStream()));
   return edens;
 }
 
@@ -80,7 +89,7 @@ Field evalTotalEnergyDensity(const Antiferromagnet* magnet) {
                 evalTotalEnergyDensity(magnet->sub2());
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
-  checkCudaError(cudaDeviceSynchronize());
+  checkCudaError(cudaStreamSynchronize(getCudaStream()));
   return edens;
 }
 
@@ -90,7 +99,7 @@ Field evalTotalEnergyDensity(const NcAfm* magnet) {
                 evalTotalEnergyDensity(magnet->sub3());
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
-  checkCudaError(cudaDeviceSynchronize());
+  checkCudaError(cudaStreamSynchronize(getCudaStream()));
   return edens;
 }
 

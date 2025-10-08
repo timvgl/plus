@@ -79,7 +79,8 @@ Field evalElasticAcceleration(const Magnet* magnet) {
   if (!magnet->rho.assuredZero())
     cudaLaunch("elastodynamics.cu", aField.grid().ncells(), k_divideByParam,
                aField.cu(), magnet->rho.cu());
-
+    magnet->rho.markLastUse();
+  aField.markLastUse();
   return aField;
 }
 

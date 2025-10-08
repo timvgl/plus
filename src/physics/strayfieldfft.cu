@@ -179,7 +179,7 @@ StrayFieldFFTExecutor::StrayFieldFFTExecutor(
     checkCufftResult(
         fftExec(forwardPlan, kernel_.field().device_ptr(comp), kfft.at(comp)));
   checkCudaError(cudaPeekAtLastError());
-  checkCudaError(cudaDeviceSynchronize());
+  checkCudaError(cudaStreamSynchronize(stream_));
 }
 
 StrayFieldFFTExecutor::~StrayFieldFFTExecutor() {
@@ -201,17 +201,18 @@ Field StrayFieldFFTExecutor::exec() const {
       std::make_shared<System>(magnet_->world(), kernel_.grid());
 
   std::unique_ptr<Field> mpad(new Field(kernelSystem, 3, stream_));
-
+  fenceStreamToStream(getCudaStream(), stream_);
+  //checkCudaError(cudaStreamSynchronize(getCudaStream()));
   if (const Ferromagnet* mag = magnet_->asFM()) {
     auto m = mag->magnetization()->field().cu();
-    auto ms = mag->msat.cu();
+    auto ms = mag->msat.cu(stream_);
     cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
     mag->msat.markLastUse(stream_);
   }
   else {
     auto hostmag = evalHMFullMagOn(magnet_->asHost(), stream_);
-    auto ms = Parameter(magnet_->system(), 1.0);
-    cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu());
+    auto ms = Parameter(magnet_->system(), stream_, 1.0);
+    cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu(stream_));
     hostmag.markLastUse(stream_);
     ms.markLastUse(stream_);
   }
@@ -241,9 +242,9 @@ Field StrayFieldFFTExecutor::exec() const {
   for (int comp = 0; comp < 3; comp++)
     checkCufftResult(
       ifftExec(backwardPlan, hfft.at(comp), mpad->device_ptr(comp)));
-  mpad->markLastUse(stream_);
   Field h(system_, 3, stream_);
-  cudaLaunch("strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  cudaLaunchStream(stream_, "strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  mpad->markLastUse(stream_);
   h.markLastUse(stream_);
   return h;
 }

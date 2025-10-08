@@ -90,6 +90,11 @@ Field evalAngleField(const NcAfm* magnet) {
              magnet->sub1()->msat.cu(),
              magnet->sub2()->msat.cu(),
              magnet->sub3()->msat.cu());
+  magnet->afmex_cell.markLastUse();
+  magnet->sub1()->msat.markLastUse();
+  magnet->sub2()->msat.markLastUse();
+  magnet->sub3()->msat.markLastUse();
+  angleField.markLastUse();
   return angleField;
 }
 

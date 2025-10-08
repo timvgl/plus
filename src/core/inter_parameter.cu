@@ -4,13 +4,69 @@
 
 #include <algorithm>
 
+namespace {
+  struct InterParamCleanup {
+    GpuBuffer<real> buf;
+    cudaEvent_t evt = nullptr;
+  };
+
+  static void CUDART_CB interparam_cleanup_cb(void* p) noexcept {
+    auto* cap = static_cast<InterParamCleanup*>(p);
+    if (cap->evt) {
+      cudaEventDestroy(cap->evt);
+      cap->evt = nullptr;
+    }
+    delete cap;
+  }
+}
+
+InterParameter::~InterParameter() {
+  scheduleBufGC_();
+}
+
+
+void InterParameter::scheduleBufGC_() const {
+  if (valuesBuffer_.size() == 0 && !lastUseEvent_) return;
+
+  auto* cap = new (std::nothrow) InterParamCleanup{};
+  if (!cap) {
+    if (lastUseEvent_) {
+      cudaEventSynchronize(lastUseEvent_);
+      cudaEventDestroy(lastUseEvent_);
+      const_cast<cudaEvent_t&>(lastUseEvent_) = nullptr;
+    }
+    return;
+  }
+
+  cap->buf = std::move(const_cast<GpuBuffer<real>&>(valuesBuffer_));
+  cap->evt = lastUseEvent_;
+  const_cast<cudaEvent_t&>(lastUseEvent_) = nullptr;
+
+  cudaStream_t s_gc = getCudaStreamGC();
+  if (cap->evt) {
+    checkCudaError(cudaStreamWaitEvent(s_gc, cap->evt, 0));
+  }
+  cudaError_t st = cudaLaunchHostFunc(s_gc, interparam_cleanup_cb, cap);
+  if (st != cudaSuccess) {
+    // Fallback
+    if (cap->evt) {
+      cudaEventSynchronize(cap->evt);
+      cudaEventDestroy(cap->evt);
+      cap->evt = nullptr;
+    }
+    delete cap;
+  }
+}
+
+
 InterParameter::InterParameter(std::shared_ptr<const System> system,
                                real value, std::string name, std::string unit)
     : system_(system),
       name_(name),
       unit_(unit),
       uniformValue_(value),
-      valuesBuffer_() {
+      valuesBuffer_(),
+      stream_(getCudaStream()) {
   size_t N = 1;  // at least 1 region: default 0
   std::vector<unsigned int> uni = system->uniqueRegions;
   if (!uni.empty()) {
@@ -18,6 +74,22 @@ InterParameter::InterParameter(std::shared_ptr<const System> system,
   }
   valuesLimit_ = N * (N - 1) / 2;
 }
+
+void InterParameter::markLastUse() const {
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  // Wenn wir keinen besseren Stream kennen: den Param-Standardstream
+  checkCudaError(cudaEventRecord(lastUseEvent_, stream_ ? stream_ : getCudaStream()));
+}
+
+void InterParameter::markLastUse(cudaStream_t s) const {
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, s));
+}
+
 
 const std::vector<real> InterParameter::eval() const {
   if (isUniform())
@@ -36,12 +108,11 @@ void InterParameter::setBuffer(real value) {
 }
 
 void InterParameter::set(real value) {
+  scheduleBufGC_();
   uniformValue_ = value;
-  if (valuesBuffer_.size() > 0)
-    valuesBuffer_.recycle();
 }
 
-void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
+/* void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
   system_->checkIdxInRegions(i);
   system_->checkIdxInRegions(j);
   if (i == j) {
@@ -60,7 +131,40 @@ void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
   checkCudaError(cudaMemcpy(&valuesBuffer_.get()[getLutIndex(i, j)], &value,
                  sizeof(real), cudaMemcpyHostToDevice));
   return;
+} */
+
+void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
+  // Falls uniform → neuen Buffer anlegen und mit uniformValue_ füllen
+  if (isUniform()) {
+    // alter (leer) Buffer hat nichts zu GCen, aber falls ein Event gesetzt war, einfach löschen
+    if (lastUseEvent_) {
+      cudaEventDestroy(lastUseEvent_);
+      lastUseEvent_ = nullptr;
+    }
+    valuesBuffer_ = GpuBuffer<real>(valuesLimit_, stream_);
+    checkCudaError(cudaMemsetAsync(valuesBuffer_.get(), 0, 0, stream_));
+
+    std::vector<real> tmp(valuesLimit_, uniformValue_);
+    checkCudaError(cudaMemcpyAsync(valuesBuffer_.get(), tmp.data(),
+                                   valuesLimit_*sizeof(real),
+                                   cudaMemcpyHostToDevice, stream_));
+  } else {
+    if (lastUseEvent_) {
+      GpuBuffer<real> fresh(valuesLimit_, stream_);
+      checkCudaError(cudaMemcpyAsync(fresh.get(), valuesBuffer_.get(),
+                                     valuesLimit_*sizeof(real),
+                                     cudaMemcpyDeviceToDevice, stream_));
+      scheduleBufGC_();
+      valuesBuffer_ = std::move(fresh);
+    }
+  }
+
+  // Jetzt ist valuesBuffer_ exklusiv und darf geschrieben werden.
+  int idx = getLutIndex(i, j);
+  checkCudaError(cudaMemcpyAsync(valuesBuffer_.get() + idx, &value, sizeof(real),
+                                 cudaMemcpyHostToDevice, stream_));
 }
+
 
 real InterParameter::getUniformValue() const {
   if (!isUniform()) {

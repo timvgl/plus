@@ -80,19 +80,40 @@ void TimeSolver::step() {
         "Timesolver can not make a step because the timestep is smaller than "
         "or equal to zero.");
   stepper_->step();
+  checkCudaError(cudaGetLastError());
+  checkCudaError(cudaStreamSynchronize(getCudaStreamGC()));
+  checkCudaError(cudaDeviceSynchronize());
+}
+
+void TimeSolver::stepAsync() {
+  if (timestep_ <= 0)
+    throw std::runtime_error(
+        "Timesolver can not make a step because the timestep is smaller than "
+        "or equal to zero.");
+  stepper_->step();
 }
 
 void TimeSolver::steps(unsigned int nSteps) {
   for (int i = 0; i < nSteps; i++) {
-    step();
+    stepAsync();
   }
 }
 
 void TimeSolver::runwhile(std::function<bool(void)> runcondition) {
   while (runcondition()) {
-    step();
+    stepAsync();
+  }
+  checkCudaError(cudaGetLastError());
+  checkCudaError(cudaStreamSynchronize(getCudaStreamGC()));
+  checkCudaError(cudaDeviceSynchronize());
+}
+
+void TimeSolver::runwhileAsync(std::function<bool(void)> runcondition) {
+  while (runcondition()) {
+    stepAsync();
   }
 }
+
 
 void TimeSolver::run(real duration) {
   if (duration <= 0)
@@ -101,11 +122,14 @@ void TimeSolver::run(real duration) {
   auto runcondition = [this, stoptime]() {
     return this->time() < stoptime - this->timestep();
   };
-  runwhile(runcondition);
+  runwhileAsync(runcondition);
 
   // make final time step to end exactly at stoptime
   real oldTimestep = timestep();
   setTimeStep(stoptime - time_);
   step();
   if (fixedTimeStep_) setTimeStep(oldTimestep);
+  checkCudaError(cudaGetLastError());
+  checkCudaError(cudaStreamSynchronize(getCudaStreamGC()));
+  checkCudaError(cudaDeviceSynchronize());
 }

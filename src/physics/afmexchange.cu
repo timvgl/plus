@@ -169,6 +169,7 @@ __global__ void k_afmExchangeFieldNN(CuField hField,
 Field evalHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
   Field hField(magnet->system(), 3, real3{0, 0, 0});
   if (homoAfmExchangeAssuredZero(magnet))
+    hField.markLastUse();
     return hField;
 
   auto host = magnet->hostMagnet();
@@ -182,6 +183,9 @@ Field evalHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
     cudaLaunch("afmexchange.cu", hField.grid().ncells(), k_afmExchangeFieldSite, hField.cu(),
                mag2, msat, afmex_cell, latcon);
   }
+  host->afmex_cell.markLastUse();
+  host->latcon.markLastUse();
+  magnet->msat.markLastUse();
   return hField;
 }
 
@@ -209,7 +213,14 @@ Field evalInHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
     cudaLaunch("afmexchange.cu", hField.grid().ncells(), k_afmExchangeFieldNN, hField.cu(),
               mag, mag2, aex, afmex_nn, inter, scale, msat, msat2,
               magnet->world()->mastergrid(), dmiTensor, BC);
+    sub->msat.markLastUse();
   }
+  magnet->aex.markLastUse();
+  magnet->dmiTensor.markLastUse();
+  magnet->msat.markLastUse();
+  host->afmex_nn.markLastUse();
+  host->interAfmExchNN.markLastUse();
+  host->scaleAfmExchNN.markLastUse();
   return hField;
 }
 
@@ -298,12 +309,16 @@ __global__ void k_angle(CuField angleField,
 
 Field evalAngleField(const Antiferromagnet* magnet) {
   Field angleField(magnet->system(), 1);
-
+  auto afmex = magnet->afmex_cell.cu();
   cudaLaunch("afmexchange.cu", angleField.grid().ncells(), k_angle, angleField.cu(),
             magnet->sub1()->magnetization()->field().cu(),
             magnet->sub2()->magnetization()->field().cu(),
-            magnet->afmex_cell.cu(),
+            afmex,
             magnet->sub1()->msat.cu(), magnet->sub2()->msat.cu());
+  angleField.markLastUse();
+  magnet->afmex_cell.markLastUse();
+  magnet->sub1()->msat.markLastUse();
+  magnet->sub2()->msat.markLastUse();
   return angleField;
 }
 

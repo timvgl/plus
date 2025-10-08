@@ -31,12 +31,16 @@ Field evalNeelvector(const Antiferromagnet* magnet) {
 
   if (magnet->sub1()->msat.assuredZero() && magnet->sub2()->msat.assuredZero()) {
     neel.makeZero();
+    neel.markLastUse();
     return neel;
   }
   cudaLaunch("neel.cu", neel.grid().ncells(), k_neelvector, neel.cu(),
              magnet->sub1()->magnetization()->field().cu(),
              magnet->sub2()->magnetization()->field().cu(),
              magnet->sub1()->msat.cu(), magnet->sub2()->msat.cu());
+  magnet->sub1()->msat.markLastUse();
+  magnet->sub2()->msat.markLastUse();
+  neel.markLastUse();
   return neel;
 }
 

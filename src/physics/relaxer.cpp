@@ -174,4 +174,7 @@ void Relaxer::exec() {
   timesolver_.setTime(time);
   timesolver_.setTimeStep(timestep); 
   timesolver_.setEquations(eqs);
+  checkCudaError(cudaGetLastError());
+  checkCudaError(cudaStreamSynchronize(getCudaStreamGC()));
+  checkCudaError(cudaDeviceSynchronize());
 }

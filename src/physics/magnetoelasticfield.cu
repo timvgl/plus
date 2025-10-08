@@ -124,14 +124,21 @@ Field evalMagnetoelasticField(const Ferromagnet* magnet) {
 
       cudaLaunch("magnetoelasticfield.cu", ncells, k_rigidMagnetoelasticField, hField.cu(), mField,
                 normStrain, shearStrain, B1, B2, msat);
+      magnet->hostMagnet()->rigidNormStrain.markLastUse();
+      magnet->hostMagnet()->rigidShearStrain.markLastUse();
     } else {  // independent magnet
       CuVectorParameter normStrain = magnet->rigidNormStrain.cu();
       CuVectorParameter shearStrain = magnet->rigidShearStrain.cu();
 
       cudaLaunch("magnetoelasticfield.cu", ncells, k_rigidMagnetoelasticField, hField.cu(), mField,
                 normStrain, shearStrain, B1, B2, msat);
+      magnet->rigidNormStrain.markLastUse();
+      magnet->rigidShearStrain.markLastUse();
     }
-
+    magnet->B1.markLastUse();
+    magnet->B2.markLastUse();
+    magnet->msat.markLastUse();
+    hField.markLastUse();
     return hField;
   }
 
@@ -145,6 +152,11 @@ Field evalMagnetoelasticField(const Ferromagnet* magnet) {
 
   cudaLaunch("magnetoelasticfield.cu", ncells, k_dynamicMagnetoelasticField, hField.cu(), mField,
             strain.cu(), B1, B2, msat);
+  strain.markLastUse();
+  magnet->B1.markLastUse();
+  magnet->B2.markLastUse();
+  magnet->msat.markLastUse();
+  hField.markLastUse();
   return hField;
 }
 

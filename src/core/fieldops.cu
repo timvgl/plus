@@ -82,6 +82,9 @@ inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2) {
   }
   int ncells = y.grid().ncells();
   cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  y.markLastUse();
+  x1.markLastUse();
+  x2.markLastUse();
 }
 
 inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2, cudaStream_t s) {
@@ -97,6 +100,9 @@ inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2, cu
   }
   int ncells = y.grid().ncells();
   cudaLaunchStream(s, "fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  y.markLastUse(s);
+  x1.markLastUse(s);
+  x2.markLastUse(s);
 }
 
 inline void add(Field& y,
@@ -119,6 +125,9 @@ inline void add(Field& y,
   }
   int ncells = y.grid().ncells();
   cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  y.markLastUse();
+  x1.markLastUse();
+  x2.markLastUse();
 }
 
 
@@ -143,6 +152,9 @@ inline void add(Field& y,
   }
   int ncells = y.grid().ncells();
   cudaLaunchStream(s, "fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  y.markLastUse(s);
+  x1.markLastUse(s);
+  x2.markLastUse(s);
 }
 
 inline void add(Field& y,
@@ -171,6 +183,11 @@ inline void add(Field& y,
 
   int ncells = y.grid().ncells();
   cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), a1.cu(), x1.cu(), a2.cu(), x2.cu());
+  y.markLastUse();
+  x1.markLastUse();
+  x2.markLastUse();
+  a1.markLastUse();
+  a2.markLastUse();
 }
 
 Field add(real a1, const Field& x1, real a2, const Field& x2) {
@@ -230,6 +247,9 @@ void addTo(Field& y, const Field& a, const Field& x) {
 
   int ncells = y.grid().ncells();
   cudaLaunch("fieldops.cu", ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
+  y.markLastUse();
+  x.markLastUse();
+  a.markLastUse();
 }
 
 void addTo(Field& y, real a, const Field& x, cudaStream_t s) {
@@ -262,28 +282,9 @@ void addTo(Field& y, const Field& a, const Field& x, cudaStream_t s) {
 
   int ncells = y.grid().ncells();
   cudaLaunchStream(s, "fieldops.cu", ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
-}
-
-void addToFFT(Field& y, const Field& a, const Field& x) {
-  if (x.system() != y.system() || a.system() != y.system()) {
-    throw std::invalid_argument(
-        "Fields can not be multiplied and added together because they belong to "
-        "different systems.");
-  }
-  if (x.ncomp() != y.ncomp()) {
-    throw std::invalid_argument(
-        "Fields can not be added because they do not have the same number of "
-        "components.");
-  }
-  if (!(a.ncomp() == 1 || a.ncomp() == x.ncomp())) {
-    throw std::invalid_argument(
-        "Weights need to be scalar (1 component) or have the same number of "
-        "components as the fields."
-    );
-  }
-
-  int ncells = y.grid().ncells();
-  cudaLaunchFFT("fieldops.cu", ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
+  y.markLastUse(s);
+  x.markLastUse(s);
+  a.markLastUse(s);
 }
 
 
@@ -322,6 +323,8 @@ Field addConstant(const Field& x, real value) {
   for (int i = 0; i < x.ncomp(); i++) {
     cudaLaunch("fieldops.cu", y.grid().ncells(), k_addConstant, y.cu(), x.cu(), value, i);
   }
+  x.markLastUse();
+  y.markLastUse();
   return y;
 }
 
@@ -346,11 +349,14 @@ __global__ void k_normalize(CuField dst, const CuField src) {
 Field normalized(const Field& src) {
   Field dst(Field(src.system(), src.ncomp()));
   cudaLaunch("fieldops.cu", dst.grid().ncells(), k_normalize, dst.cu(), src.cu());
+  src.markLastUse();
+  dst.markLastUse();
   return dst;
 }
 
 void normalize(Field& f) {
   cudaLaunch("fieldops.cu", f.grid().ncells(), k_normalize, f.cu(), f.cu());
+  f.markLastUse();
 }
 
 Field operator*(real3 a, const Field& x) {
@@ -391,38 +397,14 @@ inline void multiply(Field& y, const Field& a, const Field& x) {
   }
   int ncells = y.grid().ncells();
   cudaLaunch("fieldops.cu", ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());
-}
-
-inline void multiplyFFT(Field& y, const Field& a, const Field& x) {
-  if (x.system() != y.system() || a.system() != y.system()) {
-    throw std::invalid_argument(
-        "Fields can not be added together because they belong to different "
-        "systems.");
-  }
-  if (x.ncomp() != y.ncomp()) {
-    throw std::invalid_argument(
-        "Fields can not be added because they do not have the same number of "
-        "components.");
-  }
-  if (!(a.ncomp() == 1 || a.ncomp() == x.ncomp())) {
-    throw std::invalid_argument(
-        "Weights need to be scalar (1 component) or have the same number of "
-        "components as the fields."
-    );
-  }
-  int ncells = y.grid().ncells();
-  cudaLaunchFFT("fieldops.cu", ncells, k_multiplyFields, y.cu(), a.cu(), x.cu());
+  y.markLastUse();
+  x.markLastUse();
+  a.markLastUse();
 }
 
 Field multiply(const Field& a, const Field& x) {
   Field y(x.system(), x.ncomp());
   multiply(y, a, x);
-  return y;
-}
-
-Field multiplyFFT(const Field& a, const Field& x) {
-  Field y(x.system(), x.ncomp());
-  multiplyFFT(y, a, x);
   return y;
 }
 
@@ -498,6 +480,8 @@ Field fieldGetRGB(const Field& src) {
   if (src.ncomp() == 3) {  // 3D
     Field dst =  (1./maxVecNorm(src)) * src;  // rescale to make maximum norm 1
     cudaLaunch("fieldops.cu", dst.grid().ncells(), k_fieldGetRGB, dst.cu(), dst.cu());  // src is dst
+    src.markLastUse();
+    dst.markLastUse();
     return dst;
   } else {
     throw std::invalid_argument(

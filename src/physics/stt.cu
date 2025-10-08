@@ -161,6 +161,7 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
 
   if (spinTransferTorqueAssuredZero(magnet)) {
     torque.makeZero();
+    torque.markLastUse();
     return torque;
   }
 
@@ -187,6 +188,16 @@ Field evalSpinTransferTorque(const Ferromagnet* magnet) {
   else
     cudaLaunch("sst.cu", ncells, k_Slonczewski, torque.cu(), m, msat, pol, lambda, alpha,
              jcur, epsilonPrime, fixedLayer, freeLayerThickness, frozenSpins, fixedLayerOnTop);
+  magnet->msat.markLastUse();
+  magnet->pol.markLastUse();
+  magnet->xi.markLastUse();
+  magnet->alpha.markLastUse();
+  magnet->jcur.markLastUse();
+  magnet->Lambda.markLastUse();
+  magnet->epsilonPrime.markLastUse();
+  magnet->fixedLayer.markLastUse();
+  magnet->freeLayerThickness.markLastUse();
+  magnet->frozenSpins.markLastUse();
   return torque;
 }
 

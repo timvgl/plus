@@ -19,7 +19,6 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
   Field hdemag;
   bool calcDemag = !demagFieldAssuredZero(magnet);
   if (calcDemag) {
-    checkCudaError(cudaStreamSynchronize(getCudaStream()));
     hdemag = evalDemagField(magnet);
   }
   Field h = evalExchangeField(magnet);
@@ -35,7 +34,8 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
       // Homogeneous (local) DMI term
       if (!homoDmiAssuredZero(magnet)) {h += evalHomoDmiField(magnet);}
   if (calcDemag) { 
-    checkCudaError(cudaStreamSynchronize(getCudaStreamFFT()))
+    fenceStreamToStream(getCudaStreamFFT(), getCudaStream());
+    //checkCudaError(cudaStreamSynchronize(getCudaStreamFFT()));
     addTo(h, real{1}, hdemag, getCudaStream());
   }
   checkCudaError(cudaStreamSynchronize(getCudaStream()));

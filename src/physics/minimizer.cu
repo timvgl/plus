@@ -73,6 +73,9 @@ void Minimizer::exec() {
   lastMagDiffs_.clear();
   while (!converged())
     step();
+  checkCudaError(cudaGetLastError());
+  checkCudaError(cudaStreamSynchronize(getCudaStreamGC()));
+  checkCudaError(cudaDeviceSynchronize());
 }
 
 __global__ void k_step(CuField mField,

@@ -17,6 +17,8 @@ class Parameter : public FieldQuantity, public DynamicParameter<real> {
  public:
   explicit Parameter(std::shared_ptr<const System> system, real value = 0.0,
                      std::string name = "", std::string unit = "");
+  explicit Parameter(std::shared_ptr<const System> system,  cudaStream_t s, real value = 0.0,
+                     std::string name = "", std::string unit = "");
   ~Parameter();
   
   void markLastUse() const;
@@ -40,6 +42,7 @@ class Parameter : public FieldQuantity, public DynamicParameter<real> {
 
   /** Send parameter data to the device. */
   CuParameter cu() const;
+  CuParameter cu(cudaStream_t s) const;
 
  private:
   std::shared_ptr<const System> system_;
@@ -50,7 +53,8 @@ class Parameter : public FieldQuantity, public DynamicParameter<real> {
   std::string name_;
   std::string unit_;
   mutable cudaEvent_t lastUseEvent_ = nullptr;
-  void waitForLastUse_() const;
+  cudaStream_t stream_ = nullptr;  // non-owning, borrowed
+  void scheduleGC_() const;
 
   friend CuParameter;
 };
@@ -152,7 +156,8 @@ class VectorParameter : public FieldQuantity, public DynamicParameter<real3> {
   std::string name_;
   std::string unit_;
   mutable cudaEvent_t lastUseEvent_ = nullptr;
-  void waitForLastUse_() const;
+  cudaStream_t stream_ = nullptr;  // non-owning, borrowed
+  void scheduleGC_() const;
 
   friend CuVectorParameter;
 };

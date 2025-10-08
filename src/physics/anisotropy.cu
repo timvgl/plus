@@ -328,6 +328,9 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
     auto ku2 = magnet->ku2.cu();
     cudaLaunch("anisotropy.cu", ncells, k_unianisotropyEnergyDensity, e, m,
                anisU, ku1, ku2, msat);
+    magnet->anisU.markLastUse();
+    magnet->ku1.markLastUse();
+    magnet->ku2.markLastUse();
   }
   else if(!cubicanisotropyAssuredZero(magnet)) {
     auto anisC1 = magnet->anisC1.cu();
@@ -337,6 +340,11 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
     auto kc3 = magnet->kc3.cu();
     cudaLaunch("anisotropy.cu", ncells, k_cubanisotropyEnergyDensity, e, m,
                anisC1, anisC2, kc1, kc2, kc3, msat);
+    magnet->anisC1.markLastUse();
+    magnet->anisC2.markLastUse();
+    magnet->kc1.markLastUse();
+    magnet->kc2.markLastUse();
+    magnet->kc3.markLastUse();
   }
   return edens;
 }

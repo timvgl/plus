@@ -25,6 +25,11 @@ struct DmiTensor {
 
   /** Return CuDmiTensor */
   CuDmiTensor cu() const;
+  CuDmiTensor cu(cudaStream_t s) const;      
+
+
+  void markLastUse() const;                
+  void markLastUse(cudaStream_t s) const; 
 
   /** Returns true if all 9 DMI parameters are equal to zero. */
   bool assuredZero() const;

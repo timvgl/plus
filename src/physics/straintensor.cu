@@ -100,6 +100,7 @@ Field evalStrainTensor(const Magnet* magnet) {
   Field strain(magnet->system(), 6);
   if (strainTensorAssuredZero(magnet)) {
     strain.makeZero();
+    strain.markLastUse();
     return strain;
   }
 
@@ -109,6 +110,7 @@ Field evalStrainTensor(const Magnet* magnet) {
   Grid mastergrid = magnet->world()->mastergrid();
 
   cudaLaunch("straintensor.cu", ncells, k_strainTensor, strain.cu(), u, w, mastergrid);
+  strain.markLastUse();
   return strain;
 }
 
@@ -124,6 +126,7 @@ Field evalStrainRate(const Magnet* magnet) {
   Field strainRate(magnet->system(), 6);  // symmetric 3x3 tensor
   if (strainTensorAssuredZero(magnet)) {  // same condition
     strainRate.makeZero();
+    strainRate.markLastUse();
     return strainRate;
   }
 
@@ -135,7 +138,7 @@ Field evalStrainRate(const Magnet* magnet) {
   // The math for strain rate is exactly the same as for strain tensor,
   // but applied to velocity instead of displacement.
   cudaLaunch("straintensor.cu", ncells, k_strainTensor, strainRate.cu(), v, w, mastergrid);
-
+  strainRate.markLastUse();
   return strainRate;
 }
 

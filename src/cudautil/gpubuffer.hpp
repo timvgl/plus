@@ -134,6 +134,7 @@ inline GpuBuffer<T>::GpuBuffer(int N, T* data, cudaStream_t stream_) :
 
 template <class T>
 inline GpuBuffer<T>::GpuBuffer(const GpuBuffer& other) {
+  stream_ = other.stream_;
   allocate(other.size());
   if (size_ == 0)
     return;
@@ -146,12 +147,15 @@ inline GpuBuffer<T>::GpuBuffer(GpuBuffer&& other) {
   recycle();
   ptr_ = other.ptr_;
   size_ = other.size_;
+  stream_ = other.stream_;
   other.ptr_ = nullptr;
   other.size_ = 0;
+  other.stream_ = nullptr;
 }
 
 template <class T>
 inline GpuBuffer<T>& GpuBuffer<T>::operator=(const GpuBuffer<T>& other) {
+  stream_ = other.stream_;
   allocate(other.size());
   if (size_ > 0) {
     checkCudaError(cudaMemcpyAsync(ptr_, other.ptr_, size_ * sizeof(T),
@@ -165,8 +169,10 @@ inline GpuBuffer<T>& GpuBuffer<T>::operator=(GpuBuffer<T>&& other) {
   recycle();
   ptr_ = other.ptr_;
   size_ = other.size_;
+  stream_ = other.stream_; 
   other.ptr_ = nullptr;
   other.size_ = 0;
+  other.stream_ = nullptr;
   return *this;
 }
 

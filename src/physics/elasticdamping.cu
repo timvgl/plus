@@ -31,6 +31,7 @@ Field evalElasticDamping(const Magnet* magnet) {
     Field fField(magnet->system(), 3);
     if (elasticDampingAssuredZero(magnet)) {
         fField.makeZero();
+        fField.markLastUse();
         return fField;
     }
 
@@ -39,7 +40,8 @@ Field evalElasticDamping(const Magnet* magnet) {
     CuParameter eta = magnet->eta.cu();
 
     cudaLaunch("elasticdamping.cu", ncells, k_elasticDamping, fField.cu(), vField, eta);
-
+    magnet->eta.markLastUse();
+    fField.markLastUse();
     return fField;
 }
 

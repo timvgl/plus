@@ -13,6 +13,10 @@ class LinearSystem {
   LinearSystem(const LinearSystem&) = default;
   LinearSystem(LinearSystem&&) = default;
 
+  ~LinearSystem();
+  void markLastUse();
+  void markLastUse(cudaStream_t s);
+  
   LinearSystem& operator=(const LinearSystem&) = default;
   LinearSystem& operator=(LinearSystem&&) = default;
 
@@ -30,6 +34,8 @@ class LinearSystem {
   int nnz_;
   GVec matrixval_;
   GpuBuffer<int> matrixidx_;
+  mutable cudaEvent_t lastUseEvent_ = nullptr;
+  cudaStream_t stream_ = nullptr;  // non-owning, borrowed
 };
 
 struct LinearSystem::CuData {

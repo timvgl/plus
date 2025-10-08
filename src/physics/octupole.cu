@@ -48,6 +48,7 @@ Field evalOctupoleVector(const NcAfm* magnet) {
       magnet->sub2()->msat.assuredZero() &&
       magnet->sub3()->msat.assuredZero()) {
         octupole.makeZero();
+        octupole.markLastUse();
         return octupole;
   }
   cudaLaunch("octopole.cu", octupole.grid().ncells(), k_octupolevector, octupole.cu(),
@@ -57,6 +58,10 @@ Field evalOctupoleVector(const NcAfm* magnet) {
              magnet->sub1()->msat.cu(),
              magnet->sub2()->msat.cu(),
              magnet->sub3()->msat.cu());
+  magnet->sub1()->msat.markLastUse();
+  magnet->sub2()->msat.markLastUse();
+  magnet->sub3()->msat.markLastUse();
+  octupole.markLastUse();
   return octupole;
 }
 

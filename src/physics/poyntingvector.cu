@@ -34,6 +34,7 @@ Field evalPoyntingVector(const Magnet* magnet) {
   Field poyntingField(magnet->system(), 3);
   if (elasticityAssuredZero(magnet)) {
     poyntingField.makeZero();
+    poyntingField.markLastUse();
     return poyntingField;
   }
 
@@ -42,6 +43,8 @@ Field evalPoyntingVector(const Magnet* magnet) {
   CuField velocity = magnet->elasticVelocity()->field().cu();
 
   cudaLaunch("poyntingvector.cu", ncells, k_poyntingVector, poyntingField.cu(), stress.cu(), velocity);
+  stress.markLastUse();
+  poyntingField.markLastUse();
   return poyntingField;
 }
 

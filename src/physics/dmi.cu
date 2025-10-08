@@ -439,6 +439,11 @@ Field evalDmiField(const Ferromagnet* magnet) {
     auto scale = host->scaleAfmExchNN.cu();
     cudaLaunch("dmi.cu", ncells, k_dmiFieldAFM, hField.cu(), mag, mag2,
               dmiTensor, interDmiTensor, msat, msat2, grid, aex, afmex_nn, inter, scale, BC);
+    host->afmex_nn.markLastUse();
+    host->dmiTensor.markLastUse();
+    host->interAfmExchNN.markLastUse();
+    host->scaleAfmExchNN.markLastUse();
+    host->getOtherSublattices(magnet)[0]->msat.markLastUse();
   }
   else {
     // magnet is sublatice in NcAfm
@@ -454,7 +459,17 @@ Field evalDmiField(const Ferromagnet* magnet) {
     auto scale = magnet->hostMagnet()->scaleAfmExchNN.cu();
     cudaLaunch("dmi.cu", ncells, k_dmiFieldNcAfm, hField.cu(), mag, mag2, mag3, dmiTensor,
                interDmiTensor, msat, msat2, msat3, grid, aex, ncafmex_nn, inter, scale, BC);
+    m2->msat.markLastUse();
+    m3->msat.markLastUse();
+    magnet->hostMagnet()->afmex_nn.markLastUse();
+    magnet->hostMagnet()->dmiTensor.markLastUse();
+    magnet->hostMagnet()->interAfmExchNN.markLastUse();
+    magnet->hostMagnet()->scaleAfmExchNN.markLastUse();
   }
+  hField.markLastUse();
+  magnet->msat.markLastUse();
+  magnet->aex.markLastUse();
+  magnet->dmiTensor.markLastUse();
   return hField;
 }
 

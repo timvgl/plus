@@ -1,6 +1,7 @@
 #pragma once
-#include <map>
+#include <unordered_map>
 #include <vector>
+#include <mutex>
 
 /**
  * Gpu memory pool.
@@ -55,8 +56,9 @@ class GpuMemoryPool {
   void printInfo() const;
 
  private:
-  std::map<size_t, std::vector<void*>> pool_;
-  std::map<void*, size_t> inUse_;
+  std::unordered_map<size_t, std::vector<void*>> pool_;
+  std::unordered_map<void*, size_t> inUse_;
+  mutable std::mutex m_;
 };
 
 /**
