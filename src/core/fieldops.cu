@@ -99,7 +99,7 @@ inline void add(Field& y, real a1, const Field& x1, real a2, const Field& x2, cu
         "components.");
   }
   int ncells = y.grid().ncells();
-  cudaLaunchStream(s, "fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  cudaLaunchOn(s, "fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
   y.markLastUse(s);
   x1.markLastUse(s);
   x2.markLastUse(s);
@@ -151,7 +151,7 @@ inline void add(Field& y,
     throw std::invalid_argument("Fields should have 3 components.");
   }
   int ncells = y.grid().ncells();
-  cudaLaunchStream(s, "fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
+  cudaLaunchOn(s, "fieldops.cu", ncells, k_addFields, y.cu(), a1, x1.cu(), a2, x2.cu());
   y.markLastUse(s);
   x1.markLastUse(s);
   x2.markLastUse(s);
@@ -193,37 +193,53 @@ inline void add(Field& y,
 Field add(real a1, const Field& x1, real a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
+  x1.markLastUse();
+  x2.markLastUse();
   return y;
 }
 
 Field add(real3 a1, const Field& x1, real3 a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
+  x1.markLastUse();
+  x2.markLastUse();
   return y;
 }
 
 Field add(const Field& a1, const Field& x1, const Field& a2, const Field& x2) {
   Field y(x1.system(), x1.ncomp());
   add(y, a1, x1, a2, x2);
+  a1.markLastUse();
+  x1.markLastUse();
+  a2.markLastUse();
+  x2.markLastUse();
   return y;
 }
 
 Field add(const Field& x1, const Field& x2) {
   return add(1, x1, 1, x2);
+  x1.markLastUse();
+  x2.markLastUse();
 }
 
 
 Field operator+(const Field& x1, const Field& x2) {
   return add(x1, x2);
+  x1.markLastUse();
+  x2.markLastUse();
 }
 
 void addTo(Field& y, real a, const Field& x) {
   add(y, 1, y, a, x);
+  y.markLastUse();
+  x.markLastUse();
 }
 
 void addTo(Field& y, real3 a, const Field& x) {
   real3 a0 = real3{1, 1, 1};
   add(y, a0, y, a, x);
+  y.markLastUse();
+  x.markLastUse();
 }
 
 
@@ -254,11 +270,15 @@ void addTo(Field& y, const Field& a, const Field& x) {
 
 void addTo(Field& y, real a, const Field& x, cudaStream_t s) {
   add(y, 1, y, a, x, s);
+  y.markLastUse(s);
+  x.markLastUse(s);
 }
 
 void addTo(Field& y, real3 a, const Field& x, cudaStream_t s) {
   real3 a0 = real3{1, 1, 1};
   add(y, a0, y, a, x, s);
+  y.markLastUse(s);
+  x.markLastUse(s);
 }
 
 
@@ -281,7 +301,7 @@ void addTo(Field& y, const Field& a, const Field& x, cudaStream_t s) {
   }
 
   int ncells = y.grid().ncells();
-  cudaLaunchStream(s, "fieldops.cu", ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
+  cudaLaunchOn(s, "fieldops.cu", ncells, k_addFields, y.cu(), y.cu(), a.cu(), x.cu());  // x1 = y
   y.markLastUse(s);
   x.markLastUse(s);
   a.markLastUse(s);
@@ -301,6 +321,7 @@ Field add(std::vector<const Field*> x, std::vector<real> weights) {
       addTo(y, weights.at(n), *x.at(n));
     }
   }
+  y.markLastUse();
   return y;
 }
 
@@ -363,6 +384,8 @@ Field operator*(real3 a, const Field& x) {
   Field y(x.system(), x.ncomp());
   real3 a0 = real3{0, 0, 0};
   add(y, a0, x, a, x);
+  x.markLastUse();
+  y.markLastUse();
   return y;
 }
 
@@ -405,10 +428,15 @@ inline void multiply(Field& y, const Field& a, const Field& x) {
 Field multiply(const Field& a, const Field& x) {
   Field y(x.system(), x.ncomp());
   multiply(y, a, x);
+  a.markLastUse();
+  x.markLastUse();
+  y.markLastUse();
   return y;
 }
 
 Field operator*(const Field& a, const Field& x) {
+  a.markLastUse();
+  x.markLastUse();
   return multiply(a, x);
 }
 

@@ -34,7 +34,8 @@ Field evalEffectiveField(const Ferromagnet* magnet) {
       // Homogeneous (local) DMI term
       if (!homoDmiAssuredZero(magnet)) {h += evalHomoDmiField(magnet);}
   if (calcDemag) { 
-    fenceStreamToStream(getCudaStreamFFT(), getCudaStream());
+    //fenceStreamToStream(getCudaStreamFFT(), getCudaStream());
+    hdemag.ensureReadyOn(getCudaStream());
     //checkCudaError(cudaStreamSynchronize(getCudaStreamFFT()));
     addTo(h, real{1}, hdemag, getCudaStream());
   }

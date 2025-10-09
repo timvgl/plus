@@ -206,13 +206,13 @@ Field StrayFieldFFTExecutor::exec() const {
   if (const Ferromagnet* mag = magnet_->asFM()) {
     auto m = mag->magnetization()->field().cu();
     auto ms = mag->msat.cu(stream_);
-    cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
+    cudaLaunchOn(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), m, ms);
     mag->msat.markLastUse(stream_);
   }
   else {
     auto hostmag = evalHMFullMagOn(magnet_->asHost(), stream_);
     auto ms = Parameter(magnet_->system(), stream_, 1.0);
-    cudaLaunchStream(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu(stream_));
+    cudaLaunchOn(stream_, "strayfieldfft.cu", mpad->grid().ncells(), k_pad, mpad->cu(), hostmag.cu(), ms.cu(stream_));
     hostmag.markLastUse(stream_);
     ms.markLastUse(stream_);
   }
@@ -229,11 +229,11 @@ Field StrayFieldFFTExecutor::exec() const {
     // if the h field and m field are two dimensional AND are in the same plane
     // (kernel grid origin at z=0) then the kernel matrix has only 4 relevant
     // components and a more efficient cuda kernel can be used:
-    cudaLaunchStream(stream_, "strayfieldfft.cu", ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunchOn(stream_, "strayfieldfft.cu", ncells, k_apply_kernel_2d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), preFactor, ncells);
   } else {
-    cudaLaunchStream(stream_, "strayfieldfft.cu", ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
+    cudaLaunchOn(stream_, "strayfieldfft.cu", ncells, k_apply_kernel_3d, hfft.at(0), hfft.at(1), hfft.at(2),
                mfft.at(0), mfft.at(1), mfft.at(2), kfft.at(0), kfft.at(1),
                kfft.at(2), kfft.at(3), kfft.at(4), kfft.at(5), preFactor,
                ncells);
@@ -243,7 +243,7 @@ Field StrayFieldFFTExecutor::exec() const {
     checkCufftResult(
       ifftExec(backwardPlan, hfft.at(comp), mpad->device_ptr(comp)));
   Field h(system_, 3, stream_);
-  cudaLaunchStream(stream_, "strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
+  cudaLaunchOn(stream_, "strayfieldfft.cu", h.grid().ncells(), k_unpad, h.cu(), mpad->cu());
   mpad->markLastUse(stream_);
   h.markLastUse(stream_);
   return h;

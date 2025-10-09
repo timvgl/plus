@@ -34,6 +34,7 @@ class Field : public FieldQuantity {
 
     void markLastUse(cudaStream_t stream) const;
     void markLastUse() const;
+    void ensureReadyOn(cudaStream_t consumer) const;
 
     Field eval() const override;
 

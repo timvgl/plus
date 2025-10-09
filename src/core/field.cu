@@ -76,6 +76,12 @@ Field::~Field() {
   }
 }
 
+void Field::ensureReadyOn(cudaStream_t consumer) const {
+  if (lastUseEvent_) {
+    checkCudaError(cudaStreamWaitEvent(consumer, lastUseEvent_, 0));
+  }
+}
+
 
 void Field::markLastUse() const {
   if (!lastUseEvent_) {
@@ -419,24 +425,24 @@ __global__ void k_setVectorValueInRegion(CuField f, real3 value, unsigned int re
 }
 
 void Field::setUniformComponent(int comp, real value) {
-  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
+  cudaLaunchOn(stream_, "field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformComponent(int comp, real value, cudaStream_t s) {
-  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
+  cudaLaunchOn(s, "field.cu", grid().ncells(), k_setComponent, cu(), value, comp);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformComponentInRegion(unsigned int regionIdx, int comp, real value) {
   system_->checkIdxInRegions(regionIdx);
-  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
+  cudaLaunchOn(stream_, "field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformComponentInRegion(unsigned int regionIdx, int comp, real value, cudaStream_t s) {
   system_->checkIdxInRegions(regionIdx);
-  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
+  cudaLaunchOn(s, "field.cu", grid().ncells(), k_setComponentInRegion, cu(), value, comp, regionIdx);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
@@ -452,12 +458,12 @@ void Field::setUniformValue(real value, cudaStream_t s) {
 
 
 void Field::setUniformValue(real3 value) {
-  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setVectorValue, cu(), value);
+  cudaLaunchOn(stream_, "field.cu", grid().ncells(), k_setVectorValue, cu(), value);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformValue(real3 value, cudaStream_t s) {
-  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setVectorValue, cu(), value);
+  cudaLaunchOn(s, "field.cu", grid().ncells(), k_setVectorValue, cu(), value);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
@@ -475,13 +481,13 @@ void Field::setUniformValueInRegion(unsigned int regionIdx, real value, cudaStre
 
 void Field::setUniformValueInRegion(unsigned int regionIdx, real3 value) {
   system_->checkIdxInRegions(regionIdx);
-  cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
+  cudaLaunchOn(stream_, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
 void Field::setUniformValueInRegion(unsigned int regionIdx, real3 value, cudaStream_t s) {
   system_->checkIdxInRegions(regionIdx);
-  cudaLaunchStream(s, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
+  cudaLaunchOn(s, "field.cu", grid().ncells(), k_setVectorValueInRegion, cu(), value, regionIdx);
   //checkCudaError(cudaDeviceSynchronize());
 }
 
@@ -505,7 +511,7 @@ void Field::setZeroOutsideGeometry() {
   if (!system_)
     return;
   if (system_->geometry().size() > 0)
-    cudaLaunchStream(stream_, "field.cu", grid().ncells(), k_setZeroOutsideGeometry, cu());
+    cudaLaunchOn(stream_, "field.cu", grid().ncells(), k_setZeroOutsideGeometry, cu());
     //checkCudaError(cudaDeviceSynchronize());
 }
 
