@@ -77,7 +77,7 @@ Field evalTotalEnergyDensity(const Ferromagnet* magnet) {
   if (!kineticEnergyAssuredZero(magnet)) {edens += evalKineticEnergyDensity(magnet);}
   if (!elasticityAssuredZero(magnet)) {edens += evalElasticEnergyDensity(magnet);}
   if (calcDemag) {
-    fenceStreamToStream(getCudaStreamFFT(), getCudaStream());
+    edemag.ensureReadyOn(getCudaStream());
     addTo(edens, real{1}, edemag, getCudaStream());
   }
   checkCudaError(cudaStreamSynchronize(getCudaStream()));

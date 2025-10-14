@@ -525,7 +525,7 @@ Field& Field::operator-=(const Field& other) {
   return *this;
 }
 
-Field& Field::operator+=(const FieldQuantity& q) {
+/* Field& Field::operator+=(const FieldQuantity& q) {
   if (!q.assuredZero())
     addTo(*this, 1, q.eval());
   return *this;
@@ -534,5 +534,25 @@ Field& Field::operator+=(const FieldQuantity& q) {
 Field& Field::operator-=(const FieldQuantity& q) {
   if (!q.assuredZero())
     addTo(*this, -1, q.eval());
+  return *this;
+} */
+
+Field& Field::operator+=(const FieldQuantity& q) {
+  if (!q.assuredZero()) {
+    cudaStream_t s = this->getStream(); // oder getCudaStream()
+    Field tmp = q.eval();               // TEMP, lebt nur in dieser Zeile
+    addTo(*this, 1, tmp, s);            // Kernel auf s
+    tmp.markLastUse(s);                 // TEMP bis Kernel fertig
+  }
+  return *this;
+}
+
+Field& Field::operator-=(const FieldQuantity& q) {
+  if (!q.assuredZero()) {
+    cudaStream_t s = this->getStream();
+    Field tmp = q.eval();
+    addTo(*this, -1, tmp, s);
+    tmp.markLastUse(s);
+  }
   return *this;
 }
