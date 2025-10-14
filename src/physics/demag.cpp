@@ -21,7 +21,12 @@ Field evalDemagField(const Ferromagnet* magnet) {
 Field evalDemagEnergyDensity(const Ferromagnet* magnet) {
   if (demagFieldAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalDemagField(magnet), 0.5);
+  Field hdemag = evalDemagField(magnet);
+  hdemag.ensureReadyOn(getCudaStream());
+  Field edens = evalEnergyDensity(magnet, hdemag, 0.5);
+  hdemag.markLastUse();
+  edens.markLastUse();
+  return edens;
 }
 
 real evalDemagEnergy(const Ferromagnet* magnet) {
