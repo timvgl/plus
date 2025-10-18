@@ -62,8 +62,19 @@ Field::~Field() {
   cudaStream_t s_reaper = getCudaStreamGC();
 
   if (cap->lastUseEvent) {
+    //printf("Field destructor: waiting for lastUseEvent on reaper stream.\n");
     checkCudaError(cudaStreamWaitEvent(s_reaper, cap->lastUseEvent, 0));
-  }
+  } /* else {
+    if (stream_){
+      if (stream_ == getCudaStream()) {
+        printf("Warning: Field destructor has no lastUseEvent on main stream, possiblely unsafe reaping.\n");
+      } else {
+        printf("Warning: Field destructor has no lastUseEvent on FFT stream, possiblely unsafe reaping.\n");
+      }
+    } else {
+      printf("Warning: Field destructor has no lastUseEvent, possiblely unsafe reaping.\n");
+    }
+  } */
 
   cudaError_t st = cudaLaunchHostFunc(s_reaper, field_cleanup_cb, cap);
   if (st != cudaSuccess) {
@@ -348,22 +359,26 @@ std::vector<real> Field::getData() const {
 }
 
 void Field::setData(const real* buffer) {
+  ensureReadyOn(stream_);
   for (int c = 0; c < ncomp_; c++) {
     auto bufferComponent = buffer + c * grid().ncells();
     checkCudaError(cudaMemcpyAsync(buffers_[c].get(), bufferComponent,
                                    grid().ncells() * sizeof(real),
                                    cudaMemcpyHostToDevice, stream_));
   }
+  markLastUse(stream_);
   setZeroOutsideGeometry();
 }
 
 void Field::setData(const real* buffer, cudaStream_t s) {
+  ensureReadyOn(stream_);
   for (int c = 0; c < ncomp_; c++) {
     auto bufferComponent = buffer + c * grid().ncells();
     checkCudaError(cudaMemcpyAsync(buffers_[c].get(), bufferComponent,
                                    grid().ncells() * sizeof(real),
                                    cudaMemcpyHostToDevice, s));
   }
+  markLastUse(stream_);
   setZeroOutsideGeometry();
 }
 

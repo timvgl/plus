@@ -50,6 +50,7 @@ Field evalEnergyDensity(const Ferromagnet* magnet,
              magnet->msat.cu(), prefactor);
   magnet->msat.markLastUse();
   edens.markLastUse();
+  h.markLastUse();
   return edens;
 }
 

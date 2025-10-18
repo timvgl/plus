@@ -46,6 +46,7 @@ Field evalKineticEnergyDensity(const Magnet* magnet) {
   CuParameter rho = magnet->rho.cu();
   cudaLaunch("elasticenergies.cu", ncells, k_kineticEnergyDensity, kinField.cu(), velocity, rho);
   magnet->rho.markLastUse();
+  kinField.markLastUse();
   return kinField;
 }
 

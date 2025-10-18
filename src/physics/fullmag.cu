@@ -43,10 +43,10 @@ Field evalHMFullMagOn(const HostMagnet* magnet, cudaStream_t stream_) {
   for (int i = 1; i < (int)sublattices.size(); ++i) {
     Field msi = sublattices[i]->msat.eval(stream_); 
     const Field& mi = sublattices[i]->magnetization()->field();
-    addTo(result, msi, mi);
-    msi.markLastUse();
+    addTo(result, msi, mi, stream_);
+    msi.markLastUse(stream_);
   }
-  result.markLastUse();
+  result.markLastUse(stream_);
   return result;
 }
 

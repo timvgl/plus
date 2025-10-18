@@ -164,7 +164,11 @@ Field evalMagnetoelasticField(const Ferromagnet* magnet) {
 Field evalMagnetoelasticEnergyDensity(const Ferromagnet* magnet) {
   if (magnetoelasticAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalMagnetoelasticField(magnet), 0.5);
+  Field hmel = evalMagnetoelasticField(magnet);
+  Field emel = evalEnergyDensity(magnet, hmel, 0.5);
+  hmel.markLastUse();
+  emel.markLastUse();
+  return emel;
 }
 
 real evalMagnetoelasticEnergy(const Ferromagnet* magnet) {

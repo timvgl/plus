@@ -476,8 +476,11 @@ Field evalDmiField(const Ferromagnet* magnet) {
 Field evalDmiEnergyDensity(const Ferromagnet* magnet) {
   if (inhomoDmiAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-
-  return evalEnergyDensity(magnet, evalDmiField(magnet), 0.5);
+  Field hdmi = evalDmiField(magnet);
+  Field edmi = evalEnergyDensity(magnet, hdmi, 0.5);
+  hdmi.markLastUse();
+  edmi.markLastUse();
+  return edmi;
 }
 
 real evalDmiEnergy(const Ferromagnet* magnet) {

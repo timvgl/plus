@@ -346,6 +346,8 @@ Field evalAnisotropyEnergyDensity(const Ferromagnet* magnet) {
     magnet->kc2.markLastUse();
     magnet->kc3.markLastUse();
   }
+  magnet->msat.markLastUse();
+  edens.markLastUse();
   return edens;
 }
 

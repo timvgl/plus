@@ -95,7 +95,11 @@ Field evalExternalField(const Ferromagnet* magnet) {
 Field evalZeemanEnergyDensity(const Ferromagnet* magnet) {
   if (externalFieldAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalExternalField(magnet), 1.0);
+  Field h_ext = evalExternalField(magnet);
+  Field eext = evalEnergyDensity(magnet, h_ext, 1.0);
+  h_ext.markLastUse();
+  eext.markLastUse();
+  return eext;
 }
 
 real zeemanEnergy(const Ferromagnet* magnet) {

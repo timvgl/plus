@@ -227,13 +227,21 @@ Field evalInHomogeneousAfmExchangeField(const Ferromagnet* magnet) {
 Field evalInHomoAfmExchangeEnergyDensity(const Ferromagnet* magnet) {
   if (inHomoAfmExchangeAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalInHomogeneousAfmExchangeField(magnet), 0.5);
+  Field hInHomoAfm = evalInHomogeneousAfmExchangeField(magnet);
+  Field eInHomoAfm = evalEnergyDensity(magnet, hInHomoAfm, 0.5);
+  hInHomoAfm.markLastUse();
+  eInHomoAfm.markLastUse();
+  return eInHomoAfm;
 }
 
 Field evalHomoAfmExchangeEnergyDensity(const Ferromagnet* magnet) {
   if (homoAfmExchangeAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalHomogeneousAfmExchangeField(magnet), 0.5);
+  Field hHomoAfm = evalHomogeneousAfmExchangeField(magnet);
+  Field eHomoAfm = evalEnergyDensity(magnet, hHomoAfm, 0.5);
+  hHomoAfm.markLastUse();
+  eHomoAfm.markLastUse();
+  return eHomoAfm;
 }
 
 real evalInHomoAfmExchangeEnergy(const Ferromagnet* magnet) {

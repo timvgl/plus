@@ -11,3 +11,16 @@ __pycache__
 sandbox/
 experiment/
 **.swp
+merged/cudautil.txt
+merged/core.txt
+merged/cmd.txt
+merged/linsolver.txt
+merged/physics.txt
+merged_project_part01.txt
+merged_project_part02.txt
+merged_project_part03.txt
+merged_project_part04.txt
+tester/analyze_GPU.py
+tester/performance_tester.py
+tester/sim_tester.py
+merge_project.py

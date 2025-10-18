@@ -97,13 +97,14 @@ const std::vector<real> InterParameter::eval() const {
   return valuesBuffer_.getData();
 }
 
-__global__ void k_set(real* values, real value) {
+__global__ void k_set(real* values, real value, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (idx >= N) return;
   values[idx] = value;
 }
 
 void InterParameter::setBuffer(real value) {
-  cudaLaunch("inter_parameter.cu", valuesLimit_, k_set, valuesBuffer_.get(), value);
+  cudaLaunch("inter_parameter.cu", valuesLimit_, k_set, valuesBuffer_.get(), value, static_cast<int>(valuesLimit_));
   //checkCudaError(cudaDeviceSynchronize());
 }
 
@@ -133,7 +134,7 @@ void InterParameter::set(real value) {
   return;
 } */
 
-void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
+/* void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
   // Falls uniform → neuen Buffer anlegen und mit uniformValue_ füllen
   if (isUniform()) {
     // alter (leer) Buffer hat nichts zu GCen, aber falls ein Event gesetzt war, einfach löschen
@@ -154,6 +155,7 @@ void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
       checkCudaError(cudaMemcpyAsync(fresh.get(), valuesBuffer_.get(),
                                      valuesLimit_*sizeof(real),
                                      cudaMemcpyDeviceToDevice, stream_));
+      
       scheduleBufGC_();
       valuesBuffer_ = std::move(fresh);
     }
@@ -164,7 +166,68 @@ void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
   checkCudaError(cudaMemcpyAsync(valuesBuffer_.get() + idx, &value, sizeof(real),
                                  cudaMemcpyHostToDevice, stream_));
 }
+ */
 
+void InterParameter::setBetween(unsigned int i, unsigned int j, real value) {
+  system_->checkIdxInRegions(i);
+  system_->checkIdxInRegions(j);
+  if (i == j) {
+    throw std::invalid_argument("Can not set " + name_
+            + ", region indexes must be different: " + std::to_string(i) + ".");
+  }
+  const size_t bytes = valuesLimit_ * sizeof(real);
+
+  if (isUniform()) {
+    // Event wegräumen
+    if (lastUseEvent_) { cudaEventDestroy(lastUseEvent_); lastUseEvent_ = nullptr; }
+    // neuen aktiven Buffer anlegen & füllen
+    valuesBuffer_ = GpuBuffer<real>(valuesLimit_, stream_);
+    std::vector<real> tmp(valuesLimit_, uniformValue_);
+    checkCudaError(cudaMemcpyAsync(valuesBuffer_.get(), tmp.data(), bytes,
+                                   cudaMemcpyHostToDevice, stream_));
+  } else {
+    // 1) alte Nutzer fertig?
+    if (lastUseEvent_) {
+      checkCudaError(cudaStreamWaitEvent(stream_, lastUseEvent_, 0));
+    }
+
+    // 2) alten Buffer herauslösen + fresh anlegen + D2D-Kopie
+    GpuBuffer<real> old = std::move(valuesBuffer_);
+    GpuBuffer<real> fresh(valuesLimit_, stream_);
+    checkCudaError(cudaMemcpyAsync(fresh.get(), old.get(), bytes,
+                                   cudaMemcpyDeviceToDevice, stream_));
+
+    // 3) Copy-done-Event aufnehmen (auf stream_)
+    cudaEvent_t copy_done = nullptr;
+    checkCudaError(cudaEventCreateWithFlags(&copy_done, cudaEventDisableTiming));
+    checkCudaError(cudaEventRecord(copy_done, stream_));
+
+    // 4) Dem alten GC die „retiring“-Members hinlegen:
+    //    - valuesBuffer_ zeigt wieder auf OLD
+    //    - lastUseEvent_ zeigt auf copy_done
+    valuesBuffer_ = std::move(old);
+    if (lastUseEvent_) { cudaEventDestroy(lastUseEvent_); } // aufräumen, wird ersetzt
+    lastUseEvent_ = copy_done;
+
+    //    -> GC liest Members, wartet auf lastUseEvent_ (copy_done), gibt Buffer frei
+    scheduleBufGC_();
+
+    // 5) neuen aktiven Buffer einsetzen
+    valuesBuffer_ = std::move(fresh);
+    lastUseEvent_ = nullptr; // gleich neu recorden (nach dem Patch)
+  }
+
+  // 6) Einzelwert patchen
+  int idx = getLutIndex(i, j);
+  checkCudaError(cudaMemcpyAsync(valuesBuffer_.get() + idx, &value, sizeof(real),
+                                 cudaMemcpyHostToDevice, stream_));
+
+  // 7) neues lastUseEvent_ für den **aktuellen aktiven** Buffer recorden
+  if (!lastUseEvent_) {
+    checkCudaError(cudaEventCreateWithFlags(&lastUseEvent_, cudaEventDisableTiming));
+  }
+  checkCudaError(cudaEventRecord(lastUseEvent_, stream_));
+}
 
 real InterParameter::getUniformValue() const {
   if (!isUniform()) {

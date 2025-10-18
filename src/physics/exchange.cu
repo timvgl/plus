@@ -301,7 +301,11 @@ Field evalExchangeField(const Ferromagnet* magnet) {
 Field evalExchangeEnergyDensity(const Ferromagnet* magnet) {
   if (exchangeAssuredZero(magnet))
     return Field(magnet->system(), 1, 0.0);
-  return evalEnergyDensity(magnet, evalExchangeField(magnet), 0.5);
+  Field hex = evalExchangeField(magnet);
+  Field eex = evalEnergyDensity(magnet, hex, 0.5);
+  hex.markLastUse();
+  eex.markLastUse();
+  return eex;
 }
 
 real evalExchangeEnergy(const Ferromagnet* magnet) {
