@@ -13,6 +13,7 @@ void cudaLaunch(std::string src, int N,
                 Arguments... args) {
 
   int BLOCKDIM_local;
+  (void)cudaGetLastError();
   if (src != "strayfieldkernel.cu") {
     BLOCKDIM_local = BLOCKDIM;
   } else {
