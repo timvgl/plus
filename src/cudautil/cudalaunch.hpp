@@ -24,7 +24,13 @@ void cudaLaunch(std::string src, int N,
   dim3 gridDims((N + blockDims.x - 1) / blockDims.x);
   cudaStream_t s0 = getCudaStream();
   kernelfunction<<<gridDims, blockDims, 0, s0>>>(args...);
-  checkCudaError(cudaPeekAtLastError());
+  auto err = cudaGetLastError();
+  if (err != cudaSuccess) {
+    fprintf(stderr,
+            "CUDA launch error after %s: %s (grid=%u, block=%u)\n",
+            src.c_str(), cudaGetErrorString(err), gridDims.x, blockDims.x);
+    abort();
+  }
   //checkCudaError(cudaDeviceSynchronize());
 }
 

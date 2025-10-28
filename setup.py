@@ -57,8 +57,7 @@ class CMakeBuild(build_ext):
             build_args += ["--", "-j12"]
 
         env = os.environ.copy()
-        env["CXXFLAGS"] = '{} -DVERSION_INFO=\\"{}\\"'.format(
-            env.get("CXXFLAGS", ""), self.distribution.get_version()
+        env["CXXFLAGS"] = '{} -DVERSION_INFO=\\"{}\\" -static-libstdc++ -static-libgcc -Wl,--enable-new-dtags -Wl,-rpath,$ORIGIN'.format(            env.get("CXXFLAGS", ""), self.distribution.get_version()
         )
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
